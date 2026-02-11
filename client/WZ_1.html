@@ -1,0 +1,1442 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WasteZero - Smart Waste Pickup &amp; Recycling Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    footer {
+      flex-shrink: 0;
+      width: 100%;
+    }
+
+    /* Navigation Styles */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+      z-index: 1000;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .navbar-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .nav-menu {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-item {
+      position: relative;
+    }
+
+    .nav-link {
+      padding: 0.6rem 1rem;
+      color: #374151;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+      border-bottom: 2px solid #10b981;
+    }
+
+    .nav-btn {
+      padding: 0.6rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+    }
+
+    .nav-btn-primary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      margin-left: 0.5rem;
+    }
+
+    .nav-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
+
+    .nav-btn-secondary {
+      color: #10b981;
+      border: 2px solid #10b981;
+      background: transparent;
+      margin-right: 0.5rem;
+    }
+
+    .nav-btn-secondary:hover {
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+    }
+
+    section {
+      scroll-margin-top: 100px;
+    }
+
+    .section-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    section:last-of-type {
+      margin-bottom: 2rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 50%, #f0fdf4 100%);
+      padding: 6rem 2rem;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-content {
+      max-width: 900px;
+      z-index: 10;
+      position: relative;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: #1f2937;
+      margin: 0 0 1rem 0;
+      line-height: 1.2;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 1.5rem;
+      color: #10b981;
+      font-weight: 600;
+      margin: 0.5rem 0 1.5rem 0;
+    }
+
+    .hero-description {
+      font-size: 1.1rem;
+      color: #4b5563;
+      margin: 1.5rem 0 3rem 0;
+      line-height: 1.8;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 1rem 2.5rem;
+      border: none;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #10b981;
+      border: 2px solid #10b981;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(16, 185, 129, 0.1);
+      transform: translateY(-3px);
+    }
+
+    /* Section Styling */
+    .section-title {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: #1f2937;
+      text-align: center;
+      margin-bottom: 3rem;
+      position: relative;
+      padding-bottom: 1.5rem;
+    }
+
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 2px;
+    }
+
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: #6b7280;
+      text-align: center;
+      margin-top: -1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    /* Alternating Backgrounds */
+    .bg-light {
+      background: #ffffff;
+    }
+
+    .bg-accent {
+      background: linear-gradient(135deg, #f0fdf4 0%, #f3f4f6 100%);
+    }
+
+    .bg-dark {
+      background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+      color: white;
+    }
+
+    .bg-dark .section-title {
+      color: white;
+    }
+
+    /* Feature Card */
+    .feature-card {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(16, 185, 129, 0.1);
+      height: 100%;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(16, 185, 129, 0.2);
+      border-color: #10b981;
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 1.5rem;
+      color: #1f2937;
+      margin: 1rem 0;
+      font-weight: 700;
+    }
+
+    .feature-card p {
+      color: #6b7280;
+      line-height: 1.8;
+      margin: 0;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    /* Stats Section */
+    .stat-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      border-left: 4px solid #10b981;
+      transition: all 0.3s ease;
+    }
+
+    .stat-box:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #10b981;
+      margin: 1rem 0;
+    }
+
+    .stat-label {
+      color: #6b7280;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .stat-box.alt {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border-left-color: white;
+    }
+
+    .stat-box.alt .stat-number {
+      color: white;
+    }
+
+    .stat-box.alt .stat-label {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* List with Icons */
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .feature-list li {
+      padding: 1rem 0;
+      color: #4b5563;
+      font-size: 1.05rem;
+      border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .feature-list li:last-child {
+      border-bottom: none;
+    }
+
+    .feature-list li::before {
+      content: '✓';
+      color: #10b981;
+      font-weight: bold;
+      font-size: 1.5rem;
+      margin-top: -0.2rem;
+      flex-shrink: 0;
+    }
+
+    /* Content Sections */
+    .content-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      border-left: 4px solid #10b981;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .content-box h4 {
+      color: #10b981;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-top: 0;
+    }
+
+    /* Footer */
+    footer {
+      background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+      color: white;
+      padding: 3rem 2rem 1rem;
+      margin-top: 0;
+      flex-shrink: 0;
+      width: 100%;
+      border-top: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .footer-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .footer-section h5 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: #10b981;
+      font-weight: 700;
+    }
+
+    .footer-section ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-section li {
+      margin-bottom: 0.7rem;
+    }
+
+    .footer-section a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: color 0.3s ease;
+      font-size: 0.95rem;
+    }
+
+    .footer-section a:hover {
+      color: #10b981;
+    }
+
+    .social-icons {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .social-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #10b981;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-weight: bold;
+    }
+
+    .social-icon:hover {
+      background: #10b981;
+      color: white;
+      transform: translateY(-3px);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(16, 185, 129, 0.2);
+      padding-top: 2rem;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .navbar-content {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .nav-menu {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.25rem;
+      }
+
+      .nav-link {
+        width: 100%;
+        text-align: left;
+        padding: 0.5rem 1rem;
+      }
+
+      .hero {
+        padding: 4rem 2rem;
+      }
+
+      .hero-title {
+        font-size: 2.2rem;
+      }
+
+      .hero-subtitle {
+        font-size: 1.2rem;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .section-container {
+        padding: 2.5rem 1.5rem;
+      }
+
+      .section-title {
+        font-size: 2rem;
+      }
+
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-4 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Smooth Scroll Behavior */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Highlights & Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.5rem 1.25rem;
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border-radius: 2rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in-up {
+      animation: fadeInUp 0.6s ease-out;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="bg-gray-50"><!-- TOP NAVIGATION BAR (STICKY) -->
+  <nav class="navbar">
+   <div class="navbar-content"><!-- Logo -->
+    <div class="logo" onclick="scrollToSection('home')">
+     ♻ WasteZero
+    </div><!-- Navigation Menu -->
+    <ul class="nav-menu">
+     <li class="nav-item"><a onclick="scrollToSection('home')" class="nav-link active" data-section="home">Home</a></li>
+     <li class="nav-item"><a onclick="scrollToSection('about')" class="nav-link" data-section="about">About</a></li>
+     <li class="nav-item"><a onclick="scrollToSection('users')" class="nav-link" data-section="users">User Management</a></li>
+     <li class="nav-item"><a onclick="scrollToSection('pickup')" class="nav-link" data-section="pickup">Waste Pickup</a></li>
+     <li class="nav-item"><a onclick="scrollToSection('opportunities')" class="nav-link" data-section="opportunities">Opportunities</a></li>
+     <li class="nav-item"><a onclick="scrollToSection('matching')" class="nav-link" data-section="matching">Matching &amp; Communication</a></li>
+     <li class="nav-item"><a onclick="scrollToSection('admin')" class="nav-link" data-section="admin">Admin &amp; Reports</a></li>
+     <li class="nav-item"><a onclick="scrollToSection('dashboard')" class="nav-link" data-section="dashboard">Dashboard</a></li><button class="nav-btn nav-btn-secondary">Login</button> <button class="nav-btn nav-btn-primary">Register</button>
+    </ul>
+   </div>
+  </nav><!-- MAIN CONTENT -->
+  <main><!-- HOME / HERO SECTION -->
+   <section id="home" class="hero">
+    <div class="hero-content">
+     <h1 class="hero-title">Waste<span>Zero</span></h1>
+     <p class="hero-subtitle">Smart Waste Pickup &amp; Recycling Platform</p>
+     <p class="hero-description">WasteZero is an innovative platform designed to revolutionize waste management. Schedule intelligent waste pickups, categorize waste properly, connect with NGOs and volunteers, receive real-time notifications, and track your environmental impact in real-time.</p>
+     <div class="btn-group"><button class="btn btn-primary" onclick="scrollToSection('pickup')">📅 Schedule Waste Pickup</button> <button class="btn btn-secondary" onclick="scrollToSection('opportunities')">🤝 Join as Volunteer</button>
+     </div>
+    </div>
+   </section><!-- ABOUT SECTION -->
+   <section id="about" class="bg-light">
+    <div class="section-container">
+     <h2 class="section-title">About WasteZero</h2>
+     <p class="section-subtitle">An Academic Project Focused on Sustainable Waste Management</p>
+     <div class="grid grid-3">
+      <div class="feature-card"><span class="feature-icon">🎯</span>
+       <h3>Project Goal</h3>
+       <p>Promote responsible waste management by creating an intelligent platform that connects users, volunteers, and NGOs to streamline waste collection and recycling processes.</p>
+      </div>
+      <div class="feature-card"><span class="feature-icon">♻️</span>
+       <h3>Core Mission</h3>
+       <p>Enable smart pickup scheduling, facilitate waste categorization, support volunteer engagement, and provide comprehensive analytics for environmental impact tracking.</p>
+      </div>
+      <div class="feature-card"><span class="feature-icon">📊</span>
+       <h3>Vision</h3>
+       <p>Build a sustainable ecosystem where every waste item is properly handled, recycled responsibly, and every participant contributes to a cleaner environment.</p>
+      </div>
+     </div>
+     <div class="content-box" style="margin-top: 3rem;">
+      <h4>Platform Overview</h4>
+      <p>WasteZero is designed as an academic/internship project to demonstrate modern web development practices, database management, real-time communication, and business logic implementation. The platform serves as a complete solution for waste management coordination with separate interfaces for end-users, volunteers, NGOs, and administrators.</p>
+     </div>
+    </div>
+   </section><!-- USER MANAGEMENT SECTION -->
+   <section id="users" class="bg-accent">
+    <div class="section-container">
+     <h2 class="section-title">User Management System</h2>
+     <p class="section-subtitle">Secure authentication and role-based access control</p>
+     <div class="grid grid-2">
+      <div class="feature-card"><span class="feature-icon">👤</span>
+       <h3>User Registration &amp; Login</h3>
+       <ul class="feature-list">
+        <li>Email-based registration and authentication</li>
+        <li>Secure password encryption</li>
+        <li>Two-factor authentication support</li>
+        <li>Password recovery and reset functionality</li>
+        <li>Session management and logout</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">🔐</span>
+       <h3>Role-Based Access Control</h3>
+       <ul class="feature-list">
+        <li><strong>User:</strong> Schedule pickups, track history</li>
+        <li><strong>Volunteer:</strong> View and apply for opportunities</li>
+        <li><strong>NGO:</strong> Create and manage opportunities</li>
+        <li><strong>Admin:</strong> Monitor platform, generate reports</li>
+        <li>Customized dashboards per role</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">📝</span>
+       <h3>Profile Management</h3>
+       <ul class="feature-list">
+        <li>Complete user profile creation</li>
+        <li>Edit personal information and preferences</li>
+        <li>Upload profile pictures and documents</li>
+        <li>Manage contact details</li>
+        <li>View account activity history</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">🛡️</span>
+       <h3>Security Features</h3>
+       <ul class="feature-list">
+        <li>Secure API authentication (JWT tokens)</li>
+        <li>Data encryption in transit and at rest</li>
+        <li>HTTPS/SSL implementation</li>
+        <li>Brute-force attack prevention</li>
+        <li>Regular security audits</li>
+       </ul>
+      </div>
+     </div>
+    </div>
+   </section><!-- WASTE PICKUP MANAGEMENT SECTION -->
+   <section id="pickup" class="bg-light">
+    <div class="section-container">
+     <h2 class="section-title">Waste Pickup Management</h2>
+     <p class="section-subtitle">Intelligent scheduling and waste categorization system</p>
+     <div class="grid grid-2">
+      <div class="feature-card"><span class="feature-icon">📅</span>
+       <h3>Smart Pickup Scheduling</h3>
+       <ul class="feature-list">
+        <li>Schedule pickups at your convenience</li>
+        <li>Multiple time slot options available</li>
+        <li>Real-time availability checking</li>
+        <li>Automatic confirmation notifications</li>
+        <li>Reschedule or cancel pickups anytime</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">🗂️</span>
+       <h3>Waste Categorization</h3>
+       <ul class="feature-list">
+        <li><strong>Plastic:</strong> Bottles, bags, containers</li>
+        <li><strong>Organic:</strong> Food waste, garden waste</li>
+        <li><strong>E-Waste:</strong> Electronics, old devices</li>
+        <li><strong>Paper:</strong> Newspapers, cardboard, books</li>
+        <li><strong>Mixed:</strong> Combined waste types</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">📊</span>
+       <h3>Pickup History &amp; Tracking</h3>
+       <ul class="feature-list">
+        <li>Complete pickup history per user</li>
+        <li>Track waste quantities collected</li>
+        <li>View assigned pickup agent details</li>
+        <li>Delivery confirmation status</li>
+        <li>Environmental impact metrics</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">📍</span>
+       <h3>Intelligent Agent Assignment</h3>
+       <ul class="feature-list">
+        <li>Location-based agent matching</li>
+        <li>Optimize pickup routes</li>
+        <li>Agent availability consideration</li>
+        <li>Load balancing system</li>
+        <li>Efficiency score calculation</li>
+       </ul>
+      </div>
+     </div>
+    </div>
+   </section><!-- OPPORTUNITY MANAGEMENT SECTION -->
+   <section id="opportunities" class="bg-accent">
+    <div class="section-container">
+     <h2 class="section-title">Volunteering Opportunities</h2>
+     <p class="section-subtitle">NGOs and users connect through meaningful environmental initiatives</p>
+     <div class="grid grid-3">
+      <div class="feature-card"><span class="feature-icon">🌱</span>
+       <h3>Opportunity Creation</h3>
+       <p>NGOs can create new volunteer opportunities with detailed descriptions, required skills, duration, location, and expected impact metrics.</p>
+       <ul class="feature-list">
+        <li>Create new opportunities</li>
+        <li>Set skill requirements</li>
+        <li>Define duration &amp; schedule</li>
+        <li>Set location &amp; capacity</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">✏️</span>
+       <h3>Opportunity Management</h3>
+       <p>Full lifecycle management of volunteer opportunities with ability to update details, track applications, and manage participant lists.</p>
+       <ul class="feature-list">
+        <li>Update opportunity details</li>
+        <li>Manage volunteer applications</li>
+        <li>Set completion status</li>
+        <li>Collect feedback &amp; reviews</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">🔍</span>
+       <h3>Volunteer Discovery</h3>
+       <p>Users can browse, search, and filter volunteering opportunities based on their interests, skills, and availability.</p>
+       <ul class="feature-list">
+        <li>Search &amp; filter opportunities</li>
+        <li>View detailed descriptions</li>
+        <li>Check location &amp; schedule</li>
+        <li>Apply for opportunities</li>
+       </ul>
+      </div>
+     </div><!-- Sample Opportunities -->
+     <div style="margin-top: 4rem;">
+      <h3 style="text-align: center; font-size: 1.8rem; color: #1f2937; margin-bottom: 2rem;">Featured Opportunities</h3>
+      <div class="grid grid-3">
+       <div class="feature-card"><span style="font-size: 2.5rem;">🌳</span>
+        <h4 style="color: #1f2937; font-weight: 700; margin: 1rem 0;">Park Cleanup Drive</h4>
+        <p>📍 Central Park | 🕐 8:00 AM - 12:00 PM</p>
+        <p style="font-size: 0.9rem; color: #6b7280;">Join us for a morning of cleaning and environmental restoration. No experience needed!</p><span class="badge">Available</span>
+       </div>
+       <div class="feature-card"><span style="font-size: 2.5rem;">📚</span>
+        <h4 style="color: #1f2937; font-weight: 700; margin: 1rem 0;">School Awareness</h4>
+        <p>📍 City School | 🕐 10:00 AM - 2:00 PM</p>
+        <p style="font-size: 0.9rem; color: #6b7280;">Teach students about waste segregation and environmental responsibility.</p><span class="badge">Available</span>
+       </div>
+       <div class="feature-card"><span style="font-size: 2.5rem;">📱</span>
+        <h4 style="color: #1f2937; font-weight: 700; margin: 1rem 0;">E-Waste Collection</h4>
+        <p>📍 Tech Center | 🕐 9:00 AM - 5:00 PM</p>
+        <p style="font-size: 0.9rem; color: #6b7280;">Help collect and sort electronic waste for proper recycling and disposal.</p><span class="badge">Available</span>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- MATCHING & COMMUNICATION SECTION -->
+   <section id="matching" class="bg-light">
+    <div class="section-container">
+     <h2 class="section-title">Matching &amp; Communication</h2>
+     <p class="section-subtitle">Intelligent matching system with real-time messaging</p>
+     <div class="grid grid-2">
+      <div class="feature-card"><span class="feature-icon">🎯</span>
+       <h3>Smart Matching Algorithm</h3>
+       <ul class="feature-list">
+        <li>Match volunteers with suitable opportunities</li>
+        <li>Consider waste type preferences</li>
+        <li>Factor in location proximity</li>
+        <li>Analyze skill compatibility</li>
+        <li>Track success rate metrics</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">💬</span>
+       <h3>Real-Time Messaging</h3>
+       <ul class="feature-list">
+        <li>Direct communication between users &amp; NGOs</li>
+        <li>Group chat for team coordination</li>
+        <li>Message history tracking</li>
+        <li>File and media sharing support</li>
+        <li>Read receipts and typing indicators</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">🔔</span>
+       <h3>Notification System</h3>
+       <ul class="feature-list">
+        <li>Pickup confirmation notifications</li>
+        <li>Opportunity match alerts</li>
+        <li>Message notifications (email &amp; SMS)</li>
+        <li>Reminder for upcoming pickups</li>
+        <li>Customizable notification preferences</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">⭐</span>
+       <h3>Feedback &amp; Ratings</h3>
+       <ul class="feature-list">
+        <li>Rate volunteers and NGOs</li>
+        <li>Leave detailed feedback</li>
+        <li>View community reviews</li>
+        <li>Build trust scores</li>
+        <li>Public reputation management</li>
+       </ul>
+      </div>
+     </div>
+    </div>
+   </section><!-- ADMIN & REPORTS SECTION -->
+   <section id="admin" class="bg-accent">
+    <div class="section-container">
+     <h2 class="section-title">Administration &amp; Reporting</h2>
+     <p class="section-subtitle">Comprehensive analytics and platform management tools</p>
+     <div class="grid grid-2">
+      <div class="feature-card"><span class="feature-icon">📊</span>
+       <h3>Admin Dashboard</h3>
+       <ul class="feature-list">
+        <li>Real-time platform analytics</li>
+        <li>Monitor active users and sessions</li>
+        <li>View system health metrics</li>
+        <li>Track waste collection statistics</li>
+        <li>Monitor volunteer participation</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">📈</span>
+       <h3>Performance Reports</h3>
+       <ul class="feature-list">
+        <li>Generate customized reports</li>
+        <li>Download in multiple formats (PDF, CSV)</li>
+        <li>Filter by date range and category</li>
+        <li>Export environmental impact data</li>
+        <li>Schedule automated reports</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">🛡️</span>
+       <h3>Moderation &amp; Control</h3>
+       <ul class="feature-list">
+        <li>Suspend/ban users if needed</li>
+        <li>Remove inappropriate posts</li>
+        <li>Review reported content</li>
+        <li>Manage user appeals</li>
+        <li>Audit activity logs</li>
+       </ul>
+      </div>
+      <div class="feature-card"><span class="feature-icon">⚙️</span>
+       <h3>System Management</h3>
+       <ul class="feature-list">
+        <li>Manage user roles and permissions</li>
+        <li>Configure system settings</li>
+        <li>Monitor database health</li>
+        <li>Backup and recovery management</li>
+        <li>API rate limiting configuration</li>
+       </ul>
+      </div>
+     </div>
+     <div class="content-box" style="margin-top: 3rem;">
+      <h4>Admin Analytics Examples</h4>
+      <p>Admins have access to detailed metrics including total users registered, active pickups in progress, volunteer applications received, environmental impact summaries, platform uptime statistics, and user engagement metrics.</p>
+     </div>
+    </div>
+   </section><!-- DASHBOARD & IMPACT SECTION -->
+   <section id="dashboard" class="bg-light">
+    <div class="section-container">
+     <h2 class="section-title">Platform Dashboard &amp; Impact Metrics</h2>
+     <p class="section-subtitle">Real-time statistics and environmental tracking</p>
+     <div class="grid grid-4">
+      <div class="stat-box">
+       <h4 style="color: #10b981; margin-top: 0;">Total Pickups</h4>
+       <div class="stat-number">
+        15,847
+       </div>
+       <p class="stat-label">Successfully Completed</p>
+      </div>
+      <div class="stat-box">
+       <h4 style="color: #10b981; margin-top: 0;">Waste Collected</h4>
+       <div class="stat-number">
+        234.5K
+       </div>
+       <p class="stat-label">Kilograms Recycled</p>
+      </div>
+      <div class="stat-box">
+       <h4 style="color: #10b981; margin-top: 0;">Active Users</h4>
+       <div class="stat-number">
+        12,340
+       </div>
+       <p class="stat-label">Registered Members</p>
+      </div>
+      <div class="stat-box">
+       <h4 style="color: #10b981; margin-top: 0;">Volunteer Hours</h4>
+       <div class="stat-number">
+        8,920
+       </div>
+       <p class="stat-label">Community Contribution</p>
+      </div>
+     </div><!-- Waste Type Breakdown -->
+     <div style="margin-top: 3rem;">
+      <h3 style="text-align: center; font-size: 1.8rem; color: #1f2937; margin-bottom: 2rem;">Recycling Breakdown by Waste Type</h3>
+      <div class="grid grid-4">
+       <div class="stat-box alt">
+        <div class="stat-number">
+         45%
+        </div>
+        <p class="stat-label">Plastic Waste</p>
+       </div>
+       <div class="stat-box alt">
+        <div class="stat-number">
+         28%
+        </div>
+        <p class="stat-label">Organic Waste</p>
+       </div>
+       <div class="stat-box alt">
+        <div class="stat-number">
+         18%
+        </div>
+        <p class="stat-label">E-Waste</p>
+       </div>
+       <div class="stat-box alt">
+        <div class="stat-number">
+         9%
+        </div>
+        <p class="stat-label">Paper &amp; Cardboard</p>
+       </div>
+      </div>
+     </div><!-- Environmental Impact -->
+     <div class="content-box" style="margin-top: 3rem;">
+      <h4>Environmental Impact Summary</h4>
+      <ul class="feature-list">
+       <li>CO₂ Emissions Prevented: 1,250 tons</li>
+       <li>Landfill Waste Diverted: 234.5 tons</li>
+       <li>Trees Saved (Equivalent): 45,000+</li>
+       <li>Water Saved (Equivalent): 2.3 million gallons</li>
+       <li>Community Environmental Score: 4.8/5.0</li>
+      </ul>
+     </div>
+    </div>
+   </section>
+  </main><!-- FOOTER -->
+  <footer>
+   <div class="footer-content"><!-- About Section -->
+    <div class="footer-section">
+     <h5>♻ WasteZero</h5>
+     <p style="color: rgba(255, 255, 255, 0.7); font-size: 0.95rem; line-height: 1.6;">An innovative platform dedicated to smart waste management and environmental sustainability. Join us in creating a cleaner, greener future for everyone.</p>
+    </div><!-- Quick Links -->
+    <div class="footer-section">
+     <h5>Quick Links</h5>
+     <ul>
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#users">User Management</a></li>
+      <li><a href="#pickup">Waste Pickup</a></li>
+      <li><a href="#opportunities">Opportunities</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+     </ul>
+    </div><!-- Contact Info -->
+    <div class="footer-section">
+     <h5>Contact</h5>
+     <ul>
+      <li>📧 Email: info@wastezero.com</li>
+      <li>📱 Phone: +1 (555) 123-4567</li>
+      <li>📍 Address: 123 Green Street, City, State</li>
+      <li>🕐 Hours: Mon-Fri, 9AM-6PM</li>
+     </ul>
+    </div><!-- Social Media -->
+    <div class="footer-section">
+     <h5>Follow Us</h5>
+     <div class="social-icons"><a href="#" class="social-icon" title="Facebook">f</a> <a href="#" class="social-icon" title="Twitter">𝕏</a> <a href="#" class="social-icon" title="Instagram">📷</a> <a href="#" class="social-icon" title="LinkedIn">in</a>
+     </div>
+     <p style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; margin-top: 1.5rem;">"Together we can build a sustainable future. Every piece of waste counts."</p>
+    </div>
+   </div><!-- Footer Bottom -->
+   <div class="footer-bottom">
+    <p>© 2024 WasteZero. All rights reserved. | <a href="#" style="color: #10b981; text-decoration: none;">Privacy Policy</a> | <a href="#" style="color: #10b981; text-decoration: none;">Terms of Service</a> | <a href="#" style="color: #10b981; text-decoration: none;">Sustainability Report</a></p>
+    <p style="margin-top: 0.5rem;">Designed &amp; Built with ♥ for a Cleaner Planet</p>
+   </div>
+  </footer><!-- JAVASCRIPT FOR NAVIGATION AND INTERACTIONS -->
+  <script>
+    // Smooth scrolling and navigation highlighting
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('section');
+
+    function scrollToSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+        updateActiveNavLink(sectionId);
+      }
+    }
+
+    function updateActiveNavLink(sectionId) {
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('data-section') === sectionId) {
+          link.classList.add('active');
+        }
+      });
+    }
+
+    // Update active link on scroll
+    window.addEventListener('scroll', () => {
+      let currentSection = 'home';
+      
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        
+        if (window.pageYOffset >= sectionTop - 150) {
+          currentSection = section.getAttribute('id');
+        }
+      });
+
+      updateActiveNavLink(currentSection);
+    });
+
+    // Close navbar on link click (for mobile)
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        const sectionId = link.getAttribute('data-section');
+        scrollToSection(sectionId);
+      });
+    });
+
+    // Smooth scroll on page load if hash present
+    window.addEventListener('load', () => {
+      if (window.location.hash) {
+        const sectionId = window.location.hash.replace('#', '');
+        setTimeout(() => scrollToSection(sectionId), 100);
+      }
+    });
+
+    // Button interactions
+    document.querySelectorAll('.nav-btn-primary, .nav-btn-secondary').forEach(btn => {
+      btn.addEventListener('click', function() {
+        if (this.textContent.includes('Register')) {
+          alert('Register functionality to be integrated with backend');
+        } else if (this.textContent.includes('Login')) {
+          alert('Login functionality to be integrated with backend');
+        }
+      });
+    });
+
+    // Call-to-action buttons
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        if (this.textContent.includes('Schedule')) {
+          scrollToSection('pickup');
+        } else if (this.textContent.includes('Volunteer')) {
+          scrollToSection('opportunities');
+        }
+      });
+    });
+
+    // Add smooth fade-in animation on load
+    window.addEventListener('load', () => {
+      const elements = document.querySelectorAll('.feature-card, .stat-box, .content-box');
+      elements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.animation = `fadeInUp 0.6s ease-out ${index * 0.05}s forwards`;
+      });
+    });
+
+    console.log('WasteZero Landing Page Loaded Successfully');
+  </script>
+  <div class="min-h-screen bg-gradient-to-b from-emerald-50 to-white flex items-center justify-center pt-20">
+   <div class="max-w-4xl mx-auto px-4 text-center">
+    <h1 class="text-6xl font-bold text-gray-900 mb-4">Waste<span class="text-emerald-600">Zero</span></h1>
+    <p class="text-2xl text-emerald-700 font-semibold mb-6">Smart Waste Pickup &amp; Recycling Platform</p>
+    <p class="text-gray-600 text-lg mb-8">Schedule waste pickups, track your environmental impact, and join our community.</p>
+    <div class="flex gap-4 justify-center flex-wrap"><button onclick="navigateTo('schedule')" class="btn-primary px-8 py-4 text-white font-bold rounded-lg">📅 Schedule Pickup</button> <button onclick="navigateTo('opportunities')" class="px-8 py-4 bg-white border-2 border-emerald-200 text-emerald-700 font-bold rounded-lg hover:border-emerald-400">🤝 Volunteer</button>
+    </div>
+   </div>
+  </div><!-- Features -->
+  <div class="py-20 bg-white" id="services">
+   <div class="max-w-6xl mx-auto px-4">
+    <h2 class="text-4xl font-bold text-center mb-16">Our Services</h2>
+    <div class="grid md:grid-cols-3 gap-8">
+     <div class="p-8 rounded-xl bg-gray-50 border border-gray-200">
+      <div class="text-4xl mb-4">
+       📅
+      </div>
+      <h3 class="text-xl font-bold mb-3">Smart Scheduling</h3>
+      <p class="text-gray-600">Schedule waste pickups at your convenience.</p>
+     </div>
+     <div class="p-8 rounded-xl bg-gray-50 border border-gray-200">
+      <div class="text-4xl mb-4">
+       🗂️
+      </div>
+      <h3 class="text-xl font-bold mb-3">Waste Categorization</h3>
+      <p class="text-gray-600">Learn proper waste segregation techniques.</p>
+     </div>
+     <div class="p-8 rounded-xl bg-gray-50 border border-gray-200">
+      <div class="text-4xl mb-4">
+       📊
+      </div>
+      <h3 class="text-xl font-bold mb-3">Impact Reports</h3>
+      <p class="text-gray-600">Track your environmental contribution.</p>
+     </div>
+    </div>
+   </div>
+  </div><!-- Stats -->
+  <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white py-16" id="stats">
+   <div class="max-w-6xl mx-auto px-4">
+    <h2 class="text-4xl font-bold text-center mb-12">Our Impact</h2>
+    <div class="grid md:grid-cols-4 gap-8 text-center">
+     <div>
+      <div class="text-5xl font-bold mb-2">
+       15,847
+      </div>
+      <p class="text-emerald-100">Total Pickups</p>
+     </div>
+     <div>
+      <div class="text-5xl font-bold mb-2">
+       234.5K
+      </div>
+      <p class="text-emerald-100">Waste Collected (kg)</p>
+     </div>
+     <div>
+      <div class="text-5xl font-bold mb-2">
+       12,340
+      </div>
+      <p class="text-emerald-100">Active Users</p>
+     </div>
+     <div>
+      <div class="text-5xl font-bold mb-2">
+       8,920
+      </div>
+      <p class="text-emerald-100">Volunteer Hours</p>
+     </div>
+    </div>
+   </div>
+  </div> <!-- LOGIN PAGE -->
+  <div id="page-login" class="page min-h-screen flex items-center justify-center pt-20 bg-gradient-to-b from-emerald-50 to-white">
+   <div class="w-full max-w-md px-4">
+    <div class="bg-white rounded-xl shadow-lg p-8 border border-emerald-200">
+     <div class="text-center mb-8">
+      <div class="w-16 h-16 mx-auto bg-emerald-500 rounded-lg flex items-center justify-center text-white text-3xl mb-4">
+       ♻
+      </div>
+      <h1 class="text-3xl font-bold">Welcome Back!</h1>
+      <p class="text-gray-600">Sign in to continue</p>
+     </div>
+     <form onsubmit="handleLogin(event)" class="space-y-4">
+      <div><label class="block text-sm font-medium mb-2">Email</label> <input type="email" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none" placeholder="you@example.com" required>
+      </div>
+      <div><label class="block text-sm font-medium mb-2">Password</label> <input type="password" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none" placeholder="••••••••" required>
+      </div><button type="submit" class="btn-primary w-full py-3 text-white font-bold rounded-lg">Sign In</button>
+     </form>
+     <p class="text-center mt-4 text-gray-600">Don't have account? <a href="#" onclick="navigateTo('register')" class="text-emerald-600 font-bold">Register</a></p>
+    </div>
+   </div>
+  </div><!-- REGISTER PAGE -->
+  <div id="page-register" class="page min-h-screen flex items-center justify-center pt-20 bg-gradient-to-b from-emerald-50 to-white">
+   <div class="w-full max-w-md px-4">
+    <div class="bg-white rounded-xl shadow-lg p-8 border border-emerald-200">
+     <div class="text-center mb-8">
+      <div class="w-16 h-16 mx-auto bg-emerald-500 rounded-lg flex items-center justify-center text-white text-3xl mb-4">
+       ♻
+      </div>
+      <h1 class="text-3xl font-bold">Create Account</h1>
+      <p class="text-gray-600">Join our eco community</p>
+     </div>
+     <form onsubmit="handleRegister(event)" class="space-y-4">
+      <div><label class="block text-sm font-medium mb-2">Full Name</label> <input type="text" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none" placeholder="John Doe" required>
+      </div>
+      <div><label class="block text-sm font-medium mb-2">Email</label> <input type="email" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none" placeholder="you@example.com" required>
+      </div>
+      <div><label class="block text-sm font-medium mb-2">Password</label> <input type="password" class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:outline-none" placeholder="••••••••" required>
+      </div><button type="submit" class="btn-primary w-full py-3 text-white font-bold rounded-lg">Create Account</button>
+     </form>
+     <p class="text-center mt-4 text-gray-600">Already registered? <a href="#" onclick="navigateTo('login')" class="text-emerald-600 font-bold">Sign In</a></p>
+    </div>
+   </div>
+  </div><!-- DASHBOARD PAGE -->
+  <div id="page-dashboard" class="page min-h-screen bg-gray-100 pt-20 px-4 pb-10">
+   <div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-bold mb-8">Welcome back, John! 👋</h1>
+    <div class="grid md:grid-cols-4 gap-6 mb-8">
+     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <div class="text-3xl mb-4">
+       📦
+      </div>
+      <div class="text-3xl font-bold">
+       24
+      </div>
+      <p class="text-gray-600">Total Pickups</p>
+     </div>
+     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <div class="text-3xl mb-4">
+       ⚖️
+      </div>
+      <div class="text-3xl font-bold">
+       156 kg
+      </div>
+      <p class="text-gray-600">Waste Recycled</p>
+     </div>
+     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <div class="text-3xl mb-4">
+       🌱
+      </div>
+      <div class="text-3xl font-bold">
+       42 kg
+      </div>
+      <p class="text-gray-600">CO₂ Saved</p>
+     </div>
+     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <div class="text-3xl mb-4">
+       ⭐
+      </div>
+      <div class="text-3xl font-bold">
+       1,240
+      </div>
+      <p class="text-gray-600">Green Points</p>
+     </div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+     <h2 class="text-2xl font-bold mb-6">Upcoming Pickups</h2>
+     <div class="space-y-4">
+      <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+       <div class="text-3xl">
+        ♻️
+       </div>
+       <div class="flex-1">
+        <h4 class="font-bold">Mixed Recyclables</h4>
+        <p class="text-sm text-gray-500">Tomorrow, 9:00 AM</p>
+       </div><span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">Scheduled</span>
+      </div>
+      <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+       <div class="text-3xl">
+        📱
+       </div>
+       <div class="flex-1">
+        <h4 class="font-bold">E-Waste Collection</h4>
+        <p class="text-sm text-gray-500">Dec 18, 2:00 PM</p>
+       </div><span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Confirmed</span>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- SCHEDULE PAGE -->
+  <div id="page-schedule" class="page min-h-screen bg-gray-100 pt-20 px-4 pb-10">
+   <div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold mb-8">Schedule a Pickup</h1>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+     <form onsubmit="handleSchedule(event)" class="space-y-6">
+      <div>
+       <h3 class="text-xl font-bold mb-4">📍 Address</h3><input type="text" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg mb-3" placeholder="Street Address" required>
+       <div class="grid md:grid-cols-2 gap-3"><input type="text" class="px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="City" required> <input type="text" class="px-4 py-3 border-2 border-gray-200 rounded-lg" placeholder="ZIP Code" required>
+       </div>
+      </div>
+      <div>
+       <h3 class="text-xl font-bold mb-4">🗂️ Waste Type</h3>
+       <div class="grid md:grid-cols-4 gap-3"><label class="flex items-center gap-2 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-500"> <input type="checkbox" name="waste"> <span>🔵 Plastic</span> </label> <label class="flex items-center gap-2 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500"> <input type="checkbox" name="waste"> <span>����� Organic</span> </label> <label class="flex items-center gap-2 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-yellow-500"> <input type="checkbox" name="waste"> <span>🟡 Paper</span> </label> <label class="flex items-center gap-2 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-red-500"> <input type="checkbox" name="waste"> <span>🔴 E-Waste</span> </label>
+       </div>
+      </div>
+      <div>
+       <h3 class="text-xl font-bold mb-4">📅 Schedule</h3>
+       <div class="grid md:grid-cols-2 gap-3"><input type="date" class="px-4 py-3 border-2 border-gray-200 rounded-lg" required> <select class="px-4 py-3 border-2 border-gray-200 rounded-lg" required> <option>Morning (8-11 AM)</option> <option>Afternoon (12-3 PM)</option> <option>Evening (4-7 PM)</option> </select>
+       </div>
+      </div><button type="submit" class="btn-primary w-full py-3 text-white font-bold rounded-lg">Schedule Pickup</button>
+     </form>
+    </div>
+   </div>
+  </div><!-- OPPORTUNITIES PAGE -->
+  <div id="page-opportunities" class="page min-h-screen bg-gray-100 pt-20 px-4 pb-10">
+   <div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-bold mb-8">Volunteer Opportunities</h1>
+    <div class="grid md:grid-cols-3 gap-6">
+     <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+      <div class="h-32 bg-gradient-to-r from-emerald-500 to-emerald-600 flex items-center justify-center text-5xl">
+       🌳
+      </div>
+      <div class="p-6">
+       <h3 class="text-xl font-bold mt-3 mb-2">Park Cleanup Drive</h3>
+       <p class="text-gray-600 text-sm mb-4">Join us for a morning of cleaning Central Park.</p>
+       <div class="text-sm text-gray-500 mb-4">
+        <p>📅 December 20, 2024</p>
+        <p>🕐 8:00 AM - 12:00 PM</p>
+       </div><button onclick="showToast('Joined event!')" class="btn-primary w-full py-2 text-white font-bold rounded-lg text-sm">Join Event</button>
+      </div>
+     </div>
+     <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+      <div class="h-32 bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-5xl">
+       📚
+      </div>
+      <div class="p-6">
+       <h3 class="text-xl font-bold mt-3 mb-2">School Awareness</h3>
+       <p class="text-gray-600 text-sm mb-4">Teach students about waste segregation.</p>
+       <div class="text-sm text-gray-500 mb-4">
+        <p>📅 December 22, 2024</p>
+        <p>🕐 10:00 AM - 2:00 PM</p>
+       </div><button onclick="showToast('Joined event!')" class="btn-primary w-full py-2 text-white font-bold rounded-lg text-sm">Join Event</button>
+      </div>
+     </div>
+     <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+      <div class="h-32 bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center text-5xl">
+       📱
+      </div>
+      <div class="p-6">
+       <h3 class="text-xl font-bold mt-3 mb-2">E-Waste Camp</h3>
+       <p class="text-gray-600 text-sm mb-4">Help collect and sort electronic waste.</p>
+       <div class="text-sm text-gray-500 mb-4">
+        <p>📅 December 25, 2024</p>
+        <p>🕐 9:00 AM - 5:00 PM</p>
+       </div><button onclick="showToast('Joined event!')" class="btn-primary w-full py-2 text-white font-bold rounded-lg text-sm">Join Event</button>
+      </div>
+     </div>
+     <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+      <div class="h-32 bg-gradient-to-r from-orange-500 to-orange-600 flex items-center justify-center text-5xl">
+       ���️
+      </div>
+      <div class="p-6">
+       <h3 class="text-xl font-bold mt-3 mb-2">Beach Cleanup</h3>
+       <p class="text-gray-600 text-sm mb-4">Help protect marine life.</p>
+       <div class="text-sm text-gray-500 mb-4">
+        <p>📅 December 28, 2024</p>
+        <p>🕐 6:00 AM - 10:00 AM</p>
+       </div><button onclick="showToast('Joined event!')" class="btn-primary w-full py-2 text-white font-bold rounded-lg text-sm">Join Event</button>
+      </div>
+     </div>
+     <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+      <div class="h-32 bg-gradient-to-r from-teal-500 to-teal-600 flex items-center justify-center text-5xl">
+       🏠
+      </div>
+      <div class="p-6">
+       <h3 class="text-xl font-bold mt-3 mb-2">Door-to-Door</h3>
+       <p class="text-gray-600 text-sm mb-4">Help with residential collection.</p>
+       <div class="text-sm text-gray-500 mb-4">
+        <p>📅 January 2, 2025</p>
+        <p>🕐 7:00 AM - 1:00 PM</p>
+       </div><button onclick="showToast('Joined event!')" class="btn-primary w-full py-2 text-white font-bold rounded-lg text-sm">Join Event</button>
+      </div>
+     </div>
+     <div class="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg transition-shadow">
+      <div class="h-32 bg-gradient-to-r from-rose-500 to-rose-600 flex items-center justify-center text-5xl">
+       🎨
+      </div>
+      <div class="p-6">
+       <h3 class="text-xl font-bold mt-3 mb-2">Art from Waste</h3>
+       <p class="text-gray-600 text-sm mb-4">Creative recycled art workshop.</p>
+       <div class="text-sm text-gray-500 mb-4">
+        <p>📅 January 5, 2025</p>
+        <p>🕐 2:00 PM - 5:00 PM</p>
+       </div><button onclick="showToast('Joined event!')" class="btn-primary w-full py-2 text-white font-bold rounded-lg text-sm">Join Event</button>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div><!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 space-y-3"></div>
+  <script>
+    function navigateTo(pageId) {
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      const page = document.getElementById(`page-${pageId}`);
+      if (page) {
+        page.classList.add('active');
+        window.scrollTo(0, 0);
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      showToast('✓ Logged in! Redirecting...', 'success');
+      setTimeout(() => navigateTo('dashboard'), 1500);
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      showToast('✓ Account created! Welcome!', 'success');
+      setTimeout(() => navigateTo('dashboard'), 1500);
+    }
+
+    function handleSchedule(e) {
+      e.preventDefault();
+      showToast('�� Pickup scheduled!', 'success');
+      setTimeout(() => navigateTo('dashboard'), 1500);
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgColor = type === 'success' ? 'bg-emerald-500' : 'bg-blue-500';
+      toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9cb9e2f05641d220',t:'MTc3MDcwODQ3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
