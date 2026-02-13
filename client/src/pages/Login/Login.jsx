@@ -63,6 +63,7 @@ const Login = () => {
 
   return (
     <div className="container">
+      <h1 className="text-4xl font-bold text-green-500">Tailwind working</h1>
       <div className="left">
         <h2 className="logo">♻ WasteZero</h2>
         <h1>Join the Recycling Revolution</h1>
