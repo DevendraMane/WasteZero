@@ -8,6 +8,7 @@ import {
 import Auth from "./pages/Auth/Auth";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import Dashboard from "./pages/Dashboard/Dashboard";
 
 export const App = () => {
   const router = createBrowserRouter([
@@ -36,6 +37,10 @@ export const App = () => {
           element: <Register />,
         },
       ],
+    },
+    {
+      path: "/dashboard",
+      element: <Dashboard />,
     },
   ]);
 
