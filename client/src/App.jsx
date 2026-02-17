@@ -10,16 +10,20 @@ import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard/Dashboard";
 
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+
 export const App = () => {
+  const token = localStorage.getItem("token");
+
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Navigate to="/login" />,
+      element: token ? <Navigate to="/dashboard" /> : <Navigate to="/login" />,
     },
 
     {
       path: "/login",
-      element: <Auth />,
+      element: token ? <Navigate to="/dashboard" /> : <Auth />,
       children: [
         {
           path: "",
@@ -30,7 +34,7 @@ export const App = () => {
 
     {
       path: "/register",
-      element: <Auth />,
+      element: token ? <Navigate to="/dashboard" /> : <Auth />,
       children: [
         {
           path: "",
@@ -38,9 +42,14 @@ export const App = () => {
         },
       ],
     },
+
     {
       path: "/dashboard",
-      element: <Dashboard />,
+      element: (
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      ),
     },
   ]);
 

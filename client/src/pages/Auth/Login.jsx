@@ -48,11 +48,11 @@ const Login = () => {
       <h2 className="title">Login to your account</h2>
       <p className="subtitle">Enter your credentials to access your account</p>
       {/* Email */}
-      <label className="label">Username</label>
+      <label className="label">Email</label>
       <input
         type="email"
         name="email"
-        placeholder="Your username"
+        placeholder="Your email"
         value={formData.email}
         onChange={handleChange}
       />
