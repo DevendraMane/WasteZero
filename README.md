@@ -1,31 +1,31 @@
-# 🌱 WasteZero — Smart Waste Pickup & Recycling Platform
+# WasteZero — Smart Waste Pickup & Recycling Platform
 
 WasteZero is a full-stack web application that connects volunteers, NGOs, and administrators to schedule waste pickups and manage recycling opportunities efficiently.
 
-## 🚀 Features
+## Features
 
-### 🔐 Authentication
+### Authentication
 - User Registration & Login
 - Secure password hashing
 - JWT-based authentication
 - Role-based access (Volunteer / NGO / Admin)
 
-### 📅 Pickup Scheduling
+### Pickup Scheduling
 - Schedule waste pickups
 - Track pickup status
 - Manage requests
 
-### 🌍 Opportunities
+### Opportunities
 - Discover volunteering opportunities
 - Participate in recycling initiatives
 
-### 👤 User Dashboard
+### User Dashboard
 - Profile management
 - Impact tracking
 - Activity overview
 
 ---------------------------------------------------
-## 🧠 Tech Stack
+## Tech Stack
 
 ### Frontend
 - React (Vite)
@@ -45,7 +45,7 @@ WasteZero is a full-stack web application that connects volunteers, NGOs, and ad
 
 --------------------------------------------------
 
-## 📁 Project Structure
+## Project Structure
 
 WasteZero/
 │
