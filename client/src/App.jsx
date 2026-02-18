@@ -8,17 +8,22 @@ import {
 import Auth from "./pages/Auth/Auth";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import Dashboard from "./pages/Dashboard/Dashboard";
+
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 export const App = () => {
+  const token = localStorage.getItem("token");
+
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Navigate to="/login" />,
+      element: token ? <Navigate to="/dashboard" /> : <Navigate to="/login" />,
     },
 
     {
       path: "/login",
-      element: <Auth />,
+      element: token ? <Navigate to="/dashboard" /> : <Auth />,
       children: [
         {
           path: "",
@@ -29,13 +34,22 @@ export const App = () => {
 
     {
       path: "/register",
-      element: <Auth />,
+      element: token ? <Navigate to="/dashboard" /> : <Auth />,
       children: [
         {
           path: "",
           element: <Register />,
         },
       ],
+    },
+
+    {
+      path: "/dashboard",
+      element: (
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      ),
     },
   ]);
 
