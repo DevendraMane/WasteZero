@@ -11,6 +11,7 @@ import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard/Dashboard";
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import Opportunities from "./pages/Opportunities/Opportunities.jsx";
 
 export const App = () => {
   const token = localStorage.getItem("token");
@@ -48,6 +49,14 @@ export const App = () => {
       element: (
         <ProtectedRoute>
           <Dashboard />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/opportunities",
+      element: (
+        <ProtectedRoute>
+          <Opportunities />
         </ProtectedRoute>
       ),
     },

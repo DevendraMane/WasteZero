@@ -20,7 +20,7 @@ const Sidebar = () => {
 
         <p>Schedule Pickup</p>
 
-        <p>Opportunities</p>
+        <p onClick={() => navigate("/opportunities")}>Opportunities</p>
 
         <p>Messages</p>
 
