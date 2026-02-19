@@ -1,9 +1,10 @@
 import React from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import "../styles/dashboard.css";
+import "../styles/dashboardlayout.css";
+import { Outlet } from "react-router-dom";
 
-const DashboardLayout = ({ children }) => {
+const DashboardLayout = () => {
   return (
     <div className="dashboard">
       <Sidebar />
@@ -11,7 +12,10 @@ const DashboardLayout = ({ children }) => {
       <div className="main">
         <Topbar />
 
-        <div className="content">{children}</div>
+        {/* THIS is where Dashboard / Profile / Opportunities will render */}
+        <div className="content">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

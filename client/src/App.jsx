@@ -12,6 +12,8 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Opportunities from "./pages/Opportunities/Opportunities.jsx";
+import DashboardLayout from "./layouts/DashboardLayout.jsx";
+import Profile from "./pages/Profile/Profile.jsx";
 
 export const App = () => {
   const token = localStorage.getItem("token");
@@ -25,40 +27,37 @@ export const App = () => {
     {
       path: "/login",
       element: token ? <Navigate to="/dashboard" /> : <Auth />,
-      children: [
-        {
-          path: "",
-          element: <Login />,
-        },
-      ],
+      children: [{ path: "", element: <Login /> }],
     },
 
     {
       path: "/register",
       element: token ? <Navigate to="/dashboard" /> : <Auth />,
-      children: [
-        {
-          path: "",
-          element: <Register />,
-        },
-      ],
+      children: [{ path: "", element: <Register /> }],
     },
 
+    // ✅ DASHBOARD LAYOUT ROUTE
     {
-      path: "/dashboard",
+      path: "/",
       element: (
         <ProtectedRoute>
-          <Dashboard />
+          <DashboardLayout />
         </ProtectedRoute>
       ),
-    },
-    {
-      path: "/opportunities",
-      element: (
-        <ProtectedRoute>
-          <Opportunities />
-        </ProtectedRoute>
-      ),
+      children: [
+        {
+          path: "dashboard",
+          element: <Dashboard />,
+        },
+        {
+          path: "opportunities",
+          element: <Opportunities />,
+        },
+        {
+          path: "profile",
+          element: <Profile />,
+        },
+      ],
     },
   ]);
 
