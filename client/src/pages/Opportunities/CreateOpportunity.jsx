@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "./CreateOpportunity.css";
+import "../../styles/CreateOpportunity.css";
 
 const CreateOpportunity = ({ onClose, onCreated }) => {
   const token = localStorage.getItem("token");

@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import "./Auth.css";
+import "../../styles/Auth.css";
+
 const Auth = () => {
   return (
     <div className="container">

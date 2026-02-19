@@ -36,29 +36,31 @@ const Profile = () => {
   // FETCH PROFILE
   const fetchProfile = async () => {
     try {
+      const token = localStorage.getItem("token");
+
       const res = await fetch("http://localhost:5000/api/auth/profile", {
+        method: "GET",
         headers: {
-          Authorization: token,
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!res.ok) throw new Error("Failed to fetch profile");
+      const data = await res.json();
+      console.log(data);
 
-      const user = await res.json();
+      if (!res.ok) throw new Error(data.message);
 
       setFormData({
-        name: user.name || "",
-        email: user.email || "",
-        role: user.role || "",
-        location: user.location || "",
-        address: user.address || "",
-        skills: user.skills?.join(", ") || "",
-        bio: user.bio || "",
+        name: data.name || "",
+        email: data.email || "",
+        role: data.role || "",
+        location: data.location || "",
+        address: data.address || "",
+        skills: data.skills?.join(", ") || "",
+        bio: data.bio || "",
       });
-
-      localStorage.setItem("user", JSON.stringify(user));
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
     }
   };
 
