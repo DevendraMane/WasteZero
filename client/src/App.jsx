@@ -16,27 +16,24 @@ import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import Profile from "./pages/Profile/Profile.jsx";
 
 export const App = () => {
-  const token = localStorage.getItem("token");
-
   const router = createBrowserRouter([
     {
       path: "/",
-      element: token ? <Navigate to="/dashboard" /> : <Navigate to="/login" />,
+      element: <Navigate to="/login" />,
     },
 
     {
       path: "/login",
-      element: token ? <Navigate to="/dashboard" /> : <Auth />,
-      children: [{ path: "", element: <Login /> }],
+      element: <Auth />,
+      children: [{ index: true, element: <Login /> }],
     },
 
     {
       path: "/register",
-      element: token ? <Navigate to="/dashboard" /> : <Auth />,
-      children: [{ path: "", element: <Register /> }],
+      element: <Auth />,
+      children: [{ index: true, element: <Register /> }],
     },
 
-    // ✅ DASHBOARD LAYOUT ROUTE
     {
       path: "/",
       element: (

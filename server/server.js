@@ -3,6 +3,7 @@ import cors from "cors";
 import { authRouter } from "./routes/auth-router.js";
 import connectDB from "./utils/db.js";
 import dotenv from "dotenv";
+import opportunityRouter from "./routes/opportunity-router.js";
 dotenv.config();
 
 const app = express();
@@ -14,6 +15,9 @@ app.use(cors());
 
 // ***** AUTH ROUTES Handling-MIDDLEWARE ***** //
 app.use("/api/auth", authRouter);
+
+app.use("/api/opportunities", opportunityRouter);
+app.use("/uploads", express.static("uploads"));
 
 // Start Server
 
