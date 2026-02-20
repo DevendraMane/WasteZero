@@ -23,19 +23,36 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
     setImage(e.target.files[0]);
   };
 
-  const handleSubmit = async () => {
-    const formData = new FormData();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    Object.keys(form).forEach((key) => formData.append(key, form[key]));
+    try {
+      const token = localStorage.getItem("token");
 
-    if (image) formData.append("image", image);
+      const formData = new FormData();
 
-    await axios.post("http://localhost:5000/api/opportunities", formData, {
-      headers: { Authorization: token },
-    });
+      formData.append("title", form.title);
+      formData.append("description", form.description);
+      formData.append("location", form.location);
+      formData.append("duration", form.duration);
+      formData.append("required_skills", form.required_skills);
+      formData.append("image", image);
 
-    onCreated();
-    onClose();
+      await axios.post("http://localhost:5000/api/opportunities", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert("Opportunity created successfully");
+
+      onCreated();
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || "Error creating opportunity");
+    }
   };
 
   return (
