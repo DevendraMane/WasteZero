@@ -10,11 +10,19 @@ const Opportunities = () => {
   const [showForm, setShowForm] = useState(false);
 
   const fetchOpportunities = async () => {
-    const res = await axios.get("http://localhost:5000/api/opportunities", {
-      headers: { Authorization: token },
-    });
+    try {
+      const token = localStorage.getItem("token");
 
-    setOpportunities(res.data);
+      const res = await axios.get("http://localhost:5000/api/opportunities", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setOpportunities(res.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {

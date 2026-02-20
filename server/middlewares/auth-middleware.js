@@ -10,11 +10,14 @@ export const authMiddleware = (req, res, next) => {
   }
 
   try {
-    // Remove "Bearer " prefix
     const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    console.log("DECODED:", decoded);
+
+    // ✅ ADD THIS LINE
+    req.userId = decoded.userId;
+
+    // optional
     req.user = decoded;
 
     next();

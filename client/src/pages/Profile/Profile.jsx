@@ -46,7 +46,7 @@ const Profile = () => {
       });
 
       const data = await res.json();
-      console.log(data);
+      //   console.log(data);
 
       if (!res.ok) throw new Error(data.message);
 
@@ -94,7 +94,7 @@ const Profile = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token,
+          Authorization: `Bearer ${token}`, // ✅ FIXED
         },
         body: JSON.stringify({
           name: formData.name,
@@ -132,7 +132,7 @@ const Profile = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: token,
+            Authorization: `Bearer ${token}`, // ✅ FIXED
           },
           body: JSON.stringify({
             currentPassword: passwordData.currentPassword,
@@ -247,12 +247,12 @@ const Profile = () => {
           <h2>Change Password</h2>
 
           <label>Current Password</label>
-          <input
+            <input
             type="password"
-            name="currentPassword"
-            value={passwordData.currentPassword}
-            onChange={handlePasswordChange}
-          />
+              name="currentPassword"
+              value={passwordData.currentPassword}
+              onChange={handlePasswordChange}
+            />
 
           <label>New Password</label>
           <input
