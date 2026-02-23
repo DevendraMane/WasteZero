@@ -5,10 +5,8 @@ const Profile = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // TAB STATE
-  const [activeTab, setActiveTab] = useState("profile");
+  const [editMode, setEditMode] = useState(false);
 
-  // PROFILE STATE
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -17,36 +15,16 @@ const Profile = () => {
     address: "",
     skills: "",
     bio: "",
+    profileImage: "",
   });
 
-  // PASSWORD STATE
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
-  // LOGOUT
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login", { replace: true });
-  };
-
-  // FETCH PROFILE
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       const res = await fetch("http://localhost:5000/api/auth/profile", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
-      //   console.log(data);
 
       if (!res.ok) throw new Error(data.message);
 
@@ -58,6 +36,7 @@ const Profile = () => {
         address: data.address || "",
         skills: data.skills?.join(", ") || "",
         bio: data.bio || "",
+        profileImage: data.profileImage || "",
       });
     } catch (err) {
       console.error(err);
@@ -68,33 +47,47 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  // INPUT CHANGE
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePasswordChange = (e) => {
-    const { name, value } = e.target;
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    setPasswordData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const form = new FormData();
+    form.append("profileImage", file);
+
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/auth/upload-profile-image",
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: form,
+        },
+      );
+
+      const data = await res.json();
+      if (res.ok) {
+        setFormData((prev) => ({
+          ...prev,
+          profileImage: data.imageUrl,
+        }));
+      }
+    } catch {
+      alert("Image upload failed");
+    }
   };
 
-  // UPDATE PROFILE
   const handleUpdate = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/auth/update-profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ FIXED
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: formData.name,
@@ -105,177 +98,162 @@ const Profile = () => {
         }),
       });
 
-      const data = await res.json();
-
       if (res.ok) {
-        alert("Profile updated successfully");
+        alert("Profile Updated");
+        setEditMode(false);
         fetchProfile();
-      } else {
-        alert(data.message);
       }
     } catch {
-      alert("Error updating profile");
+      alert("Update failed");
     }
   };
 
-  // CHANGE PASSWORD
-  const handleChangePassword = async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
-
-    try {
-      const res = await fetch(
-        "http://localhost:5000/api/auth/change-password",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // ✅ FIXED
-          },
-          body: JSON.stringify({
-            currentPassword: passwordData.currentPassword,
-            newPassword: passwordData.newPassword,
-          }),
-        },
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Password changed successfully");
-
-        setPasswordData({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-      } else {
-        alert(data.message);
-      }
-    } catch {
-      alert("Error changing password");
-    }
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
   };
 
-  // UI
   return (
-    <>
+    <div className="max-w-4xl mx-auto bg-white p-10 rounded-3xl shadow-lg">
       {/* HEADER */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
-        }}
-      >
-        <h1>My Profile</h1>
-
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">My Profile</h1>
         <button
           onClick={handleLogout}
-          className="main-btn"
-          style={{ width: "120px" }}
+          className="bg-red-100 text-red-600 px-5 py-2 rounded-lg"
         >
           Logout
         </button>
       </div>
 
-      {/* TABS */}
-      <div className="tabs">
-        <button
-          className={activeTab === "profile" ? "active-tab" : ""}
-          onClick={() => setActiveTab("profile")}
-        >
-          Profile
-        </button>
+      {/* PROFILE IMAGE */}
+      <div className="flex items-center gap-6 mb-10">
+        <img
+          src={
+            formData.profileImage ||
+            "https://ui-avatars.com/api/?name=" + formData.name
+          }
+          alt="Profile"
+          className="w-24 h-24 rounded-full object-cover border"
+        />
 
-        <button
-          className={activeTab === "password" ? "active-tab" : ""}
-          onClick={() => setActiveTab("password")}
-        >
-          Password
-        </button>
+        {editMode && <input type="file" onChange={handleImageUpload} />}
       </div>
 
-      {/* PROFILE TAB */}
-      {activeTab === "profile" && (
-        <div className="card">
-          <label>Name</label>
-          <input name="name" value={formData.name} onChange={handleChange} />
+      {/* PROFILE DETAILS */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium">Name</label>
+          {editMode ? (
+            <input
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded-lg"
+            />
+          ) : (
+            <p className="mt-1">{formData.name}</p>
+          )}
+        </div>
 
-          <label>Email</label>
-          <input value={formData.email} disabled />
+        <div>
+          <label className="block text-sm font-medium">Email</label>
+          <p className="mt-1">{formData.email}</p>
+        </div>
 
-          <label>Role</label>
-          <input value={formData.role} disabled />
+        <div>
+          <label className="block text-sm font-medium">Role</label>
+          <p className="mt-1 capitalize">{formData.role}</p>
+        </div>
 
-          <label>Location</label>
-          <input
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-          />
+        <div>
+          <label className="block text-sm font-medium">Location</label>
+          {editMode ? (
+            <input
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded-lg"
+            />
+          ) : (
+            <p className="mt-1">{formData.location}</p>
+          )}
+        </div>
+      </div>
 
-          <label>Address</label>
+      <div className="mt-6">
+        <label className="block text-sm font-medium">Address</label>
+        {editMode ? (
           <input
             name="address"
             value={formData.address}
             onChange={handleChange}
+            className="w-full border px-4 py-2 rounded-lg"
           />
+        ) : (
+          <p className="mt-1">{formData.address}</p>
+        )}
+      </div>
 
-          <label>Skills</label>
+      <div className="mt-6">
+        <label className="block text-sm font-medium">Skills</label>
+        {editMode ? (
           <input
             name="skills"
             value={formData.skills}
             onChange={handleChange}
+            className="w-full border px-4 py-2 rounded-lg"
           />
+        ) : (
+          <p className="mt-1">{formData.skills}</p>
+        )}
+      </div>
 
-          <label>Bio</label>
-          <textarea name="bio" value={formData.bio} onChange={handleChange} />
+      <div className="mt-6">
+        <label className="block text-sm font-medium">Bio</label>
+        {editMode ? (
+          <textarea
+            name="bio"
+            value={formData.bio}
+            onChange={handleChange}
+            className="w-full border px-4 py-2 rounded-lg"
+          />
+        ) : (
+          <p className="mt-1">{formData.bio}</p>
+        )}
+      </div>
 
-          <button className="main-btn" onClick={handleUpdate}>
-            Save Changes
+      {/* ACTION BUTTONS */}
+      <div className="flex justify-end gap-4 mt-8">
+        {editMode ? (
+          <>
+            <button
+              onClick={() => {
+                setEditMode(false);
+                fetchProfile();
+              }}
+              className="bg-gray-100 px-6 py-2 rounded-lg"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={handleUpdate}
+              className="bg-green-600 text-white px-6 py-2 rounded-lg"
+            >
+              Save
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => setEditMode(true)}
+            className="bg-green-600 text-white px-6 py-2 rounded-lg"
+          >
+            Edit Profile
           </button>
-        </div>
-      )}
-
-      {/* PASSWORD TAB */}
-      {activeTab === "password" && (
-        <div className="card">
-          <h2>Change Password</h2>
-
-          <label>Current Password</label>
-            <input
-            type="password"
-              name="currentPassword"
-              value={passwordData.currentPassword}
-              onChange={handlePasswordChange}
-            />
-
-          <label>New Password</label>
-          <input
-            type="password"
-            name="newPassword"
-            value={passwordData.newPassword}
-            onChange={handlePasswordChange}
-          />
-
-          <label>Confirm Password</label>
-          <input
-            type="password"
-            name="confirmPassword"
-            value={passwordData.confirmPassword}
-            onChange={handlePasswordChange}
-          />
-
-          <button className="main-btn" onClick={handleChangePassword}>
-            Change Password
-          </button>
-        </div>
-      )}
-    </>
+        )}
+      </div>
+    </div>
   );
 };
 
