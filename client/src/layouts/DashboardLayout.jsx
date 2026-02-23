@@ -1,21 +1,26 @@
 import React from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import "../styles/dashboardlayout.css";
+
 import { Outlet } from "react-router-dom";
 
 const DashboardLayout = () => {
   return (
-    <div className="dashboard">
+    <div className="flex min-h-screen bg-gray-100">
+      {/* SIDEBAR */}
       <Sidebar />
 
-      <div className="main">
-        <Topbar />
-
-        {/* THIS is where Dashboard / Profile / Opportunities will render */}
-        <div className="content">
-          <Outlet />
+      {/* MAIN AREA */}
+      <div className="flex-1 flex flex-col">
+        {/* TOPBAR */}
+        <div className="sticky top-0 z-10 bg-white shadow-sm">
+          <Topbar />
         </div>
+
+        {/* PAGE CONTENT */}
+        <main className="flex-1 p-8">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

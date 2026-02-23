@@ -1,35 +1,64 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
   const navigate = useNavigate();
-
+  const location = useLocation();
   const user = JSON.parse(localStorage.getItem("user"));
 
+  const menuItems = [
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Schedule Pickup", path: "/schedule" },
+    { name: "Opportunities", path: "/opportunities" },
+    { name: "Messages", path: "/messages" },
+    { name: "My Impact", path: "/impact" },
+    { name: "My Profile", path: "/profile" },
+    { name: "Settings", path: "/settings" },
+  ];
+
   return (
-    <div className="sidebar">
-      <h2 className="logo">♻ WasteZero</h2>
+    <div className="w-64 bg-white shadow-xl flex flex-col p-6">
+      {/* LOGO */}
+      <h2 className="text-2xl font-bold text-green-600 mb-10">♻ WasteZero</h2>
 
-      <div className="user">
-        <p>{user?.name}</p>
-        <span>{user?.role}</span>
+      {/* USER INFO */}
+      <div className="mb-10">
+        <p className="font-semibold text-gray-800">{user?.name || "User"}</p>
+        <span className="text-sm text-gray-500 capitalize">
+          {user?.role || "Role"}
+        </span>
       </div>
 
-      <div className="menu">
-        <p onClick={() => navigate("/dashboard")}>Dashboard</p>
+      {/* MENU */}
+      <nav className="flex flex-col gap-2">
+        {menuItems.map((item) => (
+          <button
+            key={item.name}
+            onClick={() => navigate(item.path)}
+            className={`text-left px-4 py-3 rounded-xl transition-all duration-200 ${
+              location.pathname === item.path
+                ? "bg-green-100 text-green-700 font-semibold"
+                : "hover:bg-gray-100 text-gray-600"
+            }`}
+          >
+            {item.name}
+          </button>
+        ))}
+      </nav>
 
-        <p>Schedule Pickup</p>
+      {/* SPACER */}
+      <div className="flex-grow" />
 
-        <p onClick={() => navigate("/opportunities")}>Opportunities</p>
-
-        <p>Messages</p>
-
-        <p>My Impact</p>
-
-        <p onClick={() => navigate("/profile")}>My Profile</p>
-
-        <p>Settings</p>
-      </div>
+      {/* LOGOUT */}
+      <button
+        onClick={() => {
+          localStorage.clear();
+          navigate("/login");
+        }}
+        className="mt-6 bg-red-100 text-red-600 py-3 rounded-xl hover:bg-red-200 transition"
+      >
+        Logout
+      </button>
     </div>
   );
 };
