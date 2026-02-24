@@ -65,7 +65,8 @@ const Sidebar = () => {
       </nav>
 
       {/* SPACER */}
-      <div className="flex-grow" />
+      {/* <div className="flex-grow" /> */}
+      <div />
 
       {/* LOGOUT */}
       <button
