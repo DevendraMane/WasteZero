@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    isSuspended: {
+      type: Boolean,
+      default: false,
+    },
+
     address: {
       type: String,
       trim: true,
@@ -44,7 +49,7 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["volunteer", "ngo"],
+      enum: ["volunteer", "ngo", "admin"],
       required: true,
     },
 

@@ -1,29 +1,23 @@
 import express from "express";
-import authcontrollers, {
-  updateProfile,
-} from "../controllers/auth-controller.js";
 import { authMiddleware } from "../middlewares/auth-middleware.js";
+import User from "../models/user-model.js";
 
-export const authRouter = express.Router();
+const router = express.Router();
 
-// ******  REGISTRATION ROUTE  ****** //
-authRouter.route("/register").post(authcontrollers.register);
+// 🔥 Get All Users (Admin Only)
+router.get("/users", authMiddleware, async (req, res) => {
+  try {
+    // Check if admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
 
-// ******  LOGIN ROUTE  ****** //
-authRouter.route("/login").post(authcontrollers.login);
+    const users = await User.find().select("-password");
 
-authRouter.get("/verify/:token", authcontrollers.verifyEmail);
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
-authRouter.put(
-  "/update-profile",
-  authMiddleware,
-  authcontrollers.updateProfile,
-);
-
-authRouter.put(
-  "/change-password",
-  authMiddleware,
-  authcontrollers.changePassword,
-);
-
-authRouter.get("/profile", authMiddleware, authcontrollers.getProfile);
+export default router;

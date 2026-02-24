@@ -4,17 +4,35 @@ import { useNavigate, useLocation } from "react-router-dom";
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem("user"));
 
-  const menuItems = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Schedule Pickup", path: "/schedule" },
-    { name: "Opportunities", path: "/opportunities" },
-    { name: "Messages", path: "/messages" },
-    { name: "My Impact", path: "/impact" },
-    { name: "My Profile", path: "/profile" },
-    { name: "Settings", path: "/settings" },
-  ];
+  const storedUser = localStorage.getItem("user");
+  const user = storedUser ? JSON.parse(storedUser) : null;
+
+  const roleMenus = {
+    volunteer: [
+      { name: "Dashboard", path: "/dashboard" },
+      { name: "Schedule Pickup", path: "/schedule" },
+      { name: "Opportunities", path: "/opportunities" },
+      { name: "Messages", path: "/messages" },
+      { name: "My Impact", path: "/impact" },
+      { name: "Profile", path: "/profile" },
+    ],
+    ngo: [
+      { name: "Dashboard", path: "/dashboard" },
+      { name: "Create Opportunity", path: "/opportunities" },
+      { name: "Manage Applications", path: "/applications" },
+      { name: "Messages", path: "/messages" },
+      { name: "Profile", path: "/profile" },
+    ],
+    admin: [
+      { name: "Dashboard", path: "/dashboard" },
+      { name: "User Management", path: "/users" },
+      { name: "Reports & Analytics", path: "/analytics" },
+      { name: "Platform Settings", path: "/settings" },
+    ],
+  };
+
+  const menuItems = roleMenus[user?.role] || [];
 
   return (
     <div className="w-64 bg-white shadow-xl flex flex-col p-6">

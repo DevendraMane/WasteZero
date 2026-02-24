@@ -1,6 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+  const navigate = useNavigate(); // ✅ YOU FORGOT THIS
+
   return (
     <div className="font-sans">
       {/* HERO SECTION */}
@@ -12,7 +15,12 @@ const Home = () => {
           Join WasteZero in transforming waste management through sustainable
           practices and community-driven initiatives.
         </p>
-        <button className="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+
+        {/* ✅ FIXED BUTTON */}
+        <button
+          onClick={() => navigate("/login")}
+          className="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
+        >
           Get Started
         </button>
       </section>
@@ -66,7 +74,12 @@ const Home = () => {
       {/* CALL TO ACTION */}
       <section className="bg-green-700 text-white py-16 text-center">
         <h2 className="text-3xl font-bold mb-6">Ready to Make a Difference?</h2>
-        <button className="bg-white text-green-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+
+        {/* ✅ FIXED BUTTON */}
+        <button
+          onClick={() => navigate("/register")}
+          className="bg-white text-green-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
+        >
           Join Now
         </button>
       </section>

@@ -14,10 +14,17 @@ import Schedule from "./pages/Schedule/Schedule";
 import Messages from "./pages/Messages/Messages";
 import Impact from "./pages/Impact/Impact";
 import Settings from "./pages/Settings/Settings";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Opportunities from "./pages/Opportunities/Opportunities.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import Profile from "./pages/Profile/Profile.jsx";
+
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import RoleProtectedRoute from "./components/RoleProtectedRoute";
+import UserManagement from "./pages/Admin/UserManagement";
+
+// 🔥 IMPORTANT: Import these
+import Analytics from "./pages/Admin/Analytics";
+import Applications from "./pages/NGO/Applications";
 
 export const App = () => {
   const router = createBrowserRouter([
@@ -46,24 +53,50 @@ export const App = () => {
         </ProtectedRoute>
       ),
       children: [
-        {
-          path: "dashboard",
-          element: <Dashboard />,
-        },
-        {
-          path: "opportunities",
-          element: <Opportunities />,
-        },
-        {
-          path: "schedule",
-          element: <Schedule />,
-        },
+        { path: "dashboard", element: <Dashboard /> },
+        { path: "opportunities", element: <Opportunities /> },
+        { path: "schedule", element: <Schedule /> },
         { path: "messages", element: <Messages /> },
-        { path: "impact", element: <Impact /> },
         { path: "settings", element: <Settings /> },
+        { path: "profile", element: <Profile /> },
+
+        // 👑 Admin Only
         {
-          path: "profile",
-          element: <Profile />,
+          path: "analytics",
+          element: (
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <Analytics />
+            </RoleProtectedRoute>
+          ),
+        },
+
+        {
+          path: "users",
+          element: (
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <UserManagement />
+            </RoleProtectedRoute>
+          ),
+        },
+
+        // 🏢 NGO Only
+        {
+          path: "applications",
+          element: (
+            <RoleProtectedRoute allowedRoles={["ngo"]}>
+              <Applications />
+            </RoleProtectedRoute>
+          ),
+        },
+
+        // 👤 Volunteer Only
+        {
+          path: "impact",
+          element: (
+            <RoleProtectedRoute allowedRoles={["volunteer"]}>
+              <Impact />
+            </RoleProtectedRoute>
+          ),
         },
       ],
     },
