@@ -7,6 +7,7 @@ const Opportunities = () => {
 
   const [opportunities, setOpportunities] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [role, setRole] = useState(""); // ✅ added
 
   const fetchOpportunities = async () => {
     try {
@@ -20,8 +21,22 @@ const Opportunities = () => {
     }
   };
 
+  // ✅ fetch user role from DB
+  const fetchUserRole = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setRole(res.data.role);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     fetchOpportunities();
+    fetchUserRole(); // ✅ call here
   }, []);
 
   return (
@@ -37,12 +52,15 @@ const Opportunities = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
-        >
-          + Create Opportunity
-        </button>
+        {/* ✅ Show only if NGO */}
+        {role === "ngo" && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            + Create Opportunity
+          </button>
+        )}
       </div>
 
       {/* FORM MODAL */}
@@ -76,7 +94,6 @@ const Opportunities = () => {
 
               {/* CONTENT */}
               <div className="p-6 space-y-4">
-                {/* TITLE + STATUS */}
                 <div className="flex justify-between items-start">
                   <h3 className="text-lg font-semibold text-gray-800">
                     {item.title}
@@ -87,18 +104,15 @@ const Opportunities = () => {
                   </span>
                 </div>
 
-                {/* DESCRIPTION */}
                 <p className="text-gray-500 text-sm line-clamp-3">
                   {item.description}
                 </p>
 
-                {/* INFO */}
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>📍 {item.location}</span>
                   <span>⏱ {item.duration}</span>
                 </div>
 
-                {/* BUTTON */}
                 <button className="w-full bg-gray-100 hover:bg-green-100 text-gray-700 font-medium py-2 rounded-lg transition">
                   View Details
                 </button>
