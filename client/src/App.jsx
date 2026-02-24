@@ -23,7 +23,7 @@ export const App = () => {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Home />,
+      element: <Navigate to="/login" replace />,
     },
 
     {
