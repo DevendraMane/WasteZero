@@ -1,6 +1,4 @@
 import User from "../models/user-model.js";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../utils/sendEmail.js";
 
@@ -8,6 +6,15 @@ import { sendVerificationEmail } from "../utils/sendEmail.js";
 const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+
+    // 🔒 Only allow volunteer or ngo
+    const allowedRoles = ["volunteer", "ngo"];
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(403).json({
+        message: "Invalid role selected",
+      });
+    }
 
     const existingUser = await User.findOne({ email });
 
@@ -17,7 +24,7 @@ const register = async (req, res) => {
       });
     }
 
-    // generate token
+    // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
     const newUser = new User({
@@ -30,28 +37,26 @@ const register = async (req, res) => {
 
     await newUser.save();
 
-    // send email
+    // Send verification email
     await sendVerificationEmail(email, verificationToken);
 
     res.status(201).json({
       message: "Registration successful. Please verify your email.",
     });
   } catch (error) {
-    console.error("REGISTER ERROR:", error); // add this line
-
+    console.error("REGISTER ERROR:", error);
     res.status(500).json({
       message: "Server error",
     });
   }
 };
 
+// ================= VERIFY EMAIL =================
 const verifyEmail = async (req, res) => {
   try {
     const { token } = req.params;
 
-    const user = await User.findOne({
-      verificationToken: token,
-    });
+    const user = await User.findOne({ verificationToken: token });
 
     if (!user) {
       return res.status(400).send("Invalid token");
@@ -68,6 +73,7 @@ const verifyEmail = async (req, res) => {
   }
 };
 
+// ================= GET PROFILE =================
 export const getProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -88,25 +94,18 @@ export const getProfile = async (req, res) => {
   }
 };
 
+// ================= UPDATE PROFILE =================
 export const updateProfile = async (req, res) => {
   try {
-    const userId = req.userId; // from auth middleware
+    const userId = req.userId;
 
     const { name, location, address, skills, bio } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      {
-        name,
-        location,
-        address,
-        skills,
-        bio,
-      },
-      {
-        new: true,
-      },
-    );
+      { name, location, address, skills, bio },
+      { new: true },
+    ).select("-password");
 
     res.status(200).json({
       message: "Profile updated successfully",
@@ -119,10 +118,10 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+// ================= CHANGE PASSWORD =================
 export const changePassword = async (req, res) => {
   try {
     const userId = req.userId;
-
     const { currentPassword, newPassword } = req.body;
 
     const user = await User.findById(userId);
@@ -133,7 +132,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // check current password
     const isMatch = await user.comparePassword(currentPassword);
 
     if (!isMatch) {
@@ -142,9 +140,7 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // set new password
     user.password = newPassword;
-
     await user.save();
 
     res.status(200).json({
@@ -162,14 +158,12 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // check if email and password provided
     if (!email || !password) {
       return res.status(400).json({
         message: "Email and password are required",
       });
     }
 
-    // find user
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -178,7 +172,6 @@ const login = async (req, res) => {
       });
     }
 
-    // compare password using schema method
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
@@ -193,10 +186,15 @@ const login = async (req, res) => {
       });
     }
 
-    // generate token using schema method
+    // 🔥 OPTIONAL: Block suspended users
+    if (user.isSuspended) {
+      return res.status(403).json({
+        message: "Your account has been suspended by admin",
+      });
+    }
+
     const token = user.generateToken();
 
-    // send response
     res.status(200).json({
       message: "Login successful",
       token,
@@ -209,7 +207,6 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-
     res.status(500).json({
       message: "Server error",
     });

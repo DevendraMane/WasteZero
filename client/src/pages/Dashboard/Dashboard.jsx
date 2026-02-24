@@ -28,14 +28,18 @@ const Dashboard = () => {
     { name: "NGOs", value: 25 },
     { name: "Admins", value: 15 },
   ];
-
+  const user = JSON.parse(localStorage.getItem("user"));
   const COLORS = ["#22c55e", "#6366f1", "#f59e0b"];
 
   return (
     <div className="space-y-8">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-800">
+          {user?.role === "admin" && "Admin Dashboard"}
+          {user?.role === "ngo" && "NGO Dashboard"}
+          {user?.role === "volunteer" && "Volunteer Dashboard"}
+        </h1>
         <p className="text-gray-500 mt-2">
           Manage platform users, monitor activity, and generate reports
         </p>

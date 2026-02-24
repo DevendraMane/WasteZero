@@ -1,9 +1,10 @@
 import express from "express";
 import cors from "cors";
-import { authRouter } from "./routes/auth-router.js";
 import connectDB from "./utils/db.js";
 import dotenv from "dotenv";
 import opportunityRouter from "./routes/opportunity-router.js";
+import authRouter from "./routes/auth-router.js";
+import adminRouter from "./routes/admin-router.js";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use("/api/auth", authRouter);
 app.use("/api/opportunities", opportunityRouter);
 app.use("/uploads", express.static("uploads"));
+app.use("/api/admin", adminRouter);
 
 // Start server
 connectDB().then(() => {
