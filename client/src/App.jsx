@@ -18,7 +18,7 @@ import OpportunitiesDetail from "./pages/Opportunities/OpportunitiesDetail";
 import EditOpportunity from "./pages/Opportunities/EditOpportunity"; // ✅ NEW
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import Profile from "./pages/Profile/Profile.jsx";
-
+import PublicRoute from "./components/PublicRoute";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import UserManagement from "./pages/Admin/UserManagement";
@@ -35,13 +35,21 @@ export const App = () => {
 
     {
       path: "/login",
-      element: <Auth />,
+      element: (
+        <PublicRoute>
+          <Auth />
+        </PublicRoute>
+      ),
       children: [{ index: true, element: <Login /> }],
     },
 
     {
       path: "/register",
-      element: <Auth />,
+      element: (
+        <PublicRoute>
+          <Auth />
+        </PublicRoute>
+      ),
       children: [{ index: true, element: <Register /> }],
     },
 
