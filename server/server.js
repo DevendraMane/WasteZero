@@ -1,9 +1,12 @@
 import express from "express";
 import cors from "cors";
-import { authRouter } from "./routes/auth-router.js";
-import connectDB from "./utils/db.js";
 import dotenv from "dotenv";
+
+import connectDB from "./utils/db.js";
+import { authRouter } from "./routes/auth-router.js";
 import opportunityRouter from "./routes/opportunity-router.js";
+import adminRouter from "./routes/admin-router.js"; // ✅ ADD THIS
+import applicationRouter from "./routes/application-router.js";
 
 dotenv.config();
 
@@ -14,7 +17,7 @@ const PORT = process.env.PORT || 5000;
 app.use(
   cors({
     origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // ✅ add PATCH
     credentials: true,
   }),
 );
@@ -22,10 +25,14 @@ app.use(
 // Middleware
 app.use(express.json());
 
+// Static folder
+app.use("/uploads", express.static("uploads"));
+
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/opportunities", opportunityRouter);
-app.use("/uploads", express.static("uploads"));
+app.use("/api/admin", adminRouter); // ✅ THIS WAS MISSING
+app.use("/api/applications", applicationRouter);
 
 // Start server
 connectDB().then(() => {

@@ -19,4 +19,23 @@ opportunityRouter.get(
   opportunityController.getAllOpportunities,
 );
 
+opportunityRouter.get(
+  "/:id",
+  authMiddleware,
+  opportunityController.getSingleOpportunity,
+);
+
+opportunityRouter.delete(
+  "/:id",
+  authMiddleware,
+  opportunityController.deleteOpportunity,
+);
+
+opportunityRouter.put(
+  "/:id",
+  authMiddleware,
+  upload.single("image"),
+  opportunityController.updateOpportunity,
+);
+
 export default opportunityRouter;

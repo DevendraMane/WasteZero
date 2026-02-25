@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
 
-const CreateOpportunity = ({ onClose, onCreated }) => {
+const EditOpportunity = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const { authorizationToken, API } = useAuth();
 
   const [form, setForm] = useState({
@@ -15,6 +18,38 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
 
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // 🔹 Fetch existing opportunity
+  useEffect(() => {
+    const fetchOpportunity = async () => {
+      try {
+        const res = await axios.get(`${API}/api/opportunities/${id}`, {
+          headers: { Authorization: authorizationToken },
+        });
+
+        const data = res.data;
+
+        setForm({
+          title: data.title,
+          description: data.description,
+          duration: data.duration,
+          location: data.location,
+          required_skills: data.required_skills?.join(", "),
+        });
+
+        if (data.image) {
+          setPreview(`${API}/uploads/${data.image}`);
+        }
+      } catch (error) {
+        console.error("Error fetching opportunity:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOpportunity();
+  }, [id]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,6 +58,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
   const handleImage = (e) => {
     const file = e.target.files[0];
     setImage(file);
+
     if (file) {
       setPreview(URL.createObjectURL(file));
     }
@@ -44,29 +80,32 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
         formData.append("image", image);
       }
 
-      await axios.post(`${API}/api/opportunities`, formData, {
+      await axios.put(`${API}/api/opportunities/${id}`, formData, {
         headers: {
           Authorization: authorizationToken,
           "Content-Type": "multipart/form-data",
         },
       });
 
-      alert("Opportunity created successfully");
-      onCreated();
-      onClose();
+      alert("Opportunity updated successfully");
+      navigate(`/opportunities/${id}`);
     } catch (error) {
-      alert(error.response?.data?.message || "Error creating opportunity");
+      alert(error.response?.data?.message || "Update failed");
     }
   };
+
+  if (loading) {
+    return <div className="text-center py-20">Loading...</div>;
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 space-y-6 relative">
         {/* HEADER */}
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Create Opportunity</h2>
+          <h2 className="text-2xl font-bold">Edit Opportunity</h2>
           <button
-            onClick={onClose}
+            onClick={() => navigate(-1)}
             className="text-gray-400 hover:text-gray-600 text-xl"
           >
             ✕
@@ -76,7 +115,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
         <form onSubmit={handleSubmit} className="space-y-5">
           <input
             name="title"
-            placeholder="Title"
+            value={form.title}
             onChange={handleChange}
             className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
             required
@@ -84,7 +123,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
 
           <textarea
             name="description"
-            placeholder="Description"
+            value={form.description}
             onChange={handleChange}
             rows="4"
             className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
@@ -93,7 +132,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
 
           <input
             name="required_skills"
-            placeholder="Skills (comma separated)"
+            value={form.required_skills}
             onChange={handleChange}
             className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
           />
@@ -101,14 +140,14 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
           <div className="grid grid-cols-2 gap-4">
             <input
               name="duration"
-              placeholder="Duration"
+              value={form.duration}
               onChange={handleChange}
               className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
             />
 
             <input
               name="location"
-              placeholder="Location"
+              value={form.location}
               onChange={handleChange}
               className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
             />
@@ -135,7 +174,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
           <div className="flex justify-end gap-4 pt-4">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => navigate(-1)}
               className="bg-gray-100 px-6 py-2 rounded-lg hover:bg-gray-200"
             >
               Cancel
@@ -145,7 +184,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
               type="submit"
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
             >
-              Create
+              Update
             </button>
           </div>
         </form>
@@ -154,4 +193,4 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
   );
 };
 
-export default CreateOpportunity;
+export default EditOpportunity;

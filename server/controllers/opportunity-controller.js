@@ -33,7 +33,86 @@ const getAllOpportunities = async (req, res) => {
   }
 };
 
+const getSingleOpportunity = async (req, res) => {
+  try {
+    const opportunity = await Opportunity.findById(req.params.id);
+
+    if (!opportunity) {
+      return res.status(404).json({ message: "Opportunity not found" });
+    }
+
+    res.status(200).json(opportunity);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteOpportunity = async (req, res) => {
+  try {
+    const opportunity = await Opportunity.findById(req.params.id);
+
+    if (!opportunity) {
+      return res.status(404).json({ message: "Opportunity not found" });
+    }
+
+    // 🔒 Only the NGO who created it can delete
+    if (opportunity.ngo_id.toString() !== req.user.userId) {
+      return res.status(403).json({ message: "Not authorized to delete" });
+    }
+
+    await opportunity.deleteOne();
+
+    res.status(200).json({ message: "Opportunity deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateOpportunity = async (req, res) => {
+  try {
+    const { title, description, duration, location, required_skills } =
+      req.body;
+
+    const opportunity = await Opportunity.findById(req.params.id);
+
+    if (!opportunity) {
+      return res.status(404).json({ message: "Opportunity not found" });
+    }
+
+    // 🔒 Only owner NGO can edit
+    if (opportunity.ngo_id.toString() !== req.user.userId) {
+      return res.status(403).json({ message: "Not authorized to edit" });
+    }
+
+    opportunity.title = title || opportunity.title;
+    opportunity.description = description || opportunity.description;
+    opportunity.duration = duration || opportunity.duration;
+    opportunity.location = location || opportunity.location;
+
+    if (required_skills) {
+      opportunity.required_skills = required_skills.split(",");
+    }
+
+    // If new image uploaded
+    if (req.file) {
+      opportunity.image = req.file.filename;
+    }
+
+    await opportunity.save();
+
+    res.status(200).json({
+      message: "Opportunity updated successfully",
+      opportunity,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export default {
   getAllOpportunities,
   createOpportunity,
+  getSingleOpportunity,
+  deleteOpportunity,
+  updateOpportunity,
 };

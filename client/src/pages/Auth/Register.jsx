@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../store/AuthContext";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { registerUser, isLoading } = useAuth();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -28,29 +30,17 @@ const Register = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role,
-        }),
+      await registerUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Registration successful");
-        navigate("/login");
-      } else {
-        alert(data.message || "Registration failed");
-      }
+      alert("Registration successful. Please verify your email.");
+      navigate("/login");
     } catch (error) {
-      alert("Server error");
+      alert(error.message);
     }
   };
 
@@ -143,9 +133,10 @@ const Register = () => {
 
         <button
           type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition duration-300"
+          disabled={isLoading}
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition duration-300 disabled:opacity-60"
         >
-          Create Account
+          {isLoading ? "Creating account..." : "Create Account"}
         </button>
       </form>
     </div>

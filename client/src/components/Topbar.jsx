@@ -1,14 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../store/AuthContext";
 
 const Topbar = () => {
   const navigate = useNavigate();
+  const { user, logoutUser } = useAuth();
+
   const [showMenu, setShowMenu] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const handleLogout = () => {
+    logoutUser();
+    navigate("/login");
+  };
 
   return (
-    <div className="flex items-center justify-between px-8 py-4 bg-white">
+    <div className="flex items-center justify-between px-8 py-4 bg-white shadow-sm">
       {/* SEARCH BAR */}
       <div className="w-1/2">
         <input
@@ -23,32 +29,31 @@ const Topbar = () => {
         {/* NOTIFICATION */}
         <button className="text-xl hover:text-green-600 transition">🔔</button>
 
-        {/* PROFILE */}
+        {/* PROFILE DROPDOWN */}
         <div className="relative">
           <button
-            onClick={() => setShowMenu(!showMenu)}
+            onClick={() => setShowMenu((prev) => !prev)}
             className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
           >
             👤
             <span className="font-medium text-sm">{user?.name || "User"}</span>
           </button>
 
-          {/* DROPDOWN */}
           {showMenu && (
-            <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-lg overflow-hidden">
+            <div className="absolute right-0 mt-2 w-44 bg-white shadow-lg rounded-lg overflow-hidden z-50">
               <button
-                onClick={() => navigate("/profile")}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                onClick={() => {
+                  setShowMenu(false);
+                  navigate("/profile");
+                }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 transition"
               >
                 My Profile
               </button>
 
               <button
-                onClick={() => {
-                  localStorage.clear();
-                  navigate("/login");
-                }}
-                className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600"
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 transition"
               >
                 Logout
               </button>

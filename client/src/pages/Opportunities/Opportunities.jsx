@@ -1,43 +1,80 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import CreateOpportunity from "./CreateOpportunity";
+import { useAuth } from "../../store/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Opportunities = () => {
-  const token = localStorage.getItem("token");
-
+  const { authorizationToken, API, user } = useAuth();
+  const [appliedMap, setAppliedMap] = useState({});
   const [opportunities, setOpportunities] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [role, setRole] = useState(""); // ✅ added
+  const [applyingId, setApplyingId] = useState(null);
+
+  const navigate = useNavigate();
 
   const fetchOpportunities = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/opportunities", {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axios.get(`${API}/api/opportunities`, {
+        headers: {
+          Authorization: authorizationToken,
+        },
       });
 
       setOpportunities(res.data);
     } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // ✅ fetch user role from DB
-  const fetchUserRole = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/auth/profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setRole(res.data.role);
-    } catch (error) {
-      console.error(error);
+      console.error(
+        "Error fetching opportunities:",
+        error.response?.data || error,
+      );
     }
   };
 
   useEffect(() => {
     fetchOpportunities();
-    fetchUserRole(); // ✅ call here
   }, []);
+
+  useEffect(() => {
+    const fetchAppliedStatus = async () => {
+      if (user?.role !== "volunteer") return;
+
+      const statusMap = {};
+
+      for (let opp of opportunities) {
+        const res = await axios.get(
+          `${API}/api/applications/check/${opp._id}`,
+          { headers: { Authorization: authorizationToken } },
+        );
+
+        if (res.data.applied) {
+          statusMap[opp._id] = res.data.status;
+        } else {
+          statusMap[opp._id] = null;
+        }
+      }
+
+      setAppliedMap(statusMap);
+    };
+
+    if (opportunities.length > 0) {
+      fetchAppliedStatus();
+    }
+  }, [opportunities]);
+
+  // 🔹 APPLY FUNCTION
+  const handleApply = async (id) => {
+    try {
+      await axios.post(
+        `${API}/api/applications/${id}`,
+        {},
+        { headers: { Authorization: authorizationToken } },
+      );
+
+      setAppliedMap((prev) => ({ ...prev, [id]: "pending" }));
+    } catch (error) {
+      alert(error.response?.data?.message || "Already applied");
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -52,8 +89,8 @@ const Opportunities = () => {
           </p>
         </div>
 
-        {/* ✅ Show only if NGO */}
-        {role === "ngo" && (
+        {/* Show only if NGO */}
+        {user?.role === "ngo" && (
           <button
             onClick={() => setShowForm(true)}
             className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
@@ -86,7 +123,7 @@ const Opportunities = () => {
               {/* IMAGE */}
               <div className="h-48 overflow-hidden">
                 <img
-                  src={`http://localhost:5000/uploads/${item.image}`}
+                  src={`${API}/uploads/${item.image}`}
                   alt={item.title}
                   className="w-full h-full object-cover hover:scale-105 transition duration-500"
                 />
@@ -113,9 +150,47 @@ const Opportunities = () => {
                   <span>⏱ {item.duration}</span>
                 </div>
 
-                <button className="w-full bg-gray-100 hover:bg-green-100 text-gray-700 font-medium py-2 rounded-lg transition">
-                  View Details
-                </button>
+                {/* BUTTONS */}
+                <div className="space-y-2">
+                  <button
+                    onClick={() => navigate(`/opportunities/${item._id}`)}
+                    className="w-full bg-gray-100 hover:bg-green-100 text-gray-700 font-medium py-2 rounded-lg transition"
+                  >
+                    View Details
+                  </button>
+
+                  {/* 🔥 Apply Now (Volunteer Only) */}
+                  {user?.role === "volunteer" &&
+                    (appliedMap[item._id] === "accepted" ? (
+                      <button
+                        disabled
+                        className="w-full bg-green-600 text-white font-medium py-2 rounded-lg"
+                      >
+                        Accepted
+                      </button>
+                    ) : appliedMap[item._id] === "pending" ? (
+                      <button
+                        disabled
+                        className="w-full bg-yellow-100 text-yellow-700 font-medium py-2 rounded-lg"
+                      >
+                        Applied (Pending)
+                      </button>
+                    ) : appliedMap[item._id] === "rejected" ? (
+                      <button
+                        disabled
+                        className="w-full bg-red-100 text-red-600 font-medium py-2 rounded-lg"
+                      >
+                        Rejected
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleApply(item._id)}
+                        className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+                      >
+                        Apply Now
+                      </button>
+                    ))}
+                </div>
               </div>
             </div>
           ))

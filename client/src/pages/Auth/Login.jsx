@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../store/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { loginUser, isLoading } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
-  const [loading, setLoading] = useState(false);
 
   const handleChange = ({ target: { name, value } }) => {
     setFormData((prev) => ({
@@ -19,7 +19,7 @@ const Login = () => {
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // prevent page reload
+    e.preventDefault();
 
     if (!formData.email || !formData.password) {
       alert("All fields are required");
@@ -27,29 +27,10 @@ const Login = () => {
     }
 
     try {
-      setLoading(true);
-
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        navigate("/dashboard");
-      } else {
-        alert(data.message || "Login failed");
-      }
+      await loginUser(formData);
+      navigate("/dashboard");
     } catch (error) {
-      alert("Server error");
-    } finally {
-      setLoading(false);
+      alert(error.message);
     }
   };
 
@@ -103,10 +84,10 @@ const Login = () => {
         {/* Button */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={isLoading}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition duration-300 disabled:opacity-60"
         >
-          {loading ? "Logging in..." : "Login"}
+          {isLoading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>

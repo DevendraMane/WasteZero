@@ -1,12 +1,11 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../store/AuthContext";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const storedUser = localStorage.getItem("user");
-  const user = storedUser ? JSON.parse(storedUser) : null;
+  const { user, logoutUser } = useAuth();
 
   const roleMenus = {
     volunteer: [
@@ -33,6 +32,11 @@ const Sidebar = () => {
   };
 
   const menuItems = roleMenus[user?.role] || [];
+
+  const handleLogout = () => {
+    logoutUser();
+    navigate("/login");
+  };
 
   return (
     <div className="w-64 bg-white shadow-xl flex flex-col p-6">
@@ -64,16 +68,11 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      {/* SPACER */}
-      {/* <div className="flex-grow" /> */}
       <div />
 
       {/* LOGOUT */}
       <button
-        onClick={() => {
-          localStorage.clear();
-          navigate("/login");
-        }}
+        onClick={handleLogout}
         className="mt-6 bg-red-100 text-red-600 py-3 rounded-xl hover:bg-red-200 transition"
       >
         Logout

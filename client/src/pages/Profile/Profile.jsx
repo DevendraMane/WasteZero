@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../../store/AuthContext";
 
 const Profile = () => {
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const { API, authorizationToken, logoutUser } = useAuth();
 
   const [editMode, setEditMode] = useState(false);
 
@@ -18,14 +17,16 @@ const Profile = () => {
     profileImage: "",
   });
 
+  // ================= FETCH PROFILE =================
   const fetchProfile = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/profile", {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`${API}/api/auth/profile`, {
+        headers: {
+          Authorization: authorizationToken,
+        },
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message);
 
       setFormData({
@@ -39,7 +40,7 @@ const Profile = () => {
         profileImage: data.profileImage || "",
       });
     } catch (err) {
-      console.error(err);
+      console.error("Profile fetch error:", err);
     }
   };
 
@@ -47,11 +48,15 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  // ================= HANDLE CHANGE =================
+  const handleChange = ({ target: { name, value } }) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
+  // ================= IMAGE UPLOAD =================
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -60,16 +65,16 @@ const Profile = () => {
     form.append("profileImage", file);
 
     try {
-      const res = await fetch(
-        "http://localhost:5000/api/auth/upload-profile-image",
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: form,
+      const res = await fetch(`${API}/api/auth/upload-profile-image`, {
+        method: "POST",
+        headers: {
+          Authorization: authorizationToken,
         },
-      );
+        body: form,
+      });
 
       const data = await res.json();
+
       if (res.ok) {
         setFormData((prev) => ({
           ...prev,
@@ -81,19 +86,23 @@ const Profile = () => {
     }
   };
 
+  // ================= UPDATE PROFILE =================
   const handleUpdate = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/update-profile", {
+      const res = await fetch(`${API}/api/auth/update-profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: authorizationToken,
         },
         body: JSON.stringify({
           name: formData.name,
           location: formData.location,
           address: formData.address,
-          skills: formData.skills.split(",").map((s) => s.trim()),
+          skills: formData.skills
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean),
           bio: formData.bio,
         }),
       });
@@ -108,18 +117,13 @@ const Profile = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
-  };
-
   return (
     <div className="max-w-4xl mx-auto bg-white p-10 rounded-3xl shadow-lg">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">My Profile</h1>
         <button
-          onClick={handleLogout}
+          onClick={logoutUser}
           className="bg-red-100 text-red-600 px-5 py-2 rounded-lg"
         >
           Logout
@@ -130,8 +134,9 @@ const Profile = () => {
       <div className="flex items-center gap-6 mb-10">
         <img
           src={
-            formData.profileImage ||
-            "https://ui-avatars.com/api/?name=" + formData.name
+            formData.profileImage
+              ? `${API}/uploads/${formData.profileImage}`
+              : `https://ui-avatars.com/api/?name=${formData.name}`
           }
           alt="Profile"
           className="w-24 h-24 rounded-full object-cover border"

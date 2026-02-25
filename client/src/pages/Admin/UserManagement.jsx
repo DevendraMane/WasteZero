@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useAuth } from "../../store/AuthContext";
 
 const UserManagement = () => {
+  const { authorizationToken, API } = useAuth();
   const [users, setUsers] = useState([]);
-  const token = localStorage.getItem("token");
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/admin/users", {
+      const res = await axios.get(`${API}/api/admin/users`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: authorizationToken,
         },
       });
+
       setUsers(res.data);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching users:", error.response?.data || error);
     }
   };
 
@@ -23,23 +25,20 @@ const UserManagement = () => {
   }, []);
 
   const toggleSuspend = async (id) => {
-    console.log("BUTTON CLICKED", id); // 👈 ADD THIS
-
     try {
-      const res = await axios.patch(
-        `http://localhost:5000/api/admin/users/${id}/suspend`,
+      await axios.patch(
+        `${API}/api/admin/users/${id}/suspend`,
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: authorizationToken,
           },
         },
       );
 
-      console.log("SUCCESS:", res.data);
       fetchUsers();
     } catch (error) {
-      console.error("ERROR:", error.response?.data || error);
+      console.error("Error toggling suspend:", error.response?.data || error);
     }
   };
 
@@ -73,7 +72,6 @@ const UserManagement = () => {
                   <td className="p-4">{user.email}</td>
                   <td className="p-4 capitalize">{user.role}</td>
 
-                  {/* STATUS */}
                   <td className="p-4">
                     {user.isSuspended ? (
                       <span className="text-red-600 font-semibold">
@@ -86,7 +84,6 @@ const UserManagement = () => {
                     )}
                   </td>
 
-                  {/* ACTION BUTTON */}
                   <td className="p-4">
                     {user.role !== "admin" && (
                       <button
