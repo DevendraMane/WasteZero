@@ -14,12 +14,37 @@ const Register = () => {
     role: "volunteer",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [strength, setStrength] = useState("");
+
   const handleChange = ({ target: { name, value } }) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    if (name === "password") {
+      checkStrength(value);
+    }
   };
+
+  const checkStrength = (password) => {
+    if (password.length < 6) {
+      setStrength("Weak");
+    } else if (
+      password.match(/[A-Z]/) &&
+      password.match(/[0-9]/) &&
+      password.length >= 8
+    ) {
+      setStrength("Strong");
+    } else {
+      setStrength("Medium");
+    }
+  };
+
+  const passwordsMatch =
+    formData.confirmPassword && formData.password === formData.confirmPassword;
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -94,27 +119,75 @@ const Register = () => {
         {/* Password */}
         <div>
           <label className="block mb-1 font-medium">Password</label>
-          <input
-            type="password"
-            name="password"
-            placeholder="Create a password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
+
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Create a password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 text-gray-500 hover:text-green-600"
+            >
+              {showPassword ? "🙈" : "👁"}
+            </button>
+          </div>
+
+          {formData.password && (
+            <p
+              className={`text-sm mt-1 ${
+                strength === "Weak"
+                  ? "text-red-500"
+                  : strength === "Medium"
+                    ? "text-yellow-500"
+                    : "text-green-600"
+              }`}
+            >
+              Strength: {strength}
+            </p>
+          )}
         </div>
 
         {/* Confirm Password */}
         <div>
           <label className="block mb-1 font-medium">Confirm Password</label>
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
+
+          <div className="relative">
+            <input
+              type={showConfirm ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="absolute right-3 top-3 text-gray-500 hover:text-green-600"
+            >
+              {showConfirm ? "🙈" : "👁"}
+            </button>
+          </div>
+
+          {formData.confirmPassword && (
+            <p
+              className={`text-sm mt-1 ${
+                passwordsMatch ? "text-green-600" : "text-red-500"
+              }`}
+            >
+              {passwordsMatch
+                ? "Passwords match ✅"
+                : "Passwords do not match ❌"}
+            </p>
+          )}
         </div>
 
         {/* Role */}
