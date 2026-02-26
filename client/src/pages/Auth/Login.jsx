@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
+import loader from "../../assets/loader.png";
+import googleIcon from "../../assets/google.svg";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -55,6 +58,10 @@ const Login = () => {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
+  };
+
   return (
     <div>
       {/* Tabs */}
@@ -103,13 +110,12 @@ const Login = () => {
               className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
 
-            {/* Eye Toggle */}
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-3 text-gray-500 hover:text-green-600"
             >
-              {showPassword ? "🙈" : "👁"}
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
 
@@ -140,15 +146,43 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Button */}
+        {/* Login Button */}
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition duration-300 disabled:opacity-60"
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition duration-300 disabled:opacity-60 flex items-center justify-center"
         >
-          {isLoading ? "Logging in..." : "Login"}
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <img
+                src={loader}
+                alt="loading"
+                className="w-5 h-5 animate-spin"
+              />
+              Logging in...
+            </div>
+          ) : (
+            "Login"
+          )}
         </button>
       </form>
+
+      {/* Divider */}
+      <div className="flex items-center my-6">
+        <div className="flex-1 h-px bg-gray-300" />
+        <span className="px-3 text-sm text-gray-500">or</span>
+        <div className="flex-1 h-px bg-gray-300" />
+      </div>
+
+      {/* Google Login Button */}
+      <button
+        type="button"
+        onClick={handleGoogleLogin}
+        className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 py-3 rounded-lg hover:bg-gray-50 transition font-medium shadow-sm hover:shadow-md"
+      >
+        <img src={googleIcon} alt="Google" className="w-5 h-5" />
+        Continue with Google
+      </button>
     </div>
   );
 };

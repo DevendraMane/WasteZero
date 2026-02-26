@@ -14,6 +14,7 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
+import loader from "../assets/loader.png";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -55,9 +56,20 @@ const Sidebar = () => {
       {/* SCROLLABLE CONTENT */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
         {/* LOGO */}
-        <h2 className="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-2">
-          ♻ <span className="text-green-600">WasteZero</span>
-        </h2>
+        {/* LOGO */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="bg-green-100 p-2 rounded-xl shadow-sm">
+            <img
+              src={loader}
+              alt="WasteZero Logo"
+              className="w-8 h-8 object-contain"
+            />
+          </div>
+
+          <span className="text-xl font-bold tracking-wide text-gray-800">
+            <span className="text-green-600">Waste</span>Zero
+          </span>
+        </div>
 
         {/* USER INFO */}
         <div className="mb-8 border-b pb-6">

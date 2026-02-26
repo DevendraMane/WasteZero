@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, Lock } from "lucide-react";
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -9,6 +10,8 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,18 +28,13 @@ const ResetPassword = () => {
         `http://localhost:5000/api/auth/reset-password/${token}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ password }),
         },
       );
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message);
-      }
+      if (!res.ok) throw new Error(data.message);
 
       setMessage("Password reset successful. Redirecting...");
       setTimeout(() => navigate("/login"), 2000);
@@ -48,40 +46,60 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex justify-center mt-20">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6">Reset Password</h2>
+    <div>
+      <h2 className="text-2xl font-bold mb-6">Reset Password</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* New Password */}
+        <div className="relative">
+          <Lock size={18} className="absolute left-3 top-3 text-gray-400" />
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="New Password"
-            className="w-full border p-3 rounded-lg"
+            className="w-full border rounded-lg px-10 py-3 pr-12 focus:ring-2 focus:ring-green-500 outline-none"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-3 text-gray-500 hover:text-green-600"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
 
+        {/* Confirm Password */}
+        <div className="relative">
+          <Lock size={18} className="absolute left-3 top-3 text-gray-400" />
           <input
-            type="password"
+            type={showConfirm ? "text" : "password"}
             placeholder="Confirm Password"
-            className="w-full border p-3 rounded-lg"
+            className="w-full border rounded-lg px-10 py-3 pr-12 focus:ring-2 focus:ring-green-500 outline-none"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-
-          {message && <p className="text-sm text-red-600">{message}</p>}
-
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 text-white py-3 rounded-lg"
+            type="button"
+            onClick={() => setShowConfirm(!showConfirm)}
+            className="absolute right-3 top-3 text-gray-500 hover:text-green-600"
           >
-            {loading ? "Updating..." : "Reset Password"}
+            {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
-        </form>
-      </div>
+        </div>
+
+        {message && <p className="text-sm text-red-600">{message}</p>}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition disabled:opacity-60"
+        >
+          {loading ? "Updating..." : "Reset Password"}
+        </button>
+      </form>
     </div>
   );
 };
