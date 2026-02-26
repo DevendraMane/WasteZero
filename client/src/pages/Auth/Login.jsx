@@ -11,11 +11,32 @@ const Login = () => {
     password: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [strength, setStrength] = useState("");
+
   const handleChange = ({ target: { name, value } }) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    if (name === "password") {
+      checkStrength(value);
+    }
+  };
+
+  const checkStrength = (password) => {
+    if (password.length < 6) {
+      setStrength("Weak");
+    } else if (
+      password.match(/[A-Z]/) &&
+      password.match(/[0-9]/) &&
+      password.length >= 8
+    ) {
+      setStrength("Strong");
+    } else {
+      setStrength("Medium");
+    }
   };
 
   const handleLogin = async (e) => {
@@ -71,14 +92,52 @@ const Login = () => {
         {/* Password */}
         <div>
           <label className="block mb-1 font-medium">Password</label>
-          <input
-            type="password"
-            name="password"
-            placeholder="Your password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
+
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Your password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+
+            {/* Eye Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 text-gray-500 hover:text-green-600"
+            >
+              {showPassword ? "🙈" : "👁"}
+            </button>
+          </div>
+
+          {/* Password Strength */}
+          {formData.password && (
+            <p
+              className={`text-sm mt-1 ${
+                strength === "Weak"
+                  ? "text-red-500"
+                  : strength === "Medium"
+                    ? "text-yellow-500"
+                    : "text-green-600"
+              }`}
+            >
+              Strength: {strength}
+            </p>
+          )}
+
+          {/* Forgot Password */}
+          <div className="text-right mt-2">
+            <button
+              type="button"
+              onClick={() => navigate("/forgot-password")}
+              className="text-sm text-green-600 hover:underline"
+            >
+              Forgot Password?
+            </button>
+          </div>
         </div>
 
         {/* Button */}

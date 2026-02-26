@@ -8,6 +8,7 @@ import {
 import Auth from "./pages/Auth/Auth";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Schedule from "./pages/Schedule/Schedule";
 import Messages from "./pages/Messages/Messages";
@@ -18,6 +19,8 @@ import OpportunitiesDetail from "./pages/Opportunities/OpportunitiesDetail";
 import EditOpportunity from "./pages/Opportunities/EditOpportunity"; // ✅ NEW
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import Profile from "./pages/Profile/Profile.jsx";
+import ChangePassword from "./pages/Profile/ChangePassword";
+import HelpRouter from "./pages/Help/HelpRouter";
 import PublicRoute from "./components/PublicRoute";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
@@ -54,6 +57,12 @@ export const App = () => {
     },
 
     {
+      path: "/forgot-password",
+      element: <Auth />,
+      children: [{ index: true, element: <ForgotPassword /> }],
+    },
+
+    {
       path: "/",
       element: (
         <ProtectedRoute>
@@ -80,6 +89,8 @@ export const App = () => {
         { path: "messages", element: <Messages /> },
         { path: "settings", element: <Settings /> },
         { path: "profile", element: <Profile /> },
+        { path: "change-password", element: <ChangePassword /> },
+        { path: "help", element: <HelpRouter /> },
 
         // 👑 Admin Only
         {
