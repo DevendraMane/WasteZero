@@ -40,6 +40,7 @@ const Sidebar = () => {
       { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
       { name: "User Management", path: "/users", icon: User },
       { name: "Reports & Analytics", path: "/analytics", icon: BarChart3 },
+      { name: "Messages", path: "/messages", icon: MessageCircle },
       { name: "Platform Settings", path: "/settings", icon: Settings },
     ],
   };
