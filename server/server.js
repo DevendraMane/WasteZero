@@ -1,29 +1,30 @@
+import "dotenv/config"; // ✅ MUST BE FIRST
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
-
 import connectDB from "./utils/db.js";
 import { authRouter } from "./routes/auth-router.js";
 import opportunityRouter from "./routes/opportunity-router.js";
-import adminRouter from "./routes/admin-router.js"; // ✅ ADD THIS
+import adminRouter from "./routes/admin-router.js";
 import applicationRouter from "./routes/application-router.js";
-
-dotenv.config();
+import passport from "passport";
+import "./config/passport.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Proper CORS configuration
+// CORS
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // ✅ add PATCH
+    origin: process.env.CLIENT_URL,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   }),
 );
 
 // Middleware
 app.use(express.json());
+app.use(passport.initialize());
 
 // Static folder
 app.use("/uploads", express.static("uploads"));
@@ -31,7 +32,7 @@ app.use("/uploads", express.static("uploads"));
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/opportunities", opportunityRouter);
-app.use("/api/admin", adminRouter); // ✅ THIS WAS MISSING
+app.use("/api/admin", adminRouter);
 app.use("/api/applications", applicationRouter);
 
 // Start server

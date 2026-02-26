@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { useAuth } from "../../store/AuthContext";
 import { Eye, EyeOff, Lock } from "lucide-react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const ChangePassword = () => {
   const { changePassword, isLoading } = useAuth();
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     currentPassword: "",
@@ -45,6 +48,12 @@ const ChangePassword = () => {
       setMessage(err.message);
     }
   };
+
+  useEffect(() => {
+    if (user?.googleId) {
+      navigate("/profile");
+    }
+  }, []);
 
   return (
     <div className="flex justify-center mt-12">

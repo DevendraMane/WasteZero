@@ -296,6 +296,21 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+// ================= GOOGLE CALLBACK =================
+const googleCallback = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const token = user.generateToken();
+
+    res.redirect(`${process.env.CLIENT_URL}/oauth-success?token=${token}`);
+  } catch (error) {
+    res.status(500).json({
+      message: "Google authentication failed",
+    });
+  }
+};
+
 export default {
   register,
   login,
@@ -305,4 +320,5 @@ export default {
   getProfile,
   forgotPassword,
   resetPassword,
+  googleCallback,
 };

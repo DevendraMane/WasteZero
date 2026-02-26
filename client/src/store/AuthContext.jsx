@@ -140,6 +140,7 @@ export const AuthProvider = ({ children }) => {
         logoutUser,
         authorizationToken,
         changePassword,
+        storeToken,
       }}
     >
       {children}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
@@ -61,6 +61,15 @@ const Login = () => {
   const handleGoogleLogin = () => {
     window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+
+    if (error) {
+      alert("User already exists. Please login using email/password.");
+    }
+  }, []);
 
   return (
     <div>
@@ -181,7 +190,7 @@ const Login = () => {
         className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 py-3 rounded-lg hover:bg-gray-50 transition font-medium shadow-sm hover:shadow-md"
       >
         <img src={googleIcon} alt="Google" className="w-5 h-5" />
-        Continue with Google
+        Sign In with Google
       </button>
     </div>
   );

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { API, authorizationToken, logoutUser } = useAuth();
+  const { user, API, authorizationToken } = useAuth();
 
   const [editMode, setEditMode] = useState(false);
 
@@ -121,17 +121,6 @@ const Profile = () => {
 
   return (
     <div className="max-w-4xl mx-auto bg-white p-10 rounded-3xl shadow-lg">
-      {/* HEADER */}
-      {/*<div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">My Profile</h1>
-        <button
-          onClick={logoutUser}
-          className="bg-red-100 text-red-600 px-5 py-2 rounded-lg"
-        >
-          Logout
-        </button>
-      </div>*/}
-
       {/* PROFILE IMAGE */}
       <div className="flex items-center gap-6 mb-10">
         <img
@@ -189,20 +178,6 @@ const Profile = () => {
       </div>
 
       <div className="mt-6">
-        <label className="block text-sm font-medium">Address</label>
-        {editMode ? (
-          <input
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded-lg"
-          />
-        ) : (
-          <p className="mt-1">{formData.address}</p>
-        )}
-      </div>
-
-      <div className="mt-6">
         <label className="block text-sm font-medium">Skills</label>
         {editMode ? (
           <input
@@ -231,9 +206,9 @@ const Profile = () => {
       </div>
 
       {/* ACTION BUTTONS */}
-      <div className="flex justify-between items-center mt-8">
-        {/* LEFT SIDE - Only when not editing */}
-        {!editMode && (
+      <div className="flex justify-end items-center gap-4 mt-8">
+        {/* Change Password (Only for non-Google users) */}
+        {!editMode && !user?.googleId && (
           <button
             onClick={() => navigate("/change-password")}
             className="border border-blue-500 text-blue-600 px-6 py-2 rounded-lg hover:bg-blue-50 transition font-medium"
@@ -242,36 +217,33 @@ const Profile = () => {
           </button>
         )}
 
-        {/* RIGHT SIDE */}
-        <div className="flex gap-4">
-          {editMode ? (
-            <>
-              <button
-                onClick={() => {
-                  setEditMode(false);
-                  fetchProfile();
-                }}
-                className="bg-gray-100 px-6 py-2 rounded-lg hover:bg-gray-200 transition"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={handleUpdate}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
-              >
-                Save
-              </button>
-            </>
-          ) : (
+        {editMode ? (
+          <>
             <button
-              onClick={() => setEditMode(true)}
+              onClick={() => {
+                setEditMode(false);
+                fetchProfile();
+              }}
+              className="bg-gray-100 px-6 py-2 rounded-lg hover:bg-gray-200 transition"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={handleUpdate}
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
             >
-              Edit Profile
+              Save
             </button>
-          )}
-        </div>
+          </>
+        ) : (
+          <button
+            onClick={() => setEditMode(true)}
+            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            Edit Profile
+          </button>
+        )}
       </div>
     </div>
   );

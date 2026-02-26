@@ -20,7 +20,9 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return !this.googleId;
+      },
     },
 
     role: {
@@ -48,6 +50,11 @@ const userSchema = new mongoose.Schema(
 
     resetPasswordExpire: {
       type: Date,
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
 
     // Optional profile fields

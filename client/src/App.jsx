@@ -35,6 +35,7 @@ import UserManagement from "./pages/Admin/UserManagement";
 import Analytics from "./pages/Admin/Analytics";
 import Applications from "./pages/NGO/Applications";
 import TestLoader from "./pages/TestLoader";
+import OAuthSuccess from "./pages/Auth/OAuthSuccess";
 
 export const App = () => {
   const { isLoading } = useAuth();
@@ -43,6 +44,10 @@ export const App = () => {
     {
       path: "/test-loader",
       element: <TestLoader />,
+    },
+    {
+      path: "/oauth-success",
+      element: <OAuthSuccess />,
     },
     {
       path: "/",

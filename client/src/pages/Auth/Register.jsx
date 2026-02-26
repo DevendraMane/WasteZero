@@ -247,7 +247,7 @@ const Register = () => {
         className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 py-3 rounded-lg hover:bg-gray-50 transition font-medium shadow-sm hover:shadow-md"
       >
         <img src={googleIcon} alt="Google" className="w-5 h-5" />
-        Continue with Google
+        Sign Up with Google
       </button>
     </div>
   );
