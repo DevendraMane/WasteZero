@@ -109,10 +109,32 @@ const updateOpportunity = async (req, res) => {
   }
 };
 
+/*
+--------------------------------------
+GET OPPORTUNITIES FOR NGO
+--------------------------------------
+*/
+const getOpportunitiesForNGO = async (req, res) => {
+  try {
+    if (req.user.role !== "ngo") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const opportunities = await Opportunity.find({
+      ngo_id: req.user.userId,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json(opportunities);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export default {
   getAllOpportunities,
   createOpportunity,
   getSingleOpportunity,
   deleteOpportunity,
   updateOpportunity,
+  getOpportunitiesForNGO,
 };

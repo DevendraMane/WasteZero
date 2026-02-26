@@ -124,9 +124,33 @@ const updateApplicationStatus = async (req, res) => {
   }
 };
 
+/*
+--------------------------------------
+GET APPLICATIONS FOR VOLUNTEER
+--------------------------------------
+*/
+const getApplicationsForVolunteer = async (req, res) => {
+  try {
+    if (req.user.role !== "volunteer") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const applications = await Application.find({
+      volunteer_id: req.user.userId,
+    })
+      .populate("opportunity_id", "title location duration status")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(applications);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export default {
   applyToOpportunity,
   checkIfApplied,
   getApplicationsForNGO,
   updateApplicationStatus,
+  getApplicationsForVolunteer,
 };
