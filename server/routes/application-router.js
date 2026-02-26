@@ -28,4 +28,10 @@ applicationRouter.patch(
   applicationController.updateApplicationStatus,
 );
 
+applicationRouter.get(
+  "/volunteer",
+  authMiddleware,
+  applicationController.getApplicationsForVolunteer,
+);
+
 export default applicationRouter;
