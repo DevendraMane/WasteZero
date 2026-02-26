@@ -38,4 +38,10 @@ opportunityRouter.put(
   opportunityController.updateOpportunity,
 );
 
+opportunityRouter.get(
+  "/ngo/my",
+  authMiddleware,
+  opportunityController.getOpportunitiesForNGO,
+);
+
 export default opportunityRouter;
