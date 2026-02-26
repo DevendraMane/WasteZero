@@ -22,8 +22,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    verificationToken: {
+
+    role: {
       type: String,
+      enum: ["volunteer", "ngo", "admin"],
+      default: "volunteer",
     },
 
     isVerified: {
@@ -36,50 +39,27 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
-    address: {
+    verificationToken: String,
+
+    // ✅ Forgot Password Fields
+    resetPasswordToken: {
       type: String,
-      trim: true,
-      default: "",
     },
 
-    coordinates: {
-      type: String, // or use object if storing lat/lng
-      default: "",
+    resetPasswordExpire: {
+      type: Date,
     },
 
-    role: {
-      type: String,
-      enum: ["volunteer", "ngo", "admin"],
-      required: true,
-    },
-
-    skills: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
-
-    location: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-
-    bio: {
-      type: String,
-      maxlength: 300,
-      default: "",
-    },
+    // Optional profile fields
+    location: String,
+    address: String,
+    skills: [String],
+    bio: String,
   },
-  {
-    timestamps: true,
-  },
+  { timestamps: true },
 );
 
-//
-// Hash password automatically
-//
+// ================= HASH PASSWORD =================
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 
@@ -87,26 +67,25 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-//
-// Generate JWT
-//
+// ================= COMPARE PASSWORD =================
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// ================= GENERATE JWT =================
 userSchema.methods.generateToken = function () {
   return jwt.sign(
     {
       userId: this._id,
-      email: this.email,
       role: this.role,
     },
     process.env.JWT_SECRET_KEY,
-    { expiresIn: "30d" },
+    {
+      expiresIn: "7d",
+    },
   );
 };
 
-//
-// Compare password
-//
-userSchema.methods.comparePassword = function (password) {
-  return bcrypt.compare(password, this.password);
-};
+const User = mongoose.model("User", userSchema);
 
-export default mongoose.model("User", userSchema);
+export default User;

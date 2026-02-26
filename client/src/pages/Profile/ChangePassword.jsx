@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useAuth } from "../../store/AuthContext";
 
 const ChangePassword = () => {
   const [form, setForm] = useState({
@@ -7,7 +8,7 @@ const ChangePassword = () => {
     newPassword: "",
     confirmPassword: "",
   });
-
+  const { changePassword, isLoading } = useAuth();
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,33 +25,20 @@ const ChangePassword = () => {
     }
 
     try {
-      setLoading(true);
-
-      const token = localStorage.getItem("token");
-
-      const res = await axios.put(
-        "/api/users/change-password", // teammate backend route
-        {
-          currentPassword: form.currentPassword,
-          newPassword: form.newPassword,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      await changePassword({
+        currentPassword: form.currentPassword,
+        newPassword: form.newPassword,
+      });
 
       setMessage("Password updated successfully");
+
       setForm({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
     } catch (err) {
-      setMessage(err.response?.data?.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+      setMessage(err.message);
     }
   };
 
@@ -117,10 +105,10 @@ const ChangePassword = () => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={isLoading}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium shadow-md"
           >
-            {loading ? "Updating..." : "Change Password"}
+            {isLoading ? "Updating..." : "Change Password"}
           </button>
         </form>
       </div>

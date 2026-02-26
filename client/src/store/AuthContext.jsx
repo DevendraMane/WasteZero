@@ -109,6 +109,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ================= CHANGE PASSWORD =================
+  const changePassword = async (formData) => {
+    try {
+      setIsLoading(true);
+
+      const res = await fetch(`${API}/api/auth/change-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authorizationToken,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Password change failed");
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (token) {
       fetchProfile();
@@ -127,6 +155,7 @@ export const AuthProvider = ({ children }) => {
         registerUser,
         logoutUser,
         authorizationToken,
+        changePassword,
       }}
     >
       {children}

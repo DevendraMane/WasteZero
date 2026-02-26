@@ -9,23 +9,27 @@ import Auth from "./pages/Auth/Auth";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
+import ResetPassword from "./pages/Auth/ResetPassword";
+
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Schedule from "./pages/Schedule/Schedule";
 import Messages from "./pages/Messages/Messages";
 import Impact from "./pages/Impact/Impact";
 import Settings from "./pages/Settings/Settings";
-import Opportunities from "./pages/Opportunities/Opportunities.jsx";
+import Opportunities from "./pages/Opportunities/Opportunities";
 import OpportunitiesDetail from "./pages/Opportunities/OpportunitiesDetail";
-import EditOpportunity from "./pages/Opportunities/EditOpportunity"; // ✅ NEW
-import DashboardLayout from "./layouts/DashboardLayout.jsx";
-import Profile from "./pages/Profile/Profile.jsx";
+import EditOpportunity from "./pages/Opportunities/EditOpportunity";
+
+import DashboardLayout from "./layouts/DashboardLayout";
+import Profile from "./pages/Profile/Profile";
 import ChangePassword from "./pages/Profile/ChangePassword";
 import HelpRouter from "./pages/Help/HelpRouter";
-import PublicRoute from "./components/PublicRoute";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import RoleProtectedRoute from "./components/RoleProtectedRoute";
-import UserManagement from "./pages/Admin/UserManagement";
 
+import PublicRoute from "./components/PublicRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
+import RoleProtectedRoute from "./components/RoleProtectedRoute";
+
+import UserManagement from "./pages/Admin/UserManagement";
 import Analytics from "./pages/Admin/Analytics";
 import Applications from "./pages/NGO/Applications";
 
@@ -36,32 +40,23 @@ export const App = () => {
       element: <Navigate to="/login" replace />,
     },
 
+    // ================= AUTH ROUTES =================
     {
-      path: "/login",
+      path: "/",
       element: (
         <PublicRoute>
           <Auth />
         </PublicRoute>
       ),
-      children: [{ index: true, element: <Login /> }],
+      children: [
+        { path: "login", element: <Login /> },
+        { path: "register", element: <Register /> },
+        { path: "forgot-password", element: <ForgotPassword /> },
+        { path: "reset-password/:token", element: <ResetPassword /> },
+      ],
     },
 
-    {
-      path: "/register",
-      element: (
-        <PublicRoute>
-          <Auth />
-        </PublicRoute>
-      ),
-      children: [{ index: true, element: <Register /> }],
-    },
-
-    {
-      path: "/forgot-password",
-      element: <Auth />,
-      children: [{ index: true, element: <ForgotPassword /> }],
-    },
-
+    // ================= PROTECTED ROUTES =================
     {
       path: "/",
       element: (
@@ -72,7 +67,6 @@ export const App = () => {
       children: [
         { path: "dashboard", element: <Dashboard /> },
 
-        // ✅ Opportunities Routes
         { path: "opportunities", element: <Opportunities /> },
         { path: "opportunities/:id", element: <OpportunitiesDetail /> },
 
@@ -92,7 +86,7 @@ export const App = () => {
         { path: "change-password", element: <ChangePassword /> },
         { path: "help", element: <HelpRouter /> },
 
-        // 👑 Admin Only
+        // 👑 Admin
         {
           path: "analytics",
           element: (
@@ -111,7 +105,7 @@ export const App = () => {
           ),
         },
 
-        // 🏢 NGO Only
+        // 🏢 NGO
         {
           path: "applications",
           element: (
@@ -121,7 +115,7 @@ export const App = () => {
           ),
         },
 
-        // 👤 Volunteer Only
+        // 👤 Volunteer
         {
           path: "impact",
           element: (

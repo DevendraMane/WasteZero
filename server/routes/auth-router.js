@@ -26,4 +26,8 @@ authRouter.put(
   authcontrollers.changePassword,
 );
 
+authRouter.post("/forgot-password", authcontrollers.forgotPassword);
+
+authRouter.put("/reset-password/:token", authcontrollers.resetPassword);
+
 authRouter.get("/profile", authMiddleware, authcontrollers.getProfile);
