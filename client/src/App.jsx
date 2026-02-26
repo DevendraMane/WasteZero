@@ -10,6 +10,8 @@ import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
+import Loader from "./components/Loader";
+import { useAuth } from "./store/AuthContext";
 
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Schedule from "./pages/Schedule/Schedule";
@@ -32,15 +34,22 @@ import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import UserManagement from "./pages/Admin/UserManagement";
 import Analytics from "./pages/Admin/Analytics";
 import Applications from "./pages/NGO/Applications";
+import TestLoader from "./pages/TestLoader";
 
 export const App = () => {
+  const { isLoading } = useAuth();
+
   const router = createBrowserRouter([
+    {
+      path: "/test-loader",
+      element: <TestLoader />,
+    },
     {
       path: "/",
       element: <Navigate to="/login" replace />,
     },
 
-    // ================= AUTH ROUTES =================
+    // AUTH ROUTES
     {
       path: "/",
       element: (
@@ -56,7 +65,7 @@ export const App = () => {
       ],
     },
 
-    // ================= PROTECTED ROUTES =================
+    // PROTECTED ROUTES
     {
       path: "/",
       element: (
@@ -66,10 +75,8 @@ export const App = () => {
       ),
       children: [
         { path: "dashboard", element: <Dashboard /> },
-
         { path: "opportunities", element: <Opportunities /> },
         { path: "opportunities/:id", element: <OpportunitiesDetail /> },
-
         {
           path: "opportunities/edit/:id",
           element: (
@@ -78,7 +85,6 @@ export const App = () => {
             </RoleProtectedRoute>
           ),
         },
-
         { path: "schedule", element: <Schedule /> },
         { path: "messages", element: <Messages /> },
         { path: "settings", element: <Settings /> },
@@ -86,7 +92,6 @@ export const App = () => {
         { path: "change-password", element: <ChangePassword /> },
         { path: "help", element: <HelpRouter /> },
 
-        // 👑 Admin
         {
           path: "analytics",
           element: (
@@ -95,7 +100,6 @@ export const App = () => {
             </RoleProtectedRoute>
           ),
         },
-
         {
           path: "users",
           element: (
@@ -104,8 +108,6 @@ export const App = () => {
             </RoleProtectedRoute>
           ),
         },
-
-        // 🏢 NGO
         {
           path: "applications",
           element: (
@@ -114,8 +116,6 @@ export const App = () => {
             </RoleProtectedRoute>
           ),
         },
-
-        // 👤 Volunteer
         {
           path: "impact",
           element: (
@@ -128,7 +128,12 @@ export const App = () => {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      {isLoading && <Loader fullScreen />}
+      <RouterProvider router={router} />
+    </>
+  );
 };
 
 export default App;

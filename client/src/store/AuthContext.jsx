@@ -14,7 +14,6 @@ export const AuthProvider = ({ children }) => {
 
   const authorizationToken = `Bearer ${token}`;
 
-  // ================= STORE TOKEN =================
   const storeToken = (newToken, userData) => {
     localStorage.setItem("waste_token", newToken);
     localStorage.setItem("waste_user", JSON.stringify(userData));
@@ -24,7 +23,6 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(true);
   };
 
-  // ================= LOGOUT =================
   const logoutUser = () => {
     localStorage.removeItem("waste_token");
     localStorage.removeItem("waste_user");
@@ -34,16 +32,13 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
   };
 
-  // ================= REGISTER =================
   const registerUser = async (formData) => {
     try {
       setIsLoading(true);
 
       const res = await fetch(`${API}/api/auth/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -54,23 +49,18 @@ export const AuthProvider = ({ children }) => {
       }
 
       return data;
-    } catch (error) {
-      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ================= LOGIN =================
   const loginUser = async (formData) => {
     try {
       setIsLoading(true);
 
       const res = await fetch(`${API}/api/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
@@ -82,34 +72,11 @@ export const AuthProvider = ({ children }) => {
 
       storeToken(data.token, data.user);
       return data;
-    } catch (error) {
-      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ================= FETCH PROFILE (Optional) =================
-  const fetchProfile = async () => {
-    if (!token) return;
-
-    try {
-      const res = await fetch(`${API}/api/auth/profile`, {
-        headers: {
-          Authorization: authorizationToken,
-        },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data);
-      }
-    } catch (err) {
-      logoutUser();
-    }
-  };
-
-  // ================= CHANGE PASSWORD =================
   const changePassword = async (formData) => {
     try {
       setIsLoading(true);
@@ -130,17 +97,34 @@ export const AuthProvider = ({ children }) => {
       }
 
       return data;
-    } catch (error) {
-      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchProfile = async () => {
+    if (!token) return;
+
+    try {
+      setIsLoading(true);
+
+      const res = await fetch(`${API}/api/auth/profile`, {
+        headers: { Authorization: authorizationToken },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      }
+    } catch {
+      logoutUser();
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (token) {
-      fetchProfile();
-    }
+    if (token) fetchProfile();
   }, [token]);
 
   return (
@@ -163,7 +147,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Custom Hook
 export const useAuth = () => {
   return useContext(AuthContext);
 };
