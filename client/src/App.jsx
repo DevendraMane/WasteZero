@@ -33,6 +33,7 @@ import RoleProtectedRoute from "./components/RoleProtectedRoute";
 
 import UserManagement from "./pages/Admin/UserManagement";
 import Analytics from "./pages/Admin/Analytics";
+import PlatformSettings from "./pages/Admin/PlatformSettings";
 import Applications from "./pages/NGO/Applications";
 import TestLoader from "./pages/TestLoader";
 import OAuthSuccess from "./pages/Auth/OAuthSuccess";
@@ -126,6 +127,14 @@ export const App = () => {
           element: (
             <RoleProtectedRoute allowedRoles={["volunteer"]}>
               <Impact />
+            </RoleProtectedRoute>
+          ),
+        },
+        {
+          path: "platform-settings",
+          element: (
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <PlatformSettings />
             </RoleProtectedRoute>
           ),
         },
