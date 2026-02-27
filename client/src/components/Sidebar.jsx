@@ -46,6 +46,8 @@ const Sidebar = () => {
         path: "/platform-settings",
         icon: Settings,
       },
+      { name: "Pickups", path: "/pickups", icon: CalendarDays },
+      { name: "Opportunities", path: "/admin-opportunities", icon: Briefcase },
     ],
   };
 
