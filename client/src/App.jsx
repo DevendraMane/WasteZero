@@ -34,6 +34,8 @@ import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import UserManagement from "./pages/Admin/UserManagement";
 import Analytics from "./pages/Admin/Analytics";
 import PlatformSettings from "./pages/Admin/PlatformSettings";
+import PickupManagement from "./pages/Admin/PickupManagement";
+import OpportunityManagement from "./pages/Admin/OpportunityManagement";
 import Applications from "./pages/NGO/Applications";
 import TestLoader from "./pages/TestLoader";
 import OAuthSuccess from "./pages/Auth/OAuthSuccess";
@@ -135,6 +137,22 @@ export const App = () => {
           element: (
             <RoleProtectedRoute allowedRoles={["admin"]}>
               <PlatformSettings />
+            </RoleProtectedRoute>
+          ),
+        },
+        {
+          path: "pickups",
+          element: (
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <PickupManagement />
+            </RoleProtectedRoute>
+          ),
+        },
+        {
+          path: "admin-opportunities",
+          element: (
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <OpportunityManagement />
             </RoleProtectedRoute>
           ),
         },
