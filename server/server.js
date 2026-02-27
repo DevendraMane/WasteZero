@@ -9,6 +9,7 @@ import adminRouter from "./routes/admin-router.js";
 import applicationRouter from "./routes/application-router.js";
 import passport from "passport";
 import "./config/passport.js";
+import pickupRouter from "./routes/pickup-router.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,6 +35,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/opportunities", opportunityRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/applications", applicationRouter);
+app.use("/api/pickups", pickupRouter);
 
 // Start server
 connectDB().then(() => {

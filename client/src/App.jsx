@@ -14,7 +14,6 @@ import Loader from "./components/Loader";
 import { useAuth } from "./store/AuthContext";
 
 import Dashboard from "./pages/Dashboard/Dashboard";
-import Schedule from "./pages/Schedule/Schedule";
 import Messages from "./pages/Messages/Messages";
 import Impact from "./pages/Impact/Impact";
 import Settings from "./pages/Settings/Settings";
@@ -39,6 +38,7 @@ import OpportunityManagement from "./pages/Admin/OpportunityManagement";
 import Applications from "./pages/NGO/Applications";
 import TestLoader from "./pages/TestLoader";
 import OAuthSuccess from "./pages/Auth/OAuthSuccess";
+import SchedulePickups from "./pages/Schedule/SchedulePickups";
 
 export const App = () => {
   const { isLoading } = useAuth();
@@ -93,7 +93,7 @@ export const App = () => {
             </RoleProtectedRoute>
           ),
         },
-        { path: "schedule", element: <Schedule /> },
+        { path: "schedule", element: <SchedulePickups /> },
         { path: "messages", element: <Messages /> },
         { path: "settings", element: <Settings /> },
         { path: "profile", element: <Profile /> },
