@@ -138,7 +138,7 @@ const getApplicationsForVolunteer = async (req, res) => {
     const applications = await Application.find({
       volunteer_id: req.user.userId,
     })
-      .populate("opportunity_id", "title location duration status")
+      .populate("opportunity_id", "title location duration status date")
       .sort({ createdAt: -1 });
 
     res.status(200).json(applications);

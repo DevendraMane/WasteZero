@@ -60,7 +60,7 @@ const NgoDashboard = () => {
 
   /* ================= CALCULATIONS ================= */
   const activeOpportunities = opportunities.filter(
-    (opp) => opp.status === "open" || opp.status === "active",
+    (opp) => new Date(opp.date) >= new Date(),
   );
 
   const approvedVolunteers = applications.filter(
@@ -151,6 +151,7 @@ const NgoDashboard = () => {
               <tr>
                 <th className="py-3">Title</th>
                 <th className="py-3">Location</th>
+                <th className="py-3">Date</th>
                 <th className="py-3">Status</th>
                 <th className="py-3">Applications</th>
               </tr>
@@ -159,7 +160,7 @@ const NgoDashboard = () => {
             <tbody>
               {recentOpportunities.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-6 text-gray-400">
+                  <td colSpan="5" className="text-center py-6 text-gray-400">
                     No opportunities created yet
                   </td>
                 </tr>
@@ -171,15 +172,19 @@ const NgoDashboard = () => {
                     <td className="py-3">{opp.location}</td>
 
                     <td className="py-3">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm ${
-                          opp.status === "open" || opp.status === "active"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {opp.status || "open"}
-                      </span>
+                      {new Date(opp.date).toLocaleDateString()}
+                    </td>
+
+                    <td className="py-3">
+                      {new Date(opp.date) < new Date() ? (
+                        <span className="px-3 py-1 rounded-full text-sm bg-red-100 text-red-600">
+                          Closed
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-700">
+                          Open
+                        </span>
+                      )}
                     </td>
 
                     <td className="py-3">

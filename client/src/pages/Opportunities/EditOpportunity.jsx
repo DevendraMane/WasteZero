@@ -14,6 +14,7 @@ const EditOpportunity = () => {
     duration: "",
     location: "",
     required_skills: "",
+    date: "",
   });
 
   const [image, setImage] = useState(null);
@@ -36,6 +37,7 @@ const EditOpportunity = () => {
           duration: data.duration,
           location: data.location,
           required_skills: data.required_skills?.join(", "),
+          date: data.date?.split("T")[0],
         });
 
         if (data.image) {
@@ -73,6 +75,7 @@ const EditOpportunity = () => {
       formData.append("title", form.title);
       formData.append("description", form.description);
       formData.append("location", form.location);
+      formData.append("date", form.date);
       formData.append("duration", form.duration);
       formData.append("required_skills", form.required_skills);
 
@@ -150,6 +153,14 @@ const EditOpportunity = () => {
               value={form.location}
               onChange={handleChange}
               className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+            />
+            <input
+              type="date"
+              name="date"
+              value={form.date}
+              onChange={handleChange}
+              className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+              required
             />
           </div>
 

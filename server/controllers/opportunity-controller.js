@@ -2,7 +2,7 @@ import Opportunity from "../models/opportunity-model.js";
 
 const createOpportunity = async (req, res) => {
   try {
-    const { title, description, duration, location, required_skills } =
+    const { title, description, duration, location, required_skills, date } =
       req.body;
 
     const opportunity = new Opportunity({
@@ -11,6 +11,7 @@ const createOpportunity = async (req, res) => {
       description,
       duration,
       location,
+      date,
       required_skills: required_skills ? required_skills.split(",") : [],
       image: req.file?.filename,
     });
@@ -70,7 +71,7 @@ const deleteOpportunity = async (req, res) => {
 
 const updateOpportunity = async (req, res) => {
   try {
-    const { title, description, duration, location, required_skills } =
+    const { title, description, duration, location, required_skills, date } =
       req.body;
 
     const opportunity = await Opportunity.findById(req.params.id);
@@ -88,6 +89,7 @@ const updateOpportunity = async (req, res) => {
     opportunity.description = description || opportunity.description;
     opportunity.duration = duration || opportunity.duration;
     opportunity.location = location || opportunity.location;
+    opportunity.date = date || opportunity.date;
 
     if (required_skills) {
       opportunity.required_skills = required_skills.split(",");

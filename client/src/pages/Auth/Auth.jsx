@@ -56,6 +56,12 @@ const Auth = () => {
           `}
         >
           <Outlet />
+          {/* Google login note */}
+          {(path.includes("login") || path.includes("register")) && (
+            <p className="mt-6 text-sm text-gray-500 text-center leading-relaxed">
+              Google login: Volunteers only. NGOs require verification.
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -51,7 +51,9 @@ const VolunteerDashboard = () => {
   }, [API, authorizationToken]);
 
   const activeOpportunities = applications.filter(
-    (app) => app.status !== "rejected",
+    (app) =>
+      app.status === "accepted" &&
+      new Date(app.opportunity_id?.date) >= new Date(),
   );
 
   const completedPickups = pickups.filter(
@@ -113,24 +115,41 @@ const VolunteerDashboard = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {applications.map((app) => (
-              <div
-                key={app._id}
-                className="p-4 border rounded-xl flex justify-between items-center"
-              >
-                <div>
-                  <h3 className="font-semibold text-gray-800">
-                    {app.opportunity_id?.title}
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    {app.opportunity_id?.location} •{" "}
-                    {app.opportunity_id?.duration}
-                  </p>
-                </div>
+            {applications.map((app) => {
+              const opp = app.opportunity_id;
+              const isPast = opp?.date && new Date(opp.date) < new Date();
 
-                <StatusBadge status={app.status} />
-              </div>
-            ))}
+              return (
+                <div
+                  key={app._id}
+                  className="p-4 border rounded-xl flex justify-between items-center"
+                >
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      {opp?.title}
+                    </h3>
+
+                    <p className="text-sm text-gray-500">
+                      {opp?.location} • {opp?.duration}
+                    </p>
+
+                    {opp?.date && (
+                      <p className="text-sm text-gray-400">
+                        📅 {new Date(opp.date).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+
+                  {isPast ? (
+                    <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-600">
+                      Closed
+                    </span>
+                  ) : (
+                    <StatusBadge status={app.status} date={opp?.date} />
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -149,7 +168,17 @@ const StatCard = ({ title, value, color }) => (
   </div>
 );
 
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, date }) => {
+  const isPast = new Date(date) < new Date();
+
+  if (isPast && status === "accepted") {
+    return (
+      <span className="text-xs px-3 py-1 rounded-full bg-gray-200 text-gray-600">
+        Completed
+      </span>
+    );
+  }
+
   const styles =
     status === "accepted"
       ? "bg-green-100 text-green-700"
