@@ -60,11 +60,9 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 bg-white border-r h-screen flex flex-col">
-      {/* SCROLLABLE CONTENT */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
-        {/* LOGO */}
-        {/* LOGO */}
-        <div className="flex items-center gap-3 mb-8">
+      {/* FIXED LOGO — outside scroll area */}
+      <div className="px-6 pt-6 pb-4 border-b bg-white shrink-0">
+        <div className="flex items-center gap-3">
           <div className="bg-green-100 p-2 rounded-xl shadow-sm">
             <img
               src={loader}
@@ -72,12 +70,14 @@ const Sidebar = () => {
               className="w-8 h-8 object-contain"
             />
           </div>
-
           <span className="text-xl font-bold tracking-wide text-gray-800">
             <span className="text-green-600">Waste</span>Zero
           </span>
         </div>
+      </div>
 
+      {/* SCROLLABLE CONTENT */}
+      <div className="flex-1 overflow-y-auto px-6 py-6">
         {/* USER INFO */}
         <div className="mb-8 border-b pb-6">
           <div className="flex items-center gap-3">
