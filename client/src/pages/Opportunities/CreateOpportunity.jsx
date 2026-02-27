@@ -11,6 +11,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
     duration: "",
     location: "",
     required_skills: "",
+    date: "",
   });
 
   const [image, setImage] = useState(null);
@@ -39,6 +40,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
       formData.append("location", form.location);
       formData.append("duration", form.duration);
       formData.append("required_skills", form.required_skills);
+      formData.append("date", form.date);
 
       if (image) {
         formData.append("image", image);
@@ -111,6 +113,14 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
               placeholder="Location"
               onChange={handleChange}
               className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+            />
+
+            <input
+              type="date"
+              name="date"
+              onChange={handleChange}
+              className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+              required
             />
           </div>
 

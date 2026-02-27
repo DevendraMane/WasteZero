@@ -136,9 +136,15 @@ const Opportunities = () => {
                     {item.title}
                   </h3>
 
-                  <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
-                    Open
-                  </span>
+                  {new Date(item.date) < new Date() ? (
+                    <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
+                      Closed
+                    </span>
+                  ) : (
+                    <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
+                      Open
+                    </span>
+                  )}
                 </div>
 
                 <p className="text-gray-500 text-sm line-clamp-3">
@@ -148,6 +154,10 @@ const Opportunities = () => {
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>📍 {item.location}</span>
                   <span>⏱ {item.duration}</span>
+                </div>
+
+                <div className="text-sm text-gray-500">
+                  📅 {new Date(item.date).toLocaleDateString()}
                 </div>
 
                 {/* BUTTONS */}
@@ -181,6 +191,13 @@ const Opportunities = () => {
                         className="w-full bg-red-100 text-red-600 font-medium py-2 rounded-lg"
                       >
                         Rejected
+                      </button>
+                    ) : new Date(item.date) < new Date() ? (
+                      <button
+                        disabled
+                        className="w-full bg-gray-200 text-gray-500 py-2 rounded-lg cursor-not-allowed"
+                      >
+                        Opportunity Closed
                       </button>
                     ) : (
                       <button
