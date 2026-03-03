@@ -38,6 +38,7 @@ import OpportunityManagement from "./pages/Admin/OpportunityManagement";
 import Applications from "./pages/NGO/Applications";
 import TestLoader from "./pages/TestLoader";
 import OAuthSuccess from "./pages/Auth/OAuthSuccess";
+import OAuthFailed from "./pages/Auth/OAuthFailed";
 import SchedulePickups from "./pages/Schedule/SchedulePickups";
 
 export const App = () => {
@@ -51,6 +52,10 @@ export const App = () => {
     {
       path: "/oauth-success",
       element: <OAuthSuccess />,
+    },
+    {
+      path: "/oauth-failed",
+      element: <OAuthFailed />,
     },
     {
       path: "/",

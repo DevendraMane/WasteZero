@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const ChangePassword = () => {
-  const { changePassword, isLoading } = useAuth();
+  const { changePassword, isLoading, user } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({

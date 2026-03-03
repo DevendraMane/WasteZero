@@ -13,13 +13,23 @@ passport.use(
       try {
         const email = profile.emails?.[0]?.value;
 
+        /* GOOGLE PROFILE IMAGE */
+        let googleImage = profile.photos?.[0]?.value || "";
+
+        /* Increase image quality */
+        if (googleImage) {
+          googleImage = googleImage.replace("=s96-c", "=s400-c");
+        }
+
         if (!email) {
           return done(new Error("Google account has no email"), null);
         }
 
-        const existingUser = await User.findOne({ email });
+        let existingUser = await User.findOne({ email });
 
-        // 🔴 Case 1: Email exists but registered via normal login
+        /* ================= CASE 1 =================
+           Email exists but registered via password
+        */
         if (existingUser && !existingUser.googleId) {
           return done(null, false, {
             message:
@@ -27,18 +37,29 @@ passport.use(
           });
         }
 
-        // 🟢 Case 2: Already registered with Google
+        /* ================= CASE 2 =================
+           Already registered via Google
+        */
         if (existingUser && existingUser.googleId) {
+          /* Always refresh Google image */
+          if (googleImage) {
+            existingUser.profileImage = googleImage;
+            await existingUser.save();
+          }
+
           return done(null, existingUser);
         }
 
-        // 🟢 Case 3: New Google user
+        /* ================= CASE 3 =================
+           New Google User
+        */
         const newUser = await User.create({
           name: profile.displayName,
           email,
           googleId: profile.id,
+          profileImage: googleImage,
           role: "volunteer",
-          isVerified: true, // Google users auto-verified
+          isVerified: true,
         });
 
         return done(null, newUser);

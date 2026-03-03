@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, API, authorizationToken } = useAuth();
+  const { user, API, authorizationToken, fetchProfile } = useAuth();
 
   const [editMode, setEditMode] = useState(false);
 
@@ -19,38 +19,28 @@ const Profile = () => {
     profileImage: "",
   });
 
-  // ================= FETCH PROFILE =================
-  const fetchProfile = async () => {
-    try {
-      const res = await fetch(`${API}/api/auth/profile`, {
-        headers: {
-          Authorization: authorizationToken,
-        },
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-
+  /* ================= SYNC USER → FORM ================= */
+  useEffect(() => {
+    if (user) {
       setFormData({
-        name: data.name || "",
-        email: data.email || "",
-        role: data.role || "",
-        location: data.location || "",
-        address: data.address || "",
-        skills: data.skills?.join(", ") || "",
-        bio: data.bio || "",
-        profileImage: data.profileImage || "",
+        name: user.name || "",
+        email: user.email || "",
+        role: user.role || "",
+        location: user.location || "",
+        address: user.address || "",
+        skills: user.skills?.join(", ") || "",
+        bio: user.bio || "",
+        profileImage: user.profileImage || "",
       });
-    } catch (err) {
-      console.error("Profile fetch error:", err);
     }
-  };
+  }, [user]);
 
+  /* ================= LOAD PROFILE ================= */
   useEffect(() => {
     fetchProfile();
   }, []);
 
-  // ================= HANDLE CHANGE =================
+  /* ================= HANDLE CHANGE ================= */
   const handleChange = ({ target: { name, value } }) => {
     setFormData((prev) => ({
       ...prev,
@@ -58,7 +48,7 @@ const Profile = () => {
     }));
   };
 
-  // ================= IMAGE UPLOAD =================
+  /* ================= IMAGE UPLOAD ================= */
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -67,7 +57,7 @@ const Profile = () => {
     form.append("profileImage", file);
 
     try {
-      const res = await fetch(`${API}/api/auth/upload-profile-image`, {
+      const res = await fetch(`${API}/api/image/upload-profile-image`, {
         method: "POST",
         headers: {
           Authorization: authorizationToken,
@@ -82,13 +72,17 @@ const Profile = () => {
           ...prev,
           profileImage: data.imageUrl,
         }));
+
+        fetchProfile(); // ⭐ updates sidebar immediately
+      } else {
+        alert(data.message);
       }
     } catch {
       alert("Image upload failed");
     }
   };
 
-  // ================= UPDATE PROFILE =================
+  /* ================= UPDATE PROFILE ================= */
   const handleUpdate = async () => {
     try {
       const res = await fetch(`${API}/api/auth/update-profile`, {
@@ -126,14 +120,18 @@ const Profile = () => {
         <img
           src={
             formData.profileImage
-              ? `${API}/uploads/${formData.profileImage}`
+              ? formData.profileImage.startsWith("http")
+                ? formData.profileImage
+                : `${API}/uploads/${formData.profileImage}`
               : `https://ui-avatars.com/api/?name=${formData.name}`
           }
           alt="Profile"
           className="w-24 h-24 rounded-full object-cover border"
         />
 
-        {editMode && <input type="file" onChange={handleImageUpload} />}
+        {editMode && (
+          <input type="file" accept="image/*" onChange={handleImageUpload} />
+        )}
       </div>
 
       {/* PROFILE DETAILS */}
@@ -207,7 +205,6 @@ const Profile = () => {
 
       {/* ACTION BUTTONS */}
       <div className="flex justify-end items-center gap-4 mt-8">
-        {/* Change Password (Only for non-Google users) */}
         {!editMode && !user?.googleId && (
           <button
             onClick={() => navigate("/change-password")}
