@@ -13,16 +13,16 @@ passport.use(
       try {
         const email = profile.emails?.[0]?.value;
 
+        if (!email) {
+          return done(new Error("Google account has no email"), null);
+        }
+
         /* GOOGLE PROFILE IMAGE */
         let googleImage = profile.photos?.[0]?.value || "";
 
-        /* Increase image quality */
+        /* Improve Google image quality */
         if (googleImage) {
           googleImage = googleImage.replace("=s96-c", "=s400-c");
-        }
-
-        if (!email) {
-          return done(new Error("Google account has no email"), null);
         }
 
         let existingUser = await User.findOne({ email });
@@ -41,8 +41,7 @@ passport.use(
            Already registered via Google
         */
         if (existingUser && existingUser.googleId) {
-          /* Always refresh Google image */
-          if (googleImage) {
+          if (googleImage && existingUser.profileImage !== googleImage) {
             existingUser.profileImage = googleImage;
             await existingUser.save();
           }

@@ -81,17 +81,36 @@ const Sidebar = () => {
         {/* USER INFO */}
         <div className="mb-8 border-b pb-6">
           <div className="flex items-center gap-3">
-            <img
-              src={
-                user?.profileImage
-                  ? user.profileImage.startsWith("http")
-                    ? user.profileImage
-                    : `${import.meta.env.VITE_BACKEND_URL}/uploads/${user.profileImage}`
-                  : `https://ui-avatars.com/api/?name=${user?.name}`
-              }
-              alt="Profile"
-              className="w-10 h-10 rounded-full object-cover border"
-            />
+            <div className="relative group">
+              <img
+                src={
+                  user?.profileImage
+                    ? user.profileImage.startsWith("http")
+                      ? user.profileImage
+                      : `${import.meta.env.VITE_BACKEND_URL}/uploads/${user.profileImage}`
+                    : `https://ui-avatars.com/api/?name=${user?.name}`
+                }
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover border"
+              />
+
+              {/* GLOWING DOT IF LOCATION MISSING */}
+              {!user?.location && (
+                <>
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+
+                  {/* TOOLTIP */}
+                  <div className="absolute left-12 top-1/2 -translate-y-1/2 whitespace-nowrap bg-black text-white text-xs px-3 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                    {user?.role === "volunteer"
+                      ? "Update your location for nearest opportunities"
+                      : "Update your location for nearest volunteers"}
+                  </div>
+                </>
+              )}
+            </div>
 
             <div>
               <p className="font-medium text-gray-800">
@@ -145,7 +164,17 @@ const Sidebar = () => {
                 : "text-gray-600 hover:bg-gray-50"
             }`}
           >
-            <User size={18} />
+            <div className="relative">
+              <User size={18} />
+
+              {/* GLOWING DOT IF LOCATION MISSING */}
+              {!user?.location && (
+                <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                </span>
+              )}
+            </div>
             My Profile
           </button>
 

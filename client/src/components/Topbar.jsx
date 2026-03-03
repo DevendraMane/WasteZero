@@ -50,17 +50,41 @@ const Topbar = () => {
             onClick={() => setShowMenu((prev) => !prev)}
             className="flex items-center gap-3 bg-gray-100 px-3 py-2 rounded-full hover:bg-gray-200 transition"
           >
-            <img
-              src={
-                user?.profileImage
-                  ? user.profileImage.startsWith("http")
-                    ? user.profileImage
-                    : `${API}/uploads/${user.profileImage}`
-                  : `https://ui-avatars.com/api/?name=${user?.name}`
-              }
-              alt="profile"
-              className="w-8 h-8 rounded-full object-cover"
-            />
+            <div className="relative">
+              <img
+                src={
+                  user?.profileImage
+                    ? user.profileImage.startsWith("http")
+                      ? user.profileImage
+                      : `${API}/uploads/${user.profileImage}`
+                    : `https://ui-avatars.com/api/?name=${user?.name}`
+                }
+                alt="profile"
+                className="w-8 h-8 rounded-full object-cover"
+              />
+
+              {/* LOCATION WARNING DOT */}
+              {!user?.location && (
+                <div className="group absolute -top-1 -right-1">
+                  <span className="flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+
+                  {/* TOOLTIP */}
+
+                  {user.role === "volunteer" ? (
+                    <div className="absolute right-0 mt-2 w-48 bg-black text-white text-xs px-3 py-2 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                      Update your location for nearest opportunities
+                    </div>
+                  ) : (
+                    <div className="absolute right-0 mt-2 w-48 bg-black text-white text-xs px-3 py-2 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                      Update your location for nearest volunteers
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <span className="font-medium text-sm">{user?.name || "User"}</span>
           </button>

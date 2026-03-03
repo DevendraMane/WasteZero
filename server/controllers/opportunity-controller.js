@@ -2,8 +2,16 @@ import Opportunity from "../models/opportunity-model.js";
 
 const createOpportunity = async (req, res) => {
   try {
-    const { title, description, duration, location, required_skills, date } =
-      req.body;
+    const {
+      title,
+      description,
+      duration,
+      location,
+      latitude,
+      longitude,
+      required_skills,
+      date,
+    } = req.body;
 
     const opportunity = new Opportunity({
       ngo_id: req.user.userId,
@@ -11,6 +19,8 @@ const createOpportunity = async (req, res) => {
       description,
       duration,
       location,
+      latitude,
+      longitude,
       date,
       required_skills: required_skills ? required_skills.split(",") : [],
       image: req.file?.filename,
