@@ -90,6 +90,16 @@ const OpportunitiesDetail = () => {
     return <div className="text-center py-20">Opportunity not found</div>;
   }
 
+  const isClosed = new Date(opportunity.date) < new Date();
+
+  const formattedDate = opportunity.date
+    ? new Date(opportunity.date).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "Not specified";
+
   return (
     <div className="space-y-8">
       {/* BACK BUTTON */}
@@ -102,9 +112,22 @@ const OpportunitiesDetail = () => {
 
       {/* TITLE */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">
-          {opportunity.title}
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-gray-800">
+            {opportunity.title}
+          </h1>
+
+          {isClosed ? (
+            <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
+              Closed
+            </span>
+          ) : (
+            <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
+              Open
+            </span>
+          )}
+        </div>
+
         <p className="text-gray-500 mt-1">Volunteer opportunity details</p>
       </div>
 
@@ -149,7 +172,7 @@ const OpportunitiesDetail = () => {
           <h2 className="text-xl font-semibold">Opportunity Details</h2>
 
           <div className="space-y-3 text-gray-600">
-            <p>📅 Date: {opportunity.date || "Not specified"}</p>
+            <p>📅 Date: {formattedDate}</p>
             <p>⏱ Duration: {opportunity.duration}</p>
             <p>📍 Location: {opportunity.location}</p>
             <p>👤 Posted by: {opportunity.postedBy?.name || "NGO"}</p>
@@ -200,6 +223,13 @@ const OpportunitiesDetail = () => {
                   className="w-full bg-red-100 text-red-600 py-2 rounded-lg"
                 >
                   Rejected
+                </button>
+              ) : isClosed ? (
+                <button
+                  disabled
+                  className="w-full bg-gray-200 text-gray-500 py-2 rounded-lg cursor-not-allowed"
+                >
+                  Opportunity Closed
                 </button>
               ) : (
                 <button

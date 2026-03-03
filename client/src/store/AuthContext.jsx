@@ -114,7 +114,9 @@ export const AuthProvider = ({ children }) => {
 
       if (res.ok) {
         const data = await res.json();
+
         setUser(data);
+        localStorage.setItem("waste_user", JSON.stringify(data)); // ⭐ important
       }
     } catch {
       logoutUser();
@@ -141,6 +143,7 @@ export const AuthProvider = ({ children }) => {
         authorizationToken,
         changePassword,
         storeToken,
+        fetchProfile,
       }}
     >
       {children}

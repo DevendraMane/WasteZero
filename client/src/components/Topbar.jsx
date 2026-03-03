@@ -1,17 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
 
 const Topbar = () => {
   const navigate = useNavigate();
-  const { user, logoutUser } = useAuth();
+  const { user, logoutUser, API } = useAuth();
 
   const [showMenu, setShowMenu] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleLogout = () => {
     logoutUser();
     navigate("/login");
   };
+
+  /* CLOSE DROPDOWN WHEN CLICKING OUTSIDE */
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="flex items-center justify-between px-8 py-4 bg-white shadow-sm">
@@ -30,30 +45,53 @@ const Topbar = () => {
         <button className="text-xl hover:text-green-600 transition">🔔</button>
 
         {/* PROFILE DROPDOWN */}
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setShowMenu((prev) => !prev)}
-            className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+            className="flex items-center gap-3 bg-gray-100 px-3 py-2 rounded-full hover:bg-gray-200 transition"
           >
-            👤
+            <img
+              src={
+                user?.profileImage
+                  ? user.profileImage.startsWith("http")
+                    ? user.profileImage
+                    : `${API}/uploads/${user.profileImage}`
+                  : `https://ui-avatars.com/api/?name=${user?.name}`
+              }
+              alt="profile"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+
             <span className="font-medium text-sm">{user?.name || "User"}</span>
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 mt-2 w-44 bg-white shadow-lg rounded-lg overflow-hidden z-50">
+            <div className="absolute right-0 mt-3 w-48 bg-white shadow-xl rounded-xl border overflow-hidden z-50 animate-fadeIn">
               <button
                 onClick={() => {
-                  setShowMenu(false);
                   navigate("/profile");
+                  setShowMenu(false);
                 }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 transition"
+                className="w-full text-left px-4 py-3 hover:bg-gray-100 transition"
               >
                 My Profile
               </button>
 
               <button
+                onClick={() => {
+                  navigate("/settings");
+                  setShowMenu(false);
+                }}
+                className="w-full text-left px-4 py-3 hover:bg-gray-100 transition"
+              >
+                Settings
+              </button>
+
+              <div className="border-t"></div>
+
+              <button
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600 transition"
+                className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition"
               >
                 Logout
               </button>

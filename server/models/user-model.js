@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema(
     address: String,
     skills: [String],
     bio: String,
+    profileImage: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true },
 );

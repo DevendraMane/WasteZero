@@ -296,10 +296,16 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-// ================= GOOGLE CALLBACK =================
 const googleCallback = async (req, res) => {
   try {
     const user = req.user;
+
+    // 🔴 BLOCK suspended users
+    if (user.isSuspended) {
+      return res.redirect(
+        `${process.env.CLIENT_URL}/oauth-failed?message=Account suspended by admin`
+      );
+    }
 
     const token = user.generateToken();
 
