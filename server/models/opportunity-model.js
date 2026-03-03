@@ -32,6 +32,15 @@ const opportunitySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    latitude: {
+      type: Number,
+    },
+
+    longitude: {
+      type: Number,
+    },
+
     date: {
       type: Date,
       required: true,

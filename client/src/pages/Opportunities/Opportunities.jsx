@@ -151,9 +151,15 @@ const Opportunities = () => {
                   {item.description}
                 </p>
 
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span>📍 {item.location}</span>
-                  <span>⏱ {item.duration}</span>
+                <div className="flex justify-between items-center text-sm text-gray-500 gap-3">
+                  <span
+                    className="flex items-center gap-1 truncate max-w-[70%]"
+                    title={item.location}
+                  >
+                    📍 {item.location}
+                  </span>
+
+                  <span className="whitespace-nowrap">⏱ {item.duration}</span>
                 </div>
 
                 <div className="text-sm text-gray-500">
