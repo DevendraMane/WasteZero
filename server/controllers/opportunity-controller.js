@@ -1,4 +1,8 @@
 import Opportunity from "../models/opportunity-model.js";
+import cloudinary from "../config/cloudinary.js";
+import streamifier from "streamifier";
+
+/* ================= CREATE OPPORTUNITY ================= */
 
 const createOpportunity = async (req, res) => {
   try {
@@ -13,6 +17,29 @@ const createOpportunity = async (req, res) => {
       date,
     } = req.body;
 
+    let imageUrl = "";
+    let imagePublicId = "";
+
+    if (req.file) {
+      const streamUpload = () =>
+        new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "wastezero_opportunities" },
+            (error, result) => {
+              if (result) resolve(result);
+              else reject(error);
+            },
+          );
+
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
+        });
+
+      const result = await streamUpload();
+
+      imageUrl = result.secure_url;
+      imagePublicId = result.public_id;
+    }
+
     const opportunity = new Opportunity({
       ngo_id: req.user.userId,
       title,
@@ -23,7 +50,8 @@ const createOpportunity = async (req, res) => {
       longitude,
       date,
       required_skills: required_skills ? required_skills.split(",") : [],
-      image: req.file?.filename,
+      image: imageUrl,
+      imagePublicId,
     });
 
     await opportunity.save();
@@ -34,6 +62,8 @@ const createOpportunity = async (req, res) => {
   }
 };
 
+/* ================= GET ALL ================= */
+
 const getAllOpportunities = async (req, res) => {
   try {
     const opportunities = await Opportunity.find().sort({ createdAt: -1 });
@@ -43,6 +73,8 @@ const getAllOpportunities = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+/* ================= GET SINGLE ================= */
 
 const getSingleOpportunity = async (req, res) => {
   try {
@@ -58,6 +90,8 @@ const getSingleOpportunity = async (req, res) => {
   }
 };
 
+/* ================= DELETE ================= */
+
 const deleteOpportunity = async (req, res) => {
   try {
     const opportunity = await Opportunity.findById(req.params.id);
@@ -66,9 +100,14 @@ const deleteOpportunity = async (req, res) => {
       return res.status(404).json({ message: "Opportunity not found" });
     }
 
-    // 🔒 Only the NGO who created it can delete
     if (opportunity.ngo_id.toString() !== req.user.userId) {
       return res.status(403).json({ message: "Not authorized to delete" });
+    }
+
+    /* DELETE IMAGE FROM CLOUDINARY */
+
+    if (opportunity.imagePublicId) {
+      await cloudinary.uploader.destroy(opportunity.imagePublicId);
     }
 
     await opportunity.deleteOne();
@@ -78,6 +117,8 @@ const deleteOpportunity = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+/* ================= UPDATE ================= */
 
 const updateOpportunity = async (req, res) => {
   try {
@@ -90,7 +131,6 @@ const updateOpportunity = async (req, res) => {
       return res.status(404).json({ message: "Opportunity not found" });
     }
 
-    // 🔒 Only owner NGO can edit
     if (opportunity.ngo_id.toString() !== req.user.userId) {
       return res.status(403).json({ message: "Not authorized to edit" });
     }
@@ -105,9 +145,32 @@ const updateOpportunity = async (req, res) => {
       opportunity.required_skills = required_skills.split(",");
     }
 
-    // If new image uploaded
+    /* IMAGE UPDATE */
+
     if (req.file) {
-      opportunity.image = req.file.filename;
+      /* DELETE OLD IMAGE */
+
+      if (opportunity.imagePublicId) {
+        await cloudinary.uploader.destroy(opportunity.imagePublicId);
+      }
+
+      const streamUpload = () =>
+        new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "wastezero_opportunities" },
+            (error, result) => {
+              if (result) resolve(result);
+              else reject(error);
+            },
+          );
+
+          streamifier.createReadStream(req.file.buffer).pipe(stream);
+        });
+
+      const result = await streamUpload();
+
+      opportunity.image = result.secure_url;
+      opportunity.imagePublicId = result.public_id;
     }
 
     await opportunity.save();
@@ -121,11 +184,8 @@ const updateOpportunity = async (req, res) => {
   }
 };
 
-/*
---------------------------------------
-GET OPPORTUNITIES FOR NGO
---------------------------------------
-*/
+/* ================= NGO OPPORTUNITIES ================= */
+
 const getOpportunitiesForNGO = async (req, res) => {
   try {
     if (req.user.role !== "ngo") {

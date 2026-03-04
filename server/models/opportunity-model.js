@@ -50,6 +50,9 @@ const opportunitySchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    imagePublicId: {
+      type: String,
+    },
 
     status: {
       type: String,

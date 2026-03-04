@@ -10,6 +10,7 @@ const Profile = () => {
   const { user, API, authorizationToken, fetchProfile } = useAuth();
 
   const [editMode, setEditMode] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const [coordinates, setCoordinates] = useState({
     lat: null,
@@ -55,10 +56,6 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  useEffect(() => {
-    console.log("USER DATA:", user);
-  }, [user]);
-
   /* ================= INPUT CHANGE ================= */
 
   const handleChange = ({ target: { name, value } }) => {
@@ -97,38 +94,46 @@ const Profile = () => {
 
   const debouncedSearch = useMemo(() => debounce(searchLocation, 500), []);
 
-  /* ================= IMAGE UPLOAD ================= */
+  /* ================= IMAGE UPLOAD (CLOUDINARY) ================= */
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    const preview = URL.createObjectURL(file);
+
+    setFormData((prev) => ({
+      ...prev,
+      profileImage: preview,
+    }));
+
     const form = new FormData();
     form.append("profileImage", file);
 
     try {
-      const res = await fetch(`${API}/api/image/upload-profile-image`, {
-        method: "POST",
-        headers: {
-          Authorization: authorizationToken,
+      setUploading(true);
+
+      const res = await axios.post(
+        `${API}/api/image/upload-profile-image`,
+        form,
+        {
+          headers: {
+            Authorization: authorizationToken,
+            "Content-Type": "multipart/form-data",
+          },
         },
-        body: form,
-      });
+      );
 
-      const data = await res.json();
+      setFormData((prev) => ({
+        ...prev,
+        profileImage: res.data.imageUrl,
+      }));
 
-      if (res.ok) {
-        setFormData((prev) => ({
-          ...prev,
-          profileImage: data.imageUrl,
-        }));
-
-        fetchProfile();
-      } else {
-        alert(data.message);
-      }
-    } catch {
+      fetchProfile();
+    } catch (err) {
       alert("Image upload failed");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -136,13 +141,9 @@ const Profile = () => {
 
   const handleUpdate = async () => {
     try {
-      const res = await fetch(`${API}/api/auth/update-profile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: authorizationToken,
-        },
-        body: JSON.stringify({
+      const res = await axios.put(
+        `${API}/api/auth/update-profile`,
+        {
           name: formData.name,
           location: formData.location,
           latitude: coordinates.lat,
@@ -153,10 +154,15 @@ const Profile = () => {
             .map((s) => s.trim())
             .filter(Boolean),
           bio: formData.bio,
-        }),
-      });
+        },
+        {
+          headers: {
+            Authorization: authorizationToken,
+          },
+        },
+      );
 
-      if (res.ok) {
+      if (res.status === 200) {
         alert("Profile Updated");
         setEditMode(false);
         fetchProfile();
@@ -183,7 +189,12 @@ const Profile = () => {
         />
 
         {editMode && (
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            disabled={uploading}
+          />
         )}
       </div>
 
@@ -215,7 +226,7 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* LOCATION SEARCH */}
+      {/* LOCATION */}
 
       {editMode ? (
         <div className="space-y-4">
@@ -269,12 +280,6 @@ const Profile = () => {
                 }
               />
             </div>
-
-            {coordinates.lat && (
-              <p className="text-xs mt-2 text-gray-600">
-                Selected: {coordinates.lat}, {coordinates.lng}
-              </p>
-            )}
           </div>
         </div>
       ) : (

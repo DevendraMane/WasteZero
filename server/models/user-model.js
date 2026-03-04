@@ -66,6 +66,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    profileImagePublicId: {
+      type: String,
+    },
   },
   { timestamps: true },
 );

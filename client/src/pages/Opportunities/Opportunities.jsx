@@ -13,6 +13,8 @@ const Opportunities = () => {
 
   const navigate = useNavigate();
 
+  /* ================= FETCH OPPORTUNITIES ================= */
+
   const fetchOpportunities = async () => {
     try {
       const res = await axios.get(`${API}/api/opportunities`, {
@@ -34,6 +36,8 @@ const Opportunities = () => {
     fetchOpportunities();
   }, []);
 
+  /* ================= FETCH APPLICATION STATUS ================= */
+
   useEffect(() => {
     const fetchAppliedStatus = async () => {
       if (user?.role !== "volunteer") return;
@@ -41,15 +45,15 @@ const Opportunities = () => {
       const statusMap = {};
 
       for (let opp of opportunities) {
-        const res = await axios.get(
-          `${API}/api/applications/check/${opp._id}`,
-          { headers: { Authorization: authorizationToken } },
-        );
+        try {
+          const res = await axios.get(
+            `${API}/api/applications/check/${opp._id}`,
+            { headers: { Authorization: authorizationToken } },
+          );
 
-        if (res.data.applied) {
-          statusMap[opp._id] = res.data.status;
-        } else {
-          statusMap[opp._id] = null;
+          statusMap[opp._id] = res.data.applied ? res.data.status : null;
+        } catch (err) {
+          console.error(err);
         }
       }
 
@@ -61,9 +65,12 @@ const Opportunities = () => {
     }
   }, [opportunities]);
 
-  // 🔹 APPLY FUNCTION
+  /* ================= APPLY FUNCTION ================= */
+
   const handleApply = async (id) => {
     try {
+      setApplyingId(id);
+
       await axios.post(
         `${API}/api/applications/${id}`,
         {},
@@ -73,12 +80,15 @@ const Opportunities = () => {
       setAppliedMap((prev) => ({ ...prev, [id]: "pending" }));
     } catch (error) {
       alert(error.response?.data?.message || "Already applied");
+    } finally {
+      setApplyingId(null);
     }
   };
 
   return (
     <div className="space-y-8">
       {/* HEADER */}
+
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">
@@ -89,7 +99,6 @@ const Opportunities = () => {
           </p>
         </div>
 
-        {/* Show only if NGO */}
         {user?.role === "ngo" && (
           <button
             onClick={() => setShowForm(true)}
@@ -101,6 +110,7 @@ const Opportunities = () => {
       </div>
 
       {/* FORM MODAL */}
+
       {showForm && (
         <CreateOpportunity
           onClose={() => setShowForm(false)}
@@ -108,7 +118,8 @@ const Opportunities = () => {
         />
       )}
 
-      {/* CARDS */}
+      {/* OPPORTUNITY CARDS */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {opportunities.length === 0 ? (
           <div className="col-span-full text-center text-gray-400 py-16 border border-dashed rounded-xl">
@@ -121,15 +132,21 @@ const Opportunities = () => {
               className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden"
             >
               {/* IMAGE */}
+
               <div className="h-48 overflow-hidden">
                 <img
-                  src={`${API}/uploads/${item.image}`}
+                  src={
+                    item.image
+                      ? item.image
+                      : "https://via.placeholder.com/400x250?text=Opportunity"
+                  }
                   alt={item.title}
                   className="w-full h-full object-cover hover:scale-105 transition duration-500"
                 />
               </div>
 
               {/* CONTENT */}
+
               <div className="p-6 space-y-4">
                 <div className="flex justify-between items-start">
                   <h3 className="text-lg font-semibold text-gray-800">
@@ -167,6 +184,7 @@ const Opportunities = () => {
                 </div>
 
                 {/* BUTTONS */}
+
                 <div className="space-y-2">
                   <button
                     onClick={() => navigate(`/opportunities/${item._id}`)}
@@ -175,7 +193,6 @@ const Opportunities = () => {
                     View Details
                   </button>
 
-                  {/* 🔥 Apply Now (Volunteer Only) */}
                   {user?.role === "volunteer" &&
                     (appliedMap[item._id] === "accepted" ? (
                       <button
@@ -208,9 +225,10 @@ const Opportunities = () => {
                     ) : (
                       <button
                         onClick={() => handleApply(item._id)}
+                        disabled={applyingId === item._id}
                         className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
                       >
-                        Apply Now
+                        {applyingId === item._id ? "Applying..." : "Apply Now"}
                       </button>
                     ))}
                 </div>

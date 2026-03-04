@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../../store/AuthContext";
 import debounce from "lodash.debounce";
@@ -29,13 +29,15 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
 
   /* ================= INPUT HANDLER ================= */
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = ({ target: { name, value } }) => {
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleImage = (e) => {
     const file = e.target.files[0];
-
     if (!file) return;
 
     setImage(file);
@@ -70,6 +72,10 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
   };
 
   const debouncedSearch = useMemo(() => debounce(searchLocation, 500), []);
+
+  useEffect(() => {
+    return () => debouncedSearch.cancel();
+  }, []);
 
   /* ================= SUBMIT ================= */
 
@@ -107,6 +113,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
       onCreated();
       onClose();
     } catch (error) {
+      console.error(error);
       alert(error.response?.data?.message || "Error creating opportunity");
     }
   };
@@ -115,6 +122,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
     <div className="fixed inset-0 bg-black/40 flex justify-center overflow-y-auto py-10 z-50">
       <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl max-h-[90vh] flex flex-col">
         {/* HEADER */}
+
         <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white z-10">
           <h2 className="text-xl font-semibold">Create Opportunity</h2>
 
@@ -126,36 +134,44 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
           </button>
         </div>
 
-        {/* BODY */}
+        {/* FORM */}
+
         <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
           {/* TITLE */}
+
           <input
             name="title"
             placeholder="Opportunity Title"
+            value={form.title}
             onChange={handleChange}
             className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
             required
           />
 
           {/* DESCRIPTION */}
+
           <textarea
             name="description"
             placeholder="Describe the opportunity..."
             rows="4"
+            value={form.description}
             onChange={handleChange}
             className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
             required
           />
 
           {/* SKILLS */}
+
           <input
             name="required_skills"
             placeholder="Skills (comma separated)"
+            value={form.required_skills}
             onChange={handleChange}
             className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
           />
 
           {/* DURATION + DATE */}
+
           <div className="grid grid-cols-2 gap-4">
             <select
               name="duration"
@@ -175,6 +191,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
             <input
               type="date"
               name="date"
+              value={form.date}
               onChange={handleChange}
               className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
               required
@@ -182,6 +199,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
           </div>
 
           {/* LOCATION SEARCH */}
+
           <div className="relative">
             <input
               type="text"
@@ -201,7 +219,10 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
                   <div
                     key={place.place_id}
                     onClick={() => {
-                      setForm({ ...form, location: place.display_name });
+                      setForm((prev) => ({
+                        ...prev,
+                        location: place.display_name,
+                      }));
                       setLocationQuery(place.display_name);
                       setSuggestions([]);
                     }}
@@ -215,6 +236,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
           </div>
 
           {/* MAP */}
+
           <div>
             <p className="text-sm text-gray-500 mb-2">
               Or select exact location on map
@@ -224,7 +246,10 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
               <MapPicker
                 setCoordinates={setCoordinates}
                 setLocation={(address) =>
-                  setForm((prev) => ({ ...prev, location: address }))
+                  setForm((prev) => ({
+                    ...prev,
+                    location: address,
+                  }))
                 }
               />
             </div>
@@ -237,9 +262,15 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
           </div>
 
           {/* IMAGE */}
+
           <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-green-500 transition">
             <label className="cursor-pointer block">
-              <input type="file" onChange={handleImage} hidden />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImage}
+                hidden
+              />
 
               {preview ? (
                 <img
@@ -256,6 +287,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
           </div>
 
           {/* BUTTONS */}
+
           <div className="flex justify-end gap-4 pt-4 border-t">
             <button
               type="button"
