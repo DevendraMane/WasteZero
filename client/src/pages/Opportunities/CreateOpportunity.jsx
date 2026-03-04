@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import axios from "axios";
 import { useAuth } from "../../store/AuthContext";
 import debounce from "lodash.debounce";
@@ -6,6 +6,10 @@ import MapPicker from "../../components/MapPicker";
 
 const CreateOpportunity = ({ onClose, onCreated }) => {
   const { authorizationToken, API } = useAuth();
+
+  const submittingRef = useRef(false);
+
+  const [creating, setCreating] = useState(false);
 
   const [coordinates, setCoordinates] = useState({
     lat: null,
@@ -30,6 +34,8 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
   /* ================= INPUT HANDLER ================= */
 
   const handleChange = ({ target: { name, value } }) => {
+    if (creating) return;
+
     setForm((prev) => ({
       ...prev,
       [name]: value,
@@ -37,6 +43,8 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
   };
 
   const handleImage = (e) => {
+    if (creating) return;
+
     const file = e.target.files[0];
     if (!file) return;
 
@@ -82,6 +90,11 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (submittingRef.current) return;
+
+    submittingRef.current = true;
+    setCreating(true);
+
     try {
       const formData = new FormData();
 
@@ -108,13 +121,14 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
         },
       });
 
-      alert("Opportunity created successfully");
-
       onCreated();
       onClose();
     } catch (error) {
       console.error(error);
       alert(error.response?.data?.message || "Error creating opportunity");
+    } finally {
+      submittingRef.current = false;
+      setCreating(false);
     }
   };
 
@@ -127,8 +141,9 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
           <h2 className="text-xl font-semibold">Create Opportunity</h2>
 
           <button
+            disabled={creating}
             onClick={onClose}
-            className="text-gray-500 hover:text-black text-lg"
+            className="text-gray-500 hover:text-black text-lg disabled:opacity-40"
           >
             ✕
           </button>
@@ -136,7 +151,10 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
 
         {/* FORM */}
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
+        <form
+          onSubmit={handleSubmit}
+          className={`p-6 space-y-6 overflow-y-auto ${creating ? "opacity-70 pointer-events-none" : ""}`}
+        >
           {/* TITLE */}
 
           <input
@@ -198,49 +216,10 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
             />
           </div>
 
-          {/* LOCATION SEARCH */}
-
-          <div className="relative">
-            <input
-              type="text"
-              value={locationQuery}
-              placeholder="Search location"
-              onChange={(e) => {
-                const value = e.target.value;
-                setLocationQuery(value);
-                debouncedSearch(value);
-              }}
-              className="border rounded-lg px-4 py-3 w-full focus:ring-2 focus:ring-green-500"
-            />
-
-            {suggestions.length > 0 && (
-              <div className="absolute bg-white border w-full mt-1 rounded-lg shadow-lg max-h-40 overflow-y-auto z-20">
-                {suggestions.map((place) => (
-                  <div
-                    key={place.place_id}
-                    onClick={() => {
-                      setForm((prev) => ({
-                        ...prev,
-                        location: place.display_name,
-                      }));
-                      setLocationQuery(place.display_name);
-                      setSuggestions([]);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                  >
-                    {place.display_name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* MAP */}
 
           <div>
-            <p className="text-sm text-gray-500 mb-2">
-              Or select exact location on map
-            </p>
+            <p className="text-sm text-gray-500 mb-2">Select exact location</p>
 
             <div className="h-64 rounded-xl overflow-hidden border">
               <MapPicker
@@ -253,17 +232,11 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
                 }
               />
             </div>
-
-            {coordinates.lat && (
-              <p className="text-xs text-gray-600 mt-2">
-                Selected: {coordinates.lat}, {coordinates.lng}
-              </p>
-            )}
           </div>
 
           {/* IMAGE */}
 
-          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-green-500 transition">
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
             <label className="cursor-pointer block">
               <input
                 type="file"
@@ -291,17 +264,28 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
           <div className="flex justify-end gap-4 pt-4 border-t">
             <button
               type="button"
+              disabled={creating}
               onClick={onClose}
-              className="bg-gray-100 px-6 py-2 rounded-lg hover:bg-gray-200"
+              className="bg-gray-100 px-6 py-2 rounded-lg hover:bg-gray-200 disabled:opacity-50"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+              disabled={creating}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg transition
+              ${
+                creating
+                  ? "bg-green-400 cursor-not-allowed text-white"
+                  : "bg-green-600 hover:bg-green-700 text-white"
+              }`}
             >
-              Create Opportunity
+              {creating && (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              )}
+
+              {creating ? "Creating..." : "Create Opportunity"}
             </button>
           </div>
         </form>

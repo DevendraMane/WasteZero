@@ -59,6 +59,13 @@ const userSchema = new mongoose.Schema(
 
     // Optional profile fields
     location: String,
+    latitude: {
+      type: Number,
+    },
+
+    longitude: {
+      type: Number,
+    },
     address: String,
     skills: [String],
     bio: String,

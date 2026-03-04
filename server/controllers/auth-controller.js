@@ -102,11 +102,12 @@ export const updateProfile = async (req, res) => {
   try {
     const userId = req.userId;
 
-    const { name, location, address, skills, bio } = req.body;
+    const { name, location, address, skills, bio, latitude, longitude } =
+      req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { name, location, address, skills, bio },
+      { name, location, address, skills, bio, latitude, longitude },
       { new: true },
     ).select("-password");
 
@@ -303,7 +304,7 @@ const googleCallback = async (req, res) => {
     // 🔴 BLOCK suspended users
     if (user.isSuspended) {
       return res.redirect(
-        `${process.env.CLIENT_URL}/oauth-failed?message=Account suspended by admin`
+        `${process.env.CLIENT_URL}/oauth-failed?message=Account suspended by admin`,
       );
     }
 

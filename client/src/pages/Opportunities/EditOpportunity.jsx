@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
@@ -9,6 +9,11 @@ const EditOpportunity = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { authorizationToken, API } = useAuth();
+
+  const submittingRef = useRef(false);
+
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [coordinates, setCoordinates] = useState({
     lat: null,
@@ -29,8 +34,6 @@ const EditOpportunity = () => {
 
   const [locationQuery, setLocationQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-
-  const [loading, setLoading] = useState(true);
 
   /* ================= FETCH OPPORTUNITY ================= */
 
@@ -59,9 +62,7 @@ const EditOpportunity = () => {
           lng: data.longitude || null,
         });
 
-        if (data.image) {
-          setPreview(data.image); // Cloudinary URL
-        }
+        if (data.image) setPreview(data.image);
       } catch (error) {
         console.error("Error fetching opportunity:", error);
       } finally {
@@ -75,6 +76,8 @@ const EditOpportunity = () => {
   /* ================= INPUT HANDLER ================= */
 
   const handleChange = ({ target: { name, value } }) => {
+    if (saving) return;
+
     setForm((prev) => ({
       ...prev,
       [name]: value,
@@ -82,6 +85,8 @@ const EditOpportunity = () => {
   };
 
   const handleImage = (e) => {
+    if (saving) return;
+
     const file = e.target.files[0];
     if (!file) return;
 
@@ -127,6 +132,11 @@ const EditOpportunity = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (submittingRef.current) return;
+
+    submittingRef.current = true;
+    setSaving(true);
+
     try {
       const formData = new FormData();
 
@@ -153,17 +163,22 @@ const EditOpportunity = () => {
         },
       });
 
-      alert("Opportunity updated successfully");
-
       navigate(`/opportunities/${id}`);
     } catch (error) {
       console.error(error);
       alert(error.response?.data?.message || "Update failed");
+    } finally {
+      submittingRef.current = false;
+      setSaving(false);
     }
   };
 
   if (loading) {
-    return <div className="text-center py-20">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center py-32">
+        <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
@@ -175,8 +190,9 @@ const EditOpportunity = () => {
           <h2 className="text-xl font-semibold">Edit Opportunity</h2>
 
           <button
+            disabled={saving}
             onClick={() => navigate(-1)}
-            className="text-gray-500 hover:text-black text-lg"
+            className="text-gray-500 hover:text-black text-lg disabled:opacity-40"
           >
             ✕
           </button>
@@ -184,7 +200,12 @@ const EditOpportunity = () => {
 
         {/* FORM */}
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
+        <form
+          onSubmit={handleSubmit}
+          className={`p-6 space-y-6 overflow-y-auto ${
+            saving ? "opacity-70 pointer-events-none" : ""
+          }`}
+        >
           <input
             name="title"
             value={form.title}
@@ -209,78 +230,10 @@ const EditOpportunity = () => {
             className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
           />
 
-          {/* DURATION + DATE */}
-
-          <div className="grid grid-cols-2 gap-4">
-            <select
-              name="duration"
-              value={form.duration}
-              onChange={handleChange}
-              className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
-            >
-              <option value="">Select Duration</option>
-              <option value="1 hour">1 Hour</option>
-              <option value="2 hours">2 Hours</option>
-              <option value="Half Day">Half Day</option>
-              <option value="1 Day">1 Day</option>
-              <option value="2 Days">2 Days</option>
-              <option value="1 Week">1 Week</option>
-            </select>
-
-            <input
-              type="date"
-              name="date"
-              value={form.date}
-              onChange={handleChange}
-              className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
-              required
-            />
-          </div>
-
-          {/* LOCATION SEARCH */}
-
-          <div className="relative">
-            <input
-              type="text"
-              value={locationQuery}
-              placeholder="Search location"
-              onChange={(e) => {
-                const value = e.target.value;
-                setLocationQuery(value);
-                debouncedSearch(value);
-              }}
-              className="border rounded-lg px-4 py-3 w-full focus:ring-2 focus:ring-green-500"
-            />
-
-            {suggestions.length > 0 && (
-              <div className="absolute bg-white border w-full mt-1 rounded-lg shadow-lg max-h-40 overflow-y-auto z-20">
-                {suggestions.map((place) => (
-                  <div
-                    key={place.place_id}
-                    onClick={() => {
-                      setForm((prev) => ({
-                        ...prev,
-                        location: place.display_name,
-                      }));
-
-                      setLocationQuery(place.display_name);
-                      setSuggestions([]);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                  >
-                    {place.display_name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* MAP */}
 
           <div>
-            <p className="text-sm text-gray-500 mb-2">
-              Or select exact location on map
-            </p>
+            <p className="text-sm text-gray-500 mb-2">Select exact location</p>
 
             <div className="h-64 rounded-xl overflow-hidden border">
               <MapPicker
@@ -293,17 +246,11 @@ const EditOpportunity = () => {
                 }
               />
             </div>
-
-            {coordinates.lat && (
-              <p className="text-xs text-gray-600 mt-2">
-                Selected: {coordinates.lat}, {coordinates.lng}
-              </p>
-            )}
           </div>
 
           {/* IMAGE */}
 
-          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-green-500 transition">
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
             <label className="cursor-pointer block">
               <input
                 type="file"
@@ -331,17 +278,28 @@ const EditOpportunity = () => {
           <div className="flex justify-end gap-4 pt-4 border-t">
             <button
               type="button"
+              disabled={saving}
               onClick={() => navigate(-1)}
-              className="bg-gray-100 px-6 py-2 rounded-lg hover:bg-gray-200"
+              className="bg-gray-100 px-6 py-2 rounded-lg hover:bg-gray-200 disabled:opacity-50"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+              disabled={saving}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg transition
+              ${
+                saving
+                  ? "bg-green-400 cursor-not-allowed text-white"
+                  : "bg-green-600 hover:bg-green-700 text-white"
+              }`}
             >
-              Update Opportunity
+              {saving && (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              )}
+
+              {saving ? "Updating..." : "Update Opportunity"}
             </button>
           </div>
         </form>
