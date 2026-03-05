@@ -196,7 +196,7 @@ const OpportunitiesDetail = () => {
             <p>📅 Date: {formattedDate}</p>
             <p>⏱ Duration: {opportunity.duration}</p>
             <p>📍 Location: {opportunity.location}</p>
-            <p>👤 Posted by: {opportunity.postedBy?.name || "NGO"}</p>
+            <p>👤 Posted by: {opportunity.ngo_id?.name || "NGO"}</p>
           </div>
 
           {/* NGO ACTIONS */}

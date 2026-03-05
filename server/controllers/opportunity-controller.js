@@ -66,7 +66,9 @@ const createOpportunity = async (req, res) => {
 
 const getAllOpportunities = async (req, res) => {
   try {
-    const opportunities = await Opportunity.find().sort({ createdAt: -1 });
+    const opportunities = await Opportunity.find()
+      .populate("ngo_id", "name")
+      .sort({ createdAt: -1 });
 
     res.json(opportunities);
   } catch (error) {
@@ -78,7 +80,10 @@ const getAllOpportunities = async (req, res) => {
 
 const getSingleOpportunity = async (req, res) => {
   try {
-    const opportunity = await Opportunity.findById(req.params.id);
+    const opportunity = await Opportunity.findById(req.params.id).populate(
+      "ngo_id",
+      "name",
+    );
 
     if (!opportunity) {
       return res.status(404).json({ message: "Opportunity not found" });
@@ -192,9 +197,9 @@ const getOpportunitiesForNGO = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const opportunities = await Opportunity.find({
-      ngo_id: req.user.userId,
-    }).sort({ createdAt: -1 });
+    const opportunities = await Opportunity.find({ ngo_id: req.user.userId })
+      .populate("ngo_id", "name")
+      .sort({ createdAt: -1 });
 
     res.status(200).json(opportunities);
   } catch (error) {
