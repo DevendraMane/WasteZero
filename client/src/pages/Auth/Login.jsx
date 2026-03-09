@@ -4,6 +4,12 @@ import { useAuth } from "../../store/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
 import loader from "../../assets/loader.png";
 import googleIcon from "../../assets/google.svg";
+import {
+  showError,
+  showSuccess,
+  showLoading,
+  closeAlert,
+} from "../../utils/alert";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -46,15 +52,25 @@ const Login = () => {
     e.preventDefault();
 
     if (!formData.email || !formData.password) {
-      alert("All fields are required");
+      showError("All fields are required");
       return;
     }
 
     try {
+      showLoading("Logging in...");
+
       await loginUser(formData);
-      navigate("/dashboard");
+
+      closeAlert();
+
+      showSuccess("Login successful");
+
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1200);
     } catch (error) {
-      alert(error.message);
+      closeAlert();
+      showError(error.message || "Invalid credentials");
     }
   };
 
@@ -67,7 +83,7 @@ const Login = () => {
     const error = params.get("error");
 
     if (error) {
-      alert("User already exists. Please login using email/password.");
+      showError("User already exists. Please login using email/password.");
     }
   }, []);
 
