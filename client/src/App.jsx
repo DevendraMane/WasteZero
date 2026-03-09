@@ -40,6 +40,7 @@ import TestLoader from "./pages/TestLoader";
 import OAuthSuccess from "./pages/Auth/OAuthSuccess";
 import OAuthFailed from "./pages/Auth/OAuthFailed";
 import SchedulePickups from "./pages/Schedule/SchedulePickups";
+import Notifications from "./pages/Notification/Notifications";
 
 export const App = () => {
   const { isLoading } = useAuth();
@@ -100,6 +101,7 @@ export const App = () => {
         },
         { path: "schedule", element: <SchedulePickups /> },
         { path: "messages", element: <Messages /> },
+        { path: "notifications", element: <Notifications /> },
         { path: "settings", element: <Settings /> },
         { path: "profile", element: <Profile /> },
         { path: "change-password", element: <ChangePassword /> },

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-
+import { socket } from "../utils/socket";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -128,6 +128,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) fetchProfile();
   }, [token]);
+
+  useEffect(() => {
+    if (user?._id && !socket.connected) {
+      socket.connect();
+      socket.emit("join", user._id);
+    }
+  }, [user]);
 
   return (
     <AuthContext.Provider

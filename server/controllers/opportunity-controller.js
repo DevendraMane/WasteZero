@@ -1,4 +1,7 @@
 import Opportunity from "../models/opportunity-model.js";
+import Notification from "../models/notification-model.js";
+import User from "../models/user-model.js";
+import { io } from "../server.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 
@@ -56,6 +59,36 @@ const createOpportunity = async (req, res) => {
 
     await opportunity.save();
 
+    /* ================= SEND NOTIFICATION TO VOLUNTEERS ================= */
+
+    const ngo = await User.findById(req.user.userId).select(
+      "name profileImage",
+    );
+    const volunteers = await User.find({
+      role: "volunteer",
+      _id: { $ne: req.user.userId }, // safety check
+    });
+
+    for (let volunteer of volunteers) {
+      const notification = await Notification.create({
+        userId: volunteer._id,
+        type: "opportunity",
+
+        message: `${ngo.name} posted a new opportunity: ${title}`,
+
+        link: `/opportunities/${opportunity._id}`,
+
+        meta: {
+          opportunityId: opportunity._id,
+          opportunityTitle: title,
+          ngoName: ngo.name,
+          ngoImage: ngo.profileImage,
+        },
+      });
+
+      io.to(volunteer._id.toString()).emit("new_notification", notification);
+    }
+
     res.status(201).json(opportunity);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -109,8 +142,6 @@ const deleteOpportunity = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to delete" });
     }
 
-    /* DELETE IMAGE FROM CLOUDINARY */
-
     if (opportunity.imagePublicId) {
       await cloudinary.uploader.destroy(opportunity.imagePublicId);
     }
@@ -150,11 +181,7 @@ const updateOpportunity = async (req, res) => {
       opportunity.required_skills = required_skills.split(",");
     }
 
-    /* IMAGE UPDATE */
-
     if (req.file) {
-      /* DELETE OLD IMAGE */
-
       if (opportunity.imagePublicId) {
         await cloudinary.uploader.destroy(opportunity.imagePublicId);
       }
