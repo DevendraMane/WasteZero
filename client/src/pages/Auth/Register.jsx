@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
-import { Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import Swal from "sweetalert2";
 import loader from "../../assets/loader.png";
 import googleIcon from "../../assets/google.svg";
 
@@ -53,7 +54,11 @@ const Register = () => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      Swal.fire({
+        icon: "error",
+        title: "Password Error",
+        text: "Passwords do not match",
+      });
       return;
     }
 
@@ -65,10 +70,20 @@ const Register = () => {
         role: formData.role,
       });
 
-      alert("Registration successful. Please verify your email.");
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful 🎉",
+        text: "Please verify your email before login.",
+        confirmButtonColor: "#16a34a",
+      });
+
       navigate("/login");
     } catch (error) {
-      alert(error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Registration Failed",
+        text: error.message,
+      });
     }
   };
 
@@ -97,7 +112,7 @@ const Register = () => {
       </p>
 
       <form onSubmit={handleRegister} className="space-y-4">
-        {/* Full Name - FULL WIDTH */}
+        {/* Full Name */}
         <div>
           <label className="block mb-1 font-medium text-sm">Full Name</label>
           <input
@@ -110,7 +125,7 @@ const Register = () => {
           />
         </div>
 
-        {/* Email - FULL WIDTH */}
+        {/* Email */}
         <div>
           <label className="block mb-1 font-medium text-sm">Email</label>
           <input
@@ -123,7 +138,7 @@ const Register = () => {
           />
         </div>
 
-        {/* Password + Confirm (HALF WIDTH) */}
+        {/* Password + Confirm */}
         <div className="grid md:grid-cols-2 gap-4">
           {/* Password */}
           <div>
@@ -198,7 +213,7 @@ const Register = () => {
           </div>
         </div>
 
-        {/* Role - HALF WIDTH CENTERED */}
+        {/* Role */}
         <div className="md:w-1/2">
           <label className="block mb-1 font-medium text-sm">Role</label>
           <select
@@ -249,6 +264,17 @@ const Register = () => {
         <img src={googleIcon} alt="Google" className="w-5 h-5" />
         Sign Up with Google
       </button>
+
+      {/* ⭐ Small UI Tip */}
+      <p className="text-center text-sm text-gray-500 mt-4">
+        Already have an account?
+        <span
+          onClick={() => navigate("/login")}
+          className="text-green-600 cursor-pointer ml-1 font-medium hover:underline"
+        >
+          Login
+        </span>
+      </p>
     </div>
   );
 };
