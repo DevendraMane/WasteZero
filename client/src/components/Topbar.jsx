@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
 import { socket } from "../utils/socket";
+import { motion } from "framer-motion";
 
 const Topbar = () => {
   const navigate = useNavigate();
@@ -10,9 +11,7 @@ const Topbar = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [bellAnimate, setBellAnimate] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const notificationRef = useRef(null);
+
   const dropdownRef = useRef(null);
 
   const handleLogout = () => {
@@ -20,33 +19,15 @@ const Topbar = () => {
     navigate("/login");
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        notificationRef.current &&
-        !notificationRef.current.contains(event.target)
-      ) {
-        setShowNotifications(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   /* ================= FETCH NOTIFICATIONS ================= */
 
   const fetchNotifications = async () => {
     try {
       const res = await fetch(`${API}/api/notifications`, {
-        headers: {
-          Authorization: authorizationToken,
-        },
+        headers: { Authorization: authorizationToken },
       });
 
       const data = await res.json();
-
       setNotifications(data);
 
       const unread = data.filter((n) => !n.read).length;
@@ -63,36 +44,21 @@ const Topbar = () => {
   /* ================= REFRESH WHEN TAB FOCUSED ================= */
 
   useEffect(() => {
-    const handleFocus = () => {
-      fetchNotifications();
-    };
+    const handleFocus = () => fetchNotifications();
 
     window.addEventListener("focus", handleFocus);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
+    return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
   /* ================= REALTIME NOTIFICATIONS ================= */
 
   useEffect(() => {
     socket.on("new_notification", (notification) => {
-      console.log("Realtime notification:", notification);
-
       setNotifications((prev) => [notification, ...prev]);
       setUnreadCount((prev) => prev + 1);
-
-      setBellAnimate(true);
-
-      setTimeout(() => {
-        setBellAnimate(false);
-      }, 800);
     });
 
-    return () => {
-      socket.off("new_notification");
-    };
+    return () => socket.off("new_notification");
   }, []);
 
   /* ================= CLOSE DROPDOWN OUTSIDE CLICK ================= */
@@ -105,10 +71,7 @@ const Topbar = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   /* ================= BELL CLICK ================= */
@@ -120,7 +83,8 @@ const Topbar = () => {
 
   return (
     <div className="flex items-center justify-between px-8 py-4 bg-white shadow-sm">
-      {/* SEARCH BAR */}
+      {/* SEARCH */}
+
       <div className="w-1/2">
         <input
           type="text"
@@ -130,24 +94,40 @@ const Topbar = () => {
       </div>
 
       {/* RIGHT SECTION */}
-      <div className="flex items-center gap-6 relative">
-        {/* ================= NOTIFICATION ================= */}
+
+      <div className="flex items-center gap-6">
+        {/* ================= BELL ================= */}
 
         <button
           onClick={handleBellClick}
-          className={`relative text-xl hover:text-green-600 transition ${
-            bellAnimate ? "animate-bounce" : ""
-          }`}
+          className={`relative w-10 h-10 flex items-center justify-center rounded-full transition
+          ${unreadCount > 0 ? "bg-green-100" : "bg-gray-100 hover:bg-gray-200"}`}
         >
-          🔔
+          <motion.span
+            className="text-xl"
+            animate={
+              unreadCount > 0
+                ? { rotate: [0, 20, -20, 15, -15, 10, -10, 0] }
+                : { rotate: 0 }
+            }
+            transition={{
+              repeat: unreadCount > 0 ? Infinity : 0,
+              duration: 1,
+              ease: "easeInOut",
+            }}
+            style={{ originX: 0.5, originY: 0 }}
+          >
+            🔔
+          </motion.span>
+
           {unreadCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
               {unreadCount}
             </span>
           )}
         </button>
 
-        {/* ================= PROFILE DROPDOWN ================= */}
+        {/* ================= PROFILE ================= */}
 
         <div className="relative" ref={dropdownRef}>
           <button
@@ -191,13 +171,13 @@ const Topbar = () => {
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 mt-3 w-48 bg-white shadow-xl rounded-xl border overflow-hidden z-50 animate-fadeIn">
+            <div className="absolute right-0 mt-3 w-48 bg-white shadow-xl rounded-xl border overflow-hidden z-50">
               <button
                 onClick={() => {
                   navigate("/profile");
                   setShowMenu(false);
                 }}
-                className="w-full text-left px-4 py-3 hover:bg-gray-100 transition"
+                className="w-full text-left px-4 py-3 hover:bg-gray-100"
               >
                 My Profile
               </button>
@@ -207,7 +187,7 @@ const Topbar = () => {
                   navigate("/settings");
                   setShowMenu(false);
                 }}
-                className="w-full text-left px-4 py-3 hover:bg-gray-100 transition"
+                className="w-full text-left px-4 py-3 hover:bg-gray-100"
               >
                 Settings
               </button>
@@ -216,7 +196,7 @@ const Topbar = () => {
 
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition"
+                className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
               >
                 Logout
               </button>

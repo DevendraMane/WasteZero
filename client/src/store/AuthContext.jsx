@@ -144,10 +144,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (user?._id && !socket.connected) {
+    if (user?._id) {
       socket.connect();
       socket.emit("join", user._id);
     }
+
+    return () => {
+      socket.off("new_notification");
+    };
   }, [user]);
 
   const contextValue = useMemo(

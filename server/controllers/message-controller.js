@@ -1,5 +1,6 @@
 import Message from "../models/message-model.js";
 import User from "../models/user-model.js";
+import Notification from "../models/notification-model.js";
 import mongoose from "mongoose";
 import { io } from "../server.js";
 
@@ -47,10 +48,29 @@ const sendMessage = async (req, res) => {
       conversationId,
     });
 
-    /* REALTIME SOCKET */
+    /* ================= REALTIME MESSAGE ================= */
 
     io.to(receiver_id).emit("new_message", message);
     io.to(sender_id).emit("new_message", message);
+
+    /* ================= CREATE NOTIFICATION ================= */
+
+    const sender = await User.findById(sender_id).select("name profileImage");
+
+    const notification = await Notification.create({
+      userId: receiver_id,
+      type: "message",
+      message: `${sender.name} sent you a message`,
+      link: "/messages",
+      sender: {
+        name: sender.name,
+        image: sender.profileImage,
+      },
+    });
+
+    /* ================= REALTIME NOTIFICATION ================= */
+
+    io.to(receiver_id.toString()).emit("new_notification", notification);
 
     res.json(message);
   } catch (error) {

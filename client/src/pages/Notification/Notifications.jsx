@@ -7,6 +7,12 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const navigate = useNavigate();
 
+  const iconMap = {
+    opportunity: "🌱",
+    pickup: "🚚",
+    message: "💬",
+  };
+
   const fetchNotifications = async () => {
     const res = await fetch(`${API}/api/notifications`, {
       headers: { Authorization: authorizationToken },
@@ -45,18 +51,24 @@ const Notifications = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-8">
-      {/* Header */}
+      {/* HEADER */}
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold">Notifications</h1>
 
-        <button
-          onClick={markAllRead}
-          className="text-sm text-green-600 hover:underline"
-        >
-          Mark all as read
-        </button>
+        {notifications.length > 0 && (
+          <button
+            onClick={markAllRead}
+            className="text-sm text-green-600 hover:underline"
+          >
+            Mark all as read
+          </button>
+        )}
       </div>
-      {newNotifications.length === 0 && (
+
+      {/* EMPTY STATE */}
+
+      {newNotifications.length === 0 && notifications.length === 0 && (
         <div className="text-center py-20 text-gray-400">
           <div className="text-5xl mb-3">🔔</div>
 
@@ -79,14 +91,23 @@ const Notifications = () => {
           {newNotifications.map((n) => (
             <div
               key={n._id}
-              className="flex justify-between items-center bg-green-50 border border-green-300 p-4 rounded-xl mb-3"
+              className="flex justify-between items-center bg-green-50 border border-green-300 p-4 rounded-xl mb-3 hover:bg-green-100 transition"
             >
-              <div onClick={() => navigate(n.link)} className="cursor-pointer">
-                <p className="text-sm font-medium">{n.message}</p>
+              <div
+                onClick={() => navigate(n.link)}
+                className="flex items-center gap-3 cursor-pointer"
+              >
+                {/* ICON */}
+                <div className="text-xl">{iconMap[n.type] || "🔔"}</div>
 
-                <span className="text-xs text-gray-400">
-                  {new Date(n.createdAt).toLocaleString()}
-                </span>
+                {/* MESSAGE */}
+                <div>
+                  <p className="text-sm font-medium">{n.message}</p>
+
+                  <span className="text-xs text-gray-400">
+                    {new Date(n.createdAt).toLocaleString()}
+                  </span>
+                </div>
               </div>
 
               <button
@@ -112,13 +133,19 @@ const Notifications = () => {
             <div
               key={n._id}
               onClick={() => navigate(n.link)}
-              className="border p-4 rounded-xl mb-3 cursor-pointer hover:bg-gray-50"
+              className="flex items-center gap-3 border p-4 rounded-xl mb-3 cursor-pointer hover:bg-gray-50 transition"
             >
-              <p className="text-sm">{n.message}</p>
+              {/* ICON */}
+              <div className="text-xl">{iconMap[n.type] || "🔔"}</div>
 
-              <span className="text-xs text-gray-400">
-                {new Date(n.createdAt).toLocaleString()}
-              </span>
+              {/* MESSAGE */}
+              <div>
+                <p className="text-sm">{n.message}</p>
+
+                <span className="text-xs text-gray-400">
+                  {new Date(n.createdAt).toLocaleString()}
+                </span>
+              </div>
             </div>
           ))}
         </>

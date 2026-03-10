@@ -1,6 +1,7 @@
 import Pickup from "../models/pickup-model.js";
 import User from "../models/user-model.js";
-
+import Notification from "../models/notification-model.js";
+import { io } from "../server.js";
 /* ================= CREATE PICKUP ================= */
 
 const createPickup = async (req, res) => {
@@ -26,6 +27,27 @@ const createPickup = async (req, res) => {
 
     await pickup.save();
 
+    /* GET VOLUNTEER INFO */
+    const volunteer = await User.findById(req.user.userId).select("name");
+
+    /* GET ALL NGOs */
+    const ngos = await User.find({ role: "ngo" }).select("_id");
+
+    /* SEND NOTIFICATIONS */
+    for (let ngo of ngos) {
+      const notification = await Notification.create({
+        userId: ngo._id,
+        type: "pickup",
+        message: `New pickup request from ${volunteer.name}`,
+        link: "/ngo/pickups",
+        sender: {
+          name: volunteer.name,
+        },
+      });
+
+      io.to(ngo._id.toString()).emit("new_notification", notification);
+    }
+
     const populatedPickup = await Pickup.findById(pickup._id).populate(
       "user_id",
       "name location",
@@ -33,6 +55,7 @@ const createPickup = async (req, res) => {
 
     res.status(201).json(populatedPickup);
   } catch (error) {
+    console.error("Create pickup error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -88,7 +111,21 @@ const assignAgent = async (req, res) => {
     pickup.status = "assigned";
 
     await pickup.save();
+    // Notify volunteer
 
+    const volunteer = await User.findById(pickup.user_id);
+
+    const notification = await Notification.create({
+      userId: volunteer._id,
+      type: "pickup",
+      message: `Your pickup has been assigned to ${agentName}`,
+      link: "/volunteer/pickups",
+      sender: {
+        name: agentName,
+      },
+    });
+
+    io.to(volunteer._id.toString()).emit("new_notification", notification);
     res.json(pickup);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -110,7 +147,18 @@ const updatePickupStatus = async (req, res) => {
     pickup.status = status;
 
     await pickup.save();
+    if (status === "completed") {
+      const volunteer = await User.findById(pickup.user_id);
 
+      const notification = await Notification.create({
+        userId: volunteer._id,
+        type: "pickup",
+        message: `Your pickup has been successfully completed`,
+        link: "/volunteer/pickups",
+      });
+
+      io.to(volunteer._id.toString()).emit("new_notification", notification);
+    }
     res.json(pickup);
   } catch (error) {
     res.status(500).json({ message: error.message });
