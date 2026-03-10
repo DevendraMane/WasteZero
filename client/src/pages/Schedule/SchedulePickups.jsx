@@ -9,7 +9,8 @@ const SchedulePickups = () => {
 
   const [showForm, setShowForm] = useState(false);
   const [pickups, setPickups] = useState([]);
-
+  const [showAgentModal, setShowAgentModal] = useState(false);
+  const [selectedPickup, setSelectedPickup] = useState(null);
   const [editingPickup, setEditingPickup] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -27,7 +28,7 @@ const SchedulePickups = () => {
   const [locationQuery, setLocationQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
 
-  /* ================= LOCATION SEARCH ================= */
+  /* LOCATION SEARCH */
 
   const searchLocation = async (query) => {
     if (!query || query.length < 3) {
@@ -56,7 +57,7 @@ const SchedulePickups = () => {
 
   const debouncedSearch = useMemo(() => debounce(searchLocation, 500), []);
 
-  /* ================= FETCH PICKUPS ================= */
+  /* FETCH PICKUPS */
 
   const fetchPickups = async () => {
     try {
@@ -78,7 +79,7 @@ const SchedulePickups = () => {
     }
   }, [API, authorizationToken, user]);
 
-  /* ================= INPUT CHANGE ================= */
+  /* INPUT CHANGE */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -89,7 +90,7 @@ const SchedulePickups = () => {
     }));
   };
 
-  /* ================= EDIT PICKUP ================= */
+  /* EDIT PICKUP */
 
   const handleEditPickup = (pickup) => {
     const dateObj = new Date(pickup.scheduled_time);
@@ -112,7 +113,7 @@ const SchedulePickups = () => {
     setShowForm(true);
   };
 
-  /* ================= CREATE / UPDATE PICKUP ================= */
+  /* CREATE / UPDATE PICKUP */
 
   const handleSubmitPickup = async () => {
     if (!formData.date || !formData.time || !formData.category) {
@@ -146,7 +147,6 @@ const SchedulePickups = () => {
 
       if (res.ok) {
         fetchPickups();
-
         setShowForm(false);
         setEditingPickup(null);
 
@@ -164,6 +164,40 @@ const SchedulePickups = () => {
     }
   };
 
+  /* OPEN AGENT DETAILS */
+
+  const openAgentDetails = (pickup) => {
+    setSelectedPickup(pickup);
+    setShowAgentModal(true);
+  };
+
+  /* PRINT RECEIPT */
+
+  const printReceipt = () => {
+    const printContents = document.getElementById("receipt").innerHTML;
+
+    const newWindow = window.open("", "", "width=800,height=600");
+
+    newWindow.document.write(`
+      <html>
+        <head>
+          <title>Pickup Receipt</title>
+          <style>
+            body{font-family:Arial;padding:30px}
+            h2{text-align:center}
+            .row{margin:10px 0}
+          </style>
+        </head>
+        <body>
+          ${printContents}
+        </body>
+      </html>
+    `);
+
+    newWindow.document.close();
+    newWindow.print();
+  };
+
   return (
     <div className="space-y-8">
       {/* HEADER */}
@@ -173,7 +207,7 @@ const SchedulePickups = () => {
           <h1 className="text-3xl font-bold text-gray-800">
             Pickup Scheduling
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500">
             Schedule waste pickups and track collection status
           </p>
         </div>
@@ -184,16 +218,20 @@ const SchedulePickups = () => {
               setShowForm(!showForm);
               setEditingPickup(null);
             }}
-            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
           >
             {showForm ? "Close Form" : "Schedule Pickup"}
           </button>
         )}
       </div>
 
-      {/* CREATE / EDIT FORM */}
+      {/* FORM WITH ANIMATION */}
 
-      {showForm && user?.role === "volunteer" && (
+      <div
+        className={`transition-all duration-500 ease-in-out overflow-hidden ${
+          showForm ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
         <div className="bg-white p-8 rounded-2xl shadow-md grid md:grid-cols-2 gap-6">
           <input
             type="date"
@@ -291,7 +329,7 @@ const SchedulePickups = () => {
             </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* PICKUP LIST */}
 
@@ -330,17 +368,19 @@ const SchedulePickups = () => {
                       )}
                     </div>
 
+                    {/* STATUS BADGE */}
+
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold
-  ${
-    pickup.status === "pending"
-      ? "bg-yellow-100 text-yellow-700"
-      : pickup.status === "assigned"
-        ? "bg-blue-100 text-blue-700"
-        : pickup.status === "in-progress"
-          ? "bg-purple-100 text-purple-700"
-          : "bg-green-100 text-green-700"
-  }`}
+                      ${
+                        pickup.status === "pending"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : pickup.status === "assigned"
+                            ? "bg-blue-100 text-blue-700"
+                            : pickup.status === "in-progress"
+                              ? "bg-purple-100 text-purple-700"
+                              : "bg-green-100 text-green-700"
+                      }`}
                     >
                       {pickup.status}
                     </span>
@@ -357,6 +397,8 @@ const SchedulePickups = () => {
                     </button>
                   )}
 
+                  {/* AGENT INFO */}
+
                   {(pickup.status === "assigned" ||
                     pickup.status === "in-progress" ||
                     pickup.status === "completed") && (
@@ -365,34 +407,12 @@ const SchedulePickups = () => {
                         <p>🚚 Agent: {pickup.agent_name}</p>
                       )}
 
-                      {pickup.agent_phone && (
-                        <p>📞 Contact: {pickup.agent_phone}</p>
-                      )}
-
-                      {pickup.agent_vehicle && (
-                        <p>🚛 Vehicle: {pickup.agent_vehicle}</p>
-                      )}
-
-                      <p
-                        className={`font-medium
-        ${
-          pickup.status === "assigned"
-            ? "text-blue-700"
-            : pickup.status === "in-progress"
-              ? "text-purple-700"
-              : "text-green-700"
-        }
-      `}
+                      <button
+                        onClick={() => openAgentDetails(pickup)}
+                        className="text-green-600 text-sm hover:underline"
                       >
-                        {pickup.status === "assigned" &&
-                          "An agent has been assigned for your pickup. Please be available at the scheduled time."}
-
-                        {pickup.status === "in-progress" &&
-                          "The agent is currently collecting your waste."}
-
-                        {pickup.status === "completed" &&
-                          "Your waste pickup has been successfully completed. Thank you for contributing to WasteZero!"}
-                      </p>
+                        View Agent Details
+                      </button>
                     </div>
                   )}
                 </div>
@@ -401,6 +421,68 @@ const SchedulePickups = () => {
           </div>
         )}
       </div>
+
+      {/* AGENT MODAL */}
+
+      {showAgentModal && selectedPickup && (
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-md bg-black/20 z-50">
+          <div className="bg-white p-8 rounded-xl shadow-lg w-[400px]">
+            <h2 className="text-xl font-semibold mb-4 text-center">
+              Pickup Receipt
+            </h2>
+
+            <div id="receipt" className="space-y-2 text-sm">
+              <p>
+                <strong>Waste Type:</strong> {selectedPickup.category}
+              </p>
+
+              <p>
+                <strong>Location:</strong> {selectedPickup.location}
+              </p>
+
+              <p>
+                <strong>Status:</strong> {selectedPickup.status}
+              </p>
+
+              <p>
+                <strong>Agent:</strong>{" "}
+                {selectedPickup.agent_name || "Not Assigned"}
+              </p>
+
+              <p>
+                <strong>Phone:</strong>{" "}
+                {selectedPickup.agent_phone || "+91 9876543210"}
+              </p>
+
+              <p>
+                <strong>Vehicle:</strong>{" "}
+                {selectedPickup.agent_vehicle || "Waste Collection Van"}
+              </p>
+
+              <p>
+                <strong>Date:</strong>{" "}
+                {new Date(selectedPickup.scheduled_time).toLocaleDateString()}
+              </p>
+            </div>
+
+            <div className="flex justify-between mt-6">
+              <button
+                onClick={printReceipt}
+                className="bg-green-600 text-white px-4 py-2 rounded"
+              >
+                Print Receipt
+              </button>
+
+              <button
+                onClick={() => setShowAgentModal(false)}
+                className="bg-gray-300 px-4 py-2 rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
