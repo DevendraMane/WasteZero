@@ -67,7 +67,7 @@ const Login = () => {
 
       setTimeout(() => {
         navigate("/dashboard");
-      }, 1200);
+      }, 10);
     } catch (error) {
       closeAlert();
       showError(error.message || "Invalid credentials");
