@@ -64,7 +64,7 @@ const createOpportunity = async (req, res) => {
     const ngo = await User.findById(req.user.userId).select(
       "name profileImage",
     );
-    
+
     const volunteers = await User.find({
       role: "volunteer",
       _id: { $ne: req.user.userId }, // safety check
@@ -100,11 +100,25 @@ const createOpportunity = async (req, res) => {
 
 const getAllOpportunities = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+
+    const skip = (page - 1) * limit;
+
+    const total = await Opportunity.countDocuments();
+
     const opportunities = await Opportunity.find()
       .populate("ngo_id", "name")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    res.json(opportunities);
+    res.json({
+      data: opportunities,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

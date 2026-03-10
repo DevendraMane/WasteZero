@@ -18,16 +18,22 @@ const Opportunities = () => {
   const [maxDistance, setMaxDistance] = useState(50);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const navigate = useNavigate();
 
   const fetchOpportunities = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/api/opportunities`, {
-        headers: { Authorization: authorizationToken },
-      });
-      setOpportunities(res.data);
+      const res = await axios.get(
+        `${API}/api/opportunities?page=${currentPage}&limit=${ITEMS_PER_PAGE}`,
+        {
+          headers: { Authorization: authorizationToken },
+        },
+      );
+
+      setOpportunities(res.data.data);
+      setTotalPages(res.data.totalPages);
     } catch (error) {
       console.error(error);
     } finally {
@@ -37,7 +43,7 @@ const Opportunities = () => {
 
   useEffect(() => {
     fetchOpportunities();
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
     const fetchAppliedStatus = async () => {
@@ -47,7 +53,7 @@ const Opportunities = () => {
         try {
           const res = await axios.get(
             `${API}/api/applications/check/${opp._id}`,
-            { headers: { Authorization: authorizationToken } }
+            { headers: { Authorization: authorizationToken } },
           );
           statusMap[opp._id] = res.data.applied ? res.data.status : null;
         } catch (err) {
@@ -65,7 +71,7 @@ const Opportunities = () => {
       await axios.post(
         `${API}/api/applications/${id}`,
         {},
-        { headers: { Authorization: authorizationToken } }
+        { headers: { Authorization: authorizationToken } },
       );
       setAppliedMap((prev) => ({ ...prev, [id]: "pending" }));
     } catch (error) {
@@ -83,17 +89,13 @@ const Opportunities = () => {
       user.latitude,
       user.longitude,
       opp.latitude,
-      opp.longitude
+      opp.longitude,
     );
     return distance <= maxDistance;
   });
 
   /* ================= PAGINATION ================= */
-  const totalPages = Math.ceil(filteredOpportunities.length / ITEMS_PER_PAGE);
-  const paginatedOpportunities = filteredOpportunities.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const paginatedOpportunities = filteredOpportunities;
 
   // Reset to page 1 when filter changes
   useEffect(() => {
@@ -148,7 +150,7 @@ const Opportunities = () => {
             {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
             {Math.min(
               currentPage * ITEMS_PER_PAGE,
-              filteredOpportunities.length
+              filteredOpportunities.length,
             )}
           </span>{" "}
           of{" "}
@@ -178,7 +180,7 @@ const Opportunities = () => {
                 user.latitude,
                 user.longitude,
                 item.latitude,
-                item.longitude
+                item.longitude,
               ).toFixed(1);
             }
 
