@@ -12,7 +12,7 @@ import adminRouter from "./routes/admin-router.js";
 import applicationRouter from "./routes/application-router.js";
 import pickupRouter from "./routes/pickup-router.js";
 import imageRouter from "./routes/image-router.js";
-
+import messageRouter from "./routes/message-router.js";
 import passport from "passport";
 import "./config/passport.js";
 
@@ -43,6 +43,7 @@ app.use("/api/applications", applicationRouter);
 app.use("/api/pickups", pickupRouter);
 app.use("/api/image", imageRouter);
 app.use("/api/notifications", notificationRouter);
+app.use("/api/messages", messageRouter);
 /* ================= CREATE SERVER ================= */
 
 const server = http.createServer(app);

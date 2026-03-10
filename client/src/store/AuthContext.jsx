@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useMemo } from "react";
 import { socket } from "../utils/socket";
+
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -9,10 +10,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("waste_user")),
   );
-  const [isLoggedIn, setIsLoggedIn] = useState(!!token);
   const [isLoading, setIsLoading] = useState(false);
+  const [authReady, setAuthReady] = useState(false); // ⭐ new
 
-  const authorizationToken = `Bearer ${token}`;
+  const isLoggedIn = !!token;
+
+  const authorizationToken = token ? `Bearer ${token}` : "";
 
   const storeToken = (newToken, userData) => {
     localStorage.setItem("waste_token", newToken);
@@ -20,7 +23,6 @@ export const AuthProvider = ({ children }) => {
 
     setToken(newToken);
     setUser(userData);
-    setIsLoggedIn(true);
   };
 
   const logoutUser = () => {
@@ -29,7 +31,6 @@ export const AuthProvider = ({ children }) => {
 
     setToken(null);
     setUser(null);
-    setIsLoggedIn(false);
   };
 
   const registerUser = async (formData) => {
@@ -115,8 +116,13 @@ export const AuthProvider = ({ children }) => {
       if (res.ok) {
         const data = await res.json();
 
-        setUser(data);
-        localStorage.setItem("waste_user", JSON.stringify(data)); // ⭐ important
+        setUser((prev) => {
+          if (JSON.stringify(prev) !== JSON.stringify(data)) {
+            localStorage.setItem("waste_user", JSON.stringify(data));
+            return data;
+          }
+          return prev;
+        });
       }
     } catch {
       logoutUser();
@@ -125,9 +131,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ⭐ Initialize auth when app loads
   useEffect(() => {
-    if (token) fetchProfile();
-  }, [token]);
+    const initAuth = async () => {
+      if (token) {
+        await fetchProfile();
+      }
+      setAuthReady(true);
+    };
+
+    initAuth();
+  }, []);
 
   useEffect(() => {
     if (user?._id && !socket.connected) {
@@ -136,25 +150,27 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
+  const contextValue = useMemo(
+    () => ({
+      API,
+      token,
+      user,
+      isLoggedIn,
+      isLoading,
+      authReady, // ⭐ added
+      loginUser,
+      registerUser,
+      logoutUser,
+      authorizationToken,
+      changePassword,
+      storeToken,
+      fetchProfile,
+    }),
+    [API, token, user, isLoading, authReady],
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        API,
-        token,
-        user,
-        isLoggedIn,
-        isLoading,
-        loginUser,
-        registerUser,
-        logoutUser,
-        authorizationToken,
-        changePassword,
-        storeToken,
-        fetchProfile,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 

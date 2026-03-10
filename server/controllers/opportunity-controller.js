@@ -64,6 +64,7 @@ const createOpportunity = async (req, res) => {
     const ngo = await User.findById(req.user.userId).select(
       "name profileImage",
     );
+    
     const volunteers = await User.find({
       role: "volunteer",
       _id: { $ne: req.user.userId }, // safety check

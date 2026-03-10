@@ -224,12 +224,24 @@ const OpportunitiesDetail = () => {
           {user?.role === "volunteer" && (
             <div className="pt-4">
               {applicationStatus === "accepted" ? (
-                <button
-                  disabled
-                  className="w-full bg-green-600 text-white py-2 rounded-lg"
-                >
-                  Accepted
-                </button>
+                <div className="space-y-3">
+                  <button
+                    disabled
+                    className="w-full bg-green-600 text-white py-2 rounded-lg"
+                  >
+                    Accepted
+                  </button>
+
+                  {/* MESSAGE BUTTON ONLY AFTER APPROVAL */}
+                  <button
+                    onClick={() =>
+                      navigate(`/messages?user=${opportunity.ngo_id._id}`)
+                    }
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    Message NGO
+                  </button>
+                </div>
               ) : applicationStatus === "pending" ? (
                 <button
                   disabled

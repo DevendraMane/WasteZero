@@ -43,8 +43,10 @@ import SchedulePickups from "./pages/Schedule/SchedulePickups";
 import Notifications from "./pages/Notification/Notifications";
 
 export const App = () => {
-  const { isLoading } = useAuth();
-
+  const { isLoading, authReady } = useAuth();
+  if (!authReady) {
+    return <Loader fullScreen />;
+  }
   const router = createBrowserRouter([
     {
       path: "/test-loader",

@@ -50,12 +50,6 @@ const Profile = () => {
     }
   }, [user]);
 
-  /* ================= LOAD PROFILE ================= */
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
   /* ================= INPUT CHANGE ================= */
 
   const handleChange = ({ target: { name, value } }) => {
@@ -94,7 +88,11 @@ const Profile = () => {
 
   const debouncedSearch = useMemo(() => debounce(searchLocation, 500), []);
 
-  /* ================= IMAGE UPLOAD (CLOUDINARY) ================= */
+  useEffect(() => {
+    return () => debouncedSearch.cancel();
+  }, [debouncedSearch]);
+
+  /* ================= IMAGE UPLOAD ================= */
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -130,7 +128,7 @@ const Profile = () => {
       }));
 
       fetchProfile();
-    } catch (err) {
+    } catch {
       alert("Image upload failed");
     } finally {
       setUploading(false);

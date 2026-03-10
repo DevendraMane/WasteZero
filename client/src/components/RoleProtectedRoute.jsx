@@ -1,13 +1,14 @@
 import { Navigate } from "react-router-dom";
+import { useAuth } from "../store/AuthContext";
 
 const RoleProtectedRoute = ({ children, allowedRoles }) => {
-  const user = JSON.parse(localStorage.getItem("waste_user"));
+  const { user, token } = useAuth();
 
-  if (!user) {
+  if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!allowedRoles.includes(user.role)) {
+  if (!user || !allowedRoles.includes(user.role)) {
     return <Navigate to="/dashboard" replace />;
   }
 
