@@ -12,4 +12,17 @@ pickupRouter.get(
   pickupController.getVolunteerPickups,
 );
 
+pickupRouter.get("/ngo", authMiddleware, pickupController.getNGOPickups);
+
+pickupRouter.put("/assign/:id", authMiddleware, pickupController.assignAgent);
+
+pickupRouter.put(
+  "/status/:id",
+  authMiddleware,
+  pickupController.updatePickupStatus,
+);
+
+/* FIXED ROUTE */
+pickupRouter.put("/:id", authMiddleware, pickupController.updatePickup);
+
 export default pickupRouter;

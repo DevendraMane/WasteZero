@@ -20,8 +20,8 @@ const pickupSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["scheduled", "completed", "cancelled"],
-      default: "scheduled",
+      enum: ["pending", "assigned", "in-progress", "completed"],
+      default: "pending",
     },
 
     agent_id: {
@@ -29,6 +29,17 @@ const pickupSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+
+    agent_name: {
+      type: String,
+      default: null,
+    },
+    location: {
+      type: String,
+    },
+
+    latitude: Number,
+    longitude: Number,
   },
   { timestamps: true },
 );

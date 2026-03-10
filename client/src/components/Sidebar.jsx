@@ -34,6 +34,7 @@ const Sidebar = () => {
       { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
       { name: "Create Opportunity", path: "/opportunities", icon: Briefcase },
       { name: "Manage Applications", path: "/applications", icon: BarChart3 },
+      { name: "Manage Pickups", path: "/ngo-pickups", icon: CalendarDays },
       { name: "Messages", path: "/messages", icon: MessageCircle },
     ],
     admin: [

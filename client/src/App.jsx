@@ -12,7 +12,7 @@ import ForgotPassword from "./pages/Auth/ForgotPassword";
 import ResetPassword from "./pages/Auth/ResetPassword";
 import Loader from "./components/Loader";
 import { useAuth } from "./store/AuthContext";
-
+import NGOPickupManagement from "./pages/NGO/PickupManagement";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Messages from "./pages/Messages/Messages";
 import Impact from "./pages/Impact/Impact";
@@ -98,6 +98,14 @@ export const App = () => {
           element: (
             <RoleProtectedRoute allowedRoles={["ngo"]}>
               <EditOpportunity />
+            </RoleProtectedRoute>
+          ),
+        },
+        {
+          path: "ngo-pickups",
+          element: (
+            <RoleProtectedRoute allowedRoles={["ngo"]}>
+              <NGOPickupManagement />
             </RoleProtectedRoute>
           ),
         },
