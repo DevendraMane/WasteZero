@@ -4,7 +4,11 @@ import { authMiddleware } from "../middlewares/auth-middleware.js";
 
 const pickupRouter = express.Router();
 
+/* CREATE PICKUP */
+
 pickupRouter.post("/", authMiddleware, pickupController.createPickup);
+
+/* VOLUNTEER PICKUPS */
 
 pickupRouter.get(
   "/volunteer",
@@ -12,9 +16,15 @@ pickupRouter.get(
   pickupController.getVolunteerPickups,
 );
 
+/* NGO PICKUPS */
+
 pickupRouter.get("/ngo", authMiddleware, pickupController.getNGOPickups);
 
+/* ASSIGN AGENT */
+
 pickupRouter.put("/assign/:id", authMiddleware, pickupController.assignAgent);
+
+/* UPDATE STATUS */
 
 pickupRouter.put(
   "/status/:id",
@@ -22,7 +32,8 @@ pickupRouter.put(
   pickupController.updatePickupStatus,
 );
 
-/* FIXED ROUTE */
+/* UPDATE PICKUP */
+
 pickupRouter.put("/:id", authMiddleware, pickupController.updatePickup);
 
 export default pickupRouter;

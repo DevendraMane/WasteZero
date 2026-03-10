@@ -1,10 +1,11 @@
 import express from "express";
 import opportunityController from "../controllers/opportunity-controller.js";
-
 import { upload } from "../middlewares/upload.js";
 import { authMiddleware } from "../middlewares/auth-middleware.js";
 
 const opportunityRouter = express.Router();
+
+/* CREATE OPPORTUNITY */
 
 opportunityRouter.post(
   "/",
@@ -13,11 +14,23 @@ opportunityRouter.post(
   opportunityController.createOpportunity,
 );
 
+/* GET NGO OPPORTUNITIES (MUST BE BEFORE :id) */
+
+opportunityRouter.get(
+  "/ngo/my",
+  authMiddleware,
+  opportunityController.getOpportunitiesForNGO,
+);
+
+/* GET ALL */
+
 opportunityRouter.get(
   "/",
   authMiddleware,
   opportunityController.getAllOpportunities,
 );
+
+/* GET SINGLE */
 
 opportunityRouter.get(
   "/:id",
@@ -25,23 +38,21 @@ opportunityRouter.get(
   opportunityController.getSingleOpportunity,
 );
 
+/* DELETE */
+
 opportunityRouter.delete(
   "/:id",
   authMiddleware,
   opportunityController.deleteOpportunity,
 );
 
+/* UPDATE */
+
 opportunityRouter.put(
   "/:id",
   authMiddleware,
   upload.single("image"),
   opportunityController.updateOpportunity,
-);
-
-opportunityRouter.get(
-  "/ngo/my",
-  authMiddleware,
-  opportunityController.getOpportunitiesForNGO,
 );
 
 export default opportunityRouter;
