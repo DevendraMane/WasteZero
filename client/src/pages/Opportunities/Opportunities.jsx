@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { calculateDistance } from "../../utils/calculateDistance";
 import DistanceFilter from "../../components/DistanceFilter";
 import Loader from "../../components/Loader";
+
+const ITEMS_PER_PAGE = 6;
+
 const Opportunities = () => {
   const { authorizationToken, API, user } = useAuth();
   const [appliedMap, setAppliedMap] = useState({});
@@ -14,19 +17,16 @@ const Opportunities = () => {
   const [applyingId, setApplyingId] = useState(null);
   const [maxDistance, setMaxDistance] = useState(50);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const navigate = useNavigate();
-
-  /* ================= FETCH OPPORTUNITIES ================= */
 
   const fetchOpportunities = async () => {
     try {
       setLoading(true);
-
       const res = await axios.get(`${API}/api/opportunities`, {
         headers: { Authorization: authorizationToken },
       });
-
       setOpportunities(res.data);
     } catch (error) {
       console.error(error);
@@ -39,47 +39,34 @@ const Opportunities = () => {
     fetchOpportunities();
   }, []);
 
-  /* ================= FETCH APPLICATION STATUS ================= */
-
   useEffect(() => {
     const fetchAppliedStatus = async () => {
       if (user?.role !== "volunteer") return;
-
       const statusMap = {};
-
       for (let opp of opportunities) {
         try {
           const res = await axios.get(
             `${API}/api/applications/check/${opp._id}`,
-            { headers: { Authorization: authorizationToken } },
+            { headers: { Authorization: authorizationToken } }
           );
-
           statusMap[opp._id] = res.data.applied ? res.data.status : null;
         } catch (err) {
           console.error(err);
         }
       }
-
       setAppliedMap(statusMap);
     };
-
-    if (opportunities.length > 0) {
-      fetchAppliedStatus();
-    }
+    if (opportunities.length > 0) fetchAppliedStatus();
   }, [opportunities]);
-
-  /* ================= APPLY FUNCTION ================= */
 
   const handleApply = async (id) => {
     try {
       setApplyingId(id);
-
       await axios.post(
         `${API}/api/applications/${id}`,
         {},
-        { headers: { Authorization: authorizationToken } },
+        { headers: { Authorization: authorizationToken } }
       );
-
       setAppliedMap((prev) => ({ ...prev, [id]: "pending" }));
     } catch (error) {
       alert(error.response?.data?.message || "Already applied");
@@ -89,29 +76,35 @@ const Opportunities = () => {
   };
 
   /* ================= DISTANCE FILTER ================= */
-
   const filteredOpportunities = opportunities.filter((opp) => {
     if (!user?.latitude || !user?.longitude) return true;
     if (!opp.latitude || !opp.longitude) return true;
-
     const distance = calculateDistance(
       user.latitude,
       user.longitude,
       opp.latitude,
-      opp.longitude,
+      opp.longitude
     );
-
     return distance <= maxDistance;
   });
 
-  if (loading) {
-    return <Loader />;
-  }
+  /* ================= PAGINATION ================= */
+  const totalPages = Math.ceil(filteredOpportunities.length / ITEMS_PER_PAGE);
+  const paginatedOpportunities = filteredOpportunities.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [maxDistance]);
+
+  if (loading) return <Loader />;
 
   return (
     <div className="space-y-8">
       {/* HEADER */}
-
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">
@@ -121,7 +114,6 @@ const Opportunities = () => {
             Browse and manage waste management initiatives
           </p>
         </div>
-
         {user?.role === "ngo" && (
           <button
             onClick={() => setShowForm(true)}
@@ -133,7 +125,6 @@ const Opportunities = () => {
       </div>
 
       {/* FORM MODAL */}
-
       {showForm && (
         <CreateOpportunity
           onClose={() => setShowForm(false)}
@@ -142,7 +133,6 @@ const Opportunities = () => {
       )}
 
       {/* DISTANCE FILTER */}
-
       {user?.role === "volunteer" && (
         <DistanceFilter
           distance={maxDistance}
@@ -150,17 +140,34 @@ const Opportunities = () => {
         />
       )}
 
-      {/* OPPORTUNITY CARDS */}
+      {/* RESULTS COUNT */}
+      {filteredOpportunities.length > 0 && (
+        <div className="text-sm text-gray-500">
+          Showing{" "}
+          <span className="font-semibold text-gray-700">
+            {(currentPage - 1) * ITEMS_PER_PAGE + 1}–
+            {Math.min(
+              currentPage * ITEMS_PER_PAGE,
+              filteredOpportunities.length
+            )}
+          </span>{" "}
+          of{" "}
+          <span className="font-semibold text-gray-700">
+            {filteredOpportunities.length}
+          </span>{" "}
+          opportunities
+        </div>
+      )}
 
+      {/* OPPORTUNITY CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredOpportunities.length === 0 ? (
+        {paginatedOpportunities.length === 0 ? (
           <div className="col-span-full text-center text-gray-400 py-16 border border-dashed rounded-xl">
             No opportunities within selected distance
           </div>
         ) : (
-          filteredOpportunities.map((item) => {
+          paginatedOpportunities.map((item) => {
             let distance = null;
-
             if (
               user?.latitude &&
               user?.longitude &&
@@ -171,7 +178,7 @@ const Opportunities = () => {
                 user.latitude,
                 user.longitude,
                 item.latitude,
-                item.longitude,
+                item.longitude
               ).toFixed(1);
             }
 
@@ -180,28 +187,22 @@ const Opportunities = () => {
                 key={item._id}
                 className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden"
               >
-                {/* IMAGE */}
-
                 <div className="h-48 overflow-hidden">
                   <img
                     src={
-                      item.image
-                        ? item.image
-                        : "https://via.placeholder.com/400x250?text=Opportunity"
+                      item.image ||
+                      "https://via.placeholder.com/400x250?text=Opportunity"
                     }
                     alt={item.title}
                     className="w-full h-full object-cover hover:scale-105 transition duration-500"
                   />
                 </div>
 
-                {/* CONTENT */}
-
                 <div className="p-6 space-y-4">
                   <div className="flex justify-between items-start">
                     <h3 className="text-lg font-semibold text-gray-800">
                       {item.title}
                     </h3>
-
                     {new Date(item.date) < new Date() ? (
                       <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
                         Closed
@@ -224,11 +225,8 @@ const Opportunities = () => {
                     >
                       📍 {item.location}
                     </span>
-
                     <span className="whitespace-nowrap">⏱ {item.duration}</span>
                   </div>
-
-                  {/* DISTANCE */}
 
                   {distance && (
                     <div className="text-sm text-green-600 font-medium">
@@ -239,8 +237,6 @@ const Opportunities = () => {
                   <div className="text-sm text-gray-500">
                     📅 {new Date(item.date).toLocaleDateString()}
                   </div>
-
-                  {/* BUTTONS */}
 
                   <div className="space-y-2">
                     <button
@@ -297,6 +293,44 @@ const Opportunities = () => {
           })
         )}
       </div>
+
+      {/* PAGINATION */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-4">
+          {/* Prev button */}
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            ← Prev
+          </button>
+
+          {/* Page numbers */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`w-9 h-9 rounded-lg text-sm font-semibold transition ${
+                currentPage === page
+                  ? "bg-green-600 text-white shadow-sm"
+                  : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          {/* Next button */}
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            Next →
+          </button>
+        </div>
+      )}
     </div>
   );
 };
