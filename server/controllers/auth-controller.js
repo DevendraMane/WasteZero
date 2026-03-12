@@ -8,14 +8,46 @@ import {
 // ================= REGISTER =================
 const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, adminCode } = req.body;
 
-    // 🔒 Only allow volunteer or ngo
+    // 🔒 Validate required fields
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
+    // 🔒 Validate role - allow admin if correct code provided
+    let finalRole = role;
     const allowedRoles = ["volunteer", "ngo"];
 
-    if (!allowedRoles.includes(role)) {
+    if (role === "admin") {
+      const secretAdminCode =
+        process.env.ADMIN_SECRET_CODE || "WASTEZERO_ADMIN_2024";
+      if (!adminCode || adminCode !== secretAdminCode) {
+        return res.status(403).json({
+          message: "Invalid admin code. Cannot create admin user.",
+        });
+      }
+      finalRole = "admin";
+    } else if (!allowedRoles.includes(role)) {
       return res.status(403).json({
         message: "Invalid role selected",
+      });
+    }
+
+    // 🔒 Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Invalid email format",
+      });
+    }
+
+    // 🔒 Validate password strength
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
       });
     }
 
@@ -23,7 +55,8 @@ const register = async (req, res) => {
 
     if (existingUser) {
       return res.status(400).json({
-        message: "User already exists",
+        message:
+          "Email already registered. Please login or use a different email.",
       });
     }
 
@@ -34,22 +67,48 @@ const register = async (req, res) => {
       name,
       email,
       password,
-      role,
+      role: finalRole,
       verificationToken,
+      isVerified: finalRole === "admin" ? true : false, // Auto-verify admins
+      isOnline: false,
+      lastSeen: new Date(),
     });
 
     await newUser.save();
+    console.log(`[REGISTER] New user created: ${email} (${finalRole})`);
 
-    // Send verification email
-    await sendVerificationEmail(email, verificationToken);
+    // Send verification email only for non-admin users
+    if (finalRole !== "admin") {
+      try {
+        await sendVerificationEmail(email, verificationToken);
+        console.log(`[REGISTER] Verification email sent to: ${email}`);
+      } catch (emailError) {
+        console.error(
+          `[REGISTER] Email sending failed for ${email}:`,
+          emailError.message,
+        );
+        // Don't block registration if email fails - user can request resend
+      }
 
-    res.status(201).json({
-      message: "Registration successful. Please verify your email.",
-    });
+      res.status(201).json({
+        message:
+          "Registration successful! Please check your email to verify your account.",
+        email,
+        role: finalRole,
+      });
+    } else {
+      // Admin user - auto-verified, can login immediately
+      res.status(201).json({
+        message: "Admin account created successfully! You can now login.",
+        email,
+        role: "admin",
+        isVerified: true,
+      });
+    }
   } catch (error) {
-    console.error("REGISTER ERROR:", error);
+    console.error("[REGISTER ERROR]:", error);
     res.status(500).json({
-      message: "Server error",
+      message: error.message || "Registration failed. Please try again.",
     });
   }
 };
@@ -301,20 +360,48 @@ const googleCallback = async (req, res) => {
   try {
     const user = req.user;
 
-    // 🔴 BLOCK suspended users
-    if (user.isSuspended) {
+    if (!user) {
       return res.redirect(
-        `${process.env.CLIENT_URL}/oauth-failed?message=Account suspended by admin`,
+        `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
+          "Authentication failed",
+        )}`,
       );
     }
 
+    // 🔴 BLOCK suspended users
+    if (user.isSuspended) {
+      return res.redirect(
+        `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
+          "Account suspended by admin",
+        )}`,
+      );
+    }
+
+    // Generate token
     const token = user.generateToken();
+
+    if (!token) {
+      return res.redirect(
+        `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
+          "Failed to generate authentication token",
+        )}`,
+      );
+    }
+
+    // Update last login
+    await user.constructor.updateOne(
+      { _id: user._id },
+      { lastSeen: new Date() },
+    );
 
     res.redirect(`${process.env.CLIENT_URL}/oauth-success?token=${token}`);
   } catch (error) {
-    res.status(500).json({
-      message: "Google authentication failed",
-    });
+    console.error("[GOOGLE CALLBACK ERROR]:", error);
+    res.redirect(
+      `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
+        error.message || "Google authentication failed",
+      )}`,
+    );
   }
 };
 

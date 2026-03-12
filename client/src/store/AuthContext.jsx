@@ -3,31 +3,50 @@ import { socket } from "../utils/socket";
 
 export const AuthContext = createContext();
 
+// Generate or retrieve unique tab ID
+const getTabId = () => {
+  let tabId = sessionStorage.getItem("waste_tabId");
+  if (!tabId) {
+    tabId = `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    sessionStorage.setItem("waste_tabId", tabId);
+  }
+  return tabId;
+};
+
 export const AuthProvider = ({ children }) => {
   const API = import.meta.env.VITE_BACKEND_URL;
+  const tabId = getTabId();
 
-  const [token, setToken] = useState(localStorage.getItem("waste_token"));
+  // Use localStorage with tab-specific keys for persistence + multi-tab support
+  // Each tab has its own storage: waste_token_{tabId}, waste_user_{tabId}
+  const tokenKey = `waste_token_${tabId}`;
+  const userKey = `waste_user_${tabId}`;
+
+  const [token, setToken] = useState(localStorage.getItem(tokenKey));
   const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem("waste_user")),
+    JSON.parse(localStorage.getItem(userKey) || "null"),
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [authReady, setAuthReady] = useState(false); // ⭐ new
+  const [authReady, setAuthReady] = useState(false);
 
   const isLoggedIn = !!token;
 
   const authorizationToken = token ? `Bearer ${token}` : "";
 
   const storeToken = (newToken, userData) => {
-    localStorage.setItem("waste_token", newToken);
-    localStorage.setItem("waste_user", JSON.stringify(userData));
+    // Store with tab-specific keys in localStorage
+    // This persists across page reloads but is unique per tab
+    localStorage.setItem(tokenKey, newToken);
+    localStorage.setItem(userKey, JSON.stringify(userData));
 
     setToken(newToken);
     setUser(userData);
   };
 
   const logoutUser = () => {
-    localStorage.removeItem("waste_token");
-    localStorage.removeItem("waste_user");
+    // Clear only this tab's data
+    localStorage.removeItem(tokenKey);
+    localStorage.removeItem(userKey);
 
     setToken(null);
     setUser(null);
@@ -118,7 +137,8 @@ export const AuthProvider = ({ children }) => {
 
         setUser((prev) => {
           if (JSON.stringify(prev) !== JSON.stringify(data)) {
-            localStorage.setItem("waste_user", JSON.stringify(data));
+            // Store in tab-specific localStorage key
+            localStorage.setItem(userKey, JSON.stringify(data));
             return data;
           }
           return prev;

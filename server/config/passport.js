@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/user-model.js";
+import Settings from "../models/settings-model.js";
 
 passport.use(
   new GoogleStrategy(
@@ -14,8 +15,11 @@ passport.use(
         const email = profile.emails?.[0]?.value;
 
         if (!email) {
+          console.error("[PASSPORT] No email in Google profile");
           return done(new Error("Google account has no email"), null);
         }
+
+        console.log(`[PASSPORT] Processing Google auth for email: ${email}`);
 
         /* GOOGLE PROFILE IMAGE */
         let googleImage = profile.photos?.[0]?.value || "";
@@ -31,6 +35,9 @@ passport.use(
            Email exists but registered via password
         */
         if (existingUser && !existingUser.googleId) {
+          console.log(
+            `[PASSPORT] User ${email} exists with password, rejecting Google auth`,
+          );
           return done(null, false, {
             message:
               "User already exists with email/password. Please login normally.",
@@ -41,6 +48,9 @@ passport.use(
            Already registered via Google
         */
         if (existingUser && existingUser.googleId) {
+          console.log(
+            `[PASSPORT] User ${email} already registered via Google, updating profile`,
+          );
           if (googleImage && existingUser.profileImage !== googleImage) {
             existingUser.profileImage = googleImage;
             await existingUser.save();
@@ -51,7 +61,20 @@ passport.use(
 
         /* ================= CASE 3 =================
            New Google User
+           Check if registrations are allowed
         */
+        const settings = await Settings.getInstance();
+        if (!settings.allowRegistrations) {
+          console.log(
+            `[PASSPORT] New user ${email} registration blocked: registrations disabled`,
+          );
+          return done(null, false, {
+            message:
+              "New registrations are currently disabled. Please contact admin to enable registrations.",
+          });
+        }
+
+        console.log(`[PASSPORT] Creating new Google user: ${email}`);
         const newUser = await User.create({
           name: profile.displayName,
           email,
@@ -59,10 +82,14 @@ passport.use(
           profileImage: googleImage,
           role: "volunteer",
           isVerified: true,
+          isOnline: true,
+          lastSeen: new Date(),
         });
 
+        console.log(`[PASSPORT] New user created: ${email}`);
         return done(null, newUser);
       } catch (error) {
+        console.error("[PASSPORT STRATEGY ERROR]:", error);
         return done(error, null);
       }
     },

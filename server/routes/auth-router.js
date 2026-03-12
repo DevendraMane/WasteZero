@@ -3,11 +3,14 @@ import authcontrollers, {
   updateProfile,
 } from "../controllers/auth-controller.js";
 import { authMiddleware } from "../middlewares/auth-middleware.js";
+import { checkFeatureToggle } from "../middlewares/settings-middleware.js";
 import passport from "passport";
 export const authRouter = express.Router();
 
 // ******  REGISTRATION ROUTE  ****** //
-authRouter.route("/register").post(authcontrollers.register);
+authRouter
+  .route("/register")
+  .post(checkFeatureToggle("allowRegistrations"), authcontrollers.register);
 
 // ******  LOGIN ROUTE  ****** //
 authRouter.route("/login").post(authcontrollers.login);
@@ -40,12 +43,40 @@ authRouter.get(
   passport.authenticate("google", { scope: ["profile", "email"] }),
 );
 
-// Step 2: Google Callback
-authRouter.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    session: false,
-    failureRedirect: `${process.env.CLIENT_URL}/login?error=User already exists`,
-  }),
-  authcontrollers.googleCallback,
-);
+// Step 2: Google Callback with custom callback for better error handling
+authRouter.get("/google/callback", (req, res, next) => {
+  passport.authenticate("google", { session: false }, (err, user, info) => {
+    try {
+      if (err) {
+        console.error("[PASSPORT ERROR]:", err);
+        return res.redirect(
+          `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
+            err.message || "Authentication error",
+          )}`,
+        );
+      }
+
+      // Passport returned false with info (authentication failed)
+      if (!user) {
+        console.log("[PASSPORT] Authentication failed:", info?.message);
+        const errorMessage = info?.message || "Google authentication failed";
+        return res.redirect(
+          `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
+            errorMessage,
+          )}`,
+        );
+      }
+
+      // Attach user to request for googleCallback
+      req.user = user;
+      authcontrollers.googleCallback(req, res);
+    } catch (error) {
+      console.error("[Google Callback Error]:", error);
+      res.redirect(
+        `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
+          error.message || "An unexpected error occurred",
+        )}`,
+      );
+    }
+  })(req, res, next);
+});

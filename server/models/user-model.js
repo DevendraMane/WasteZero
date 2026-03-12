@@ -76,6 +76,28 @@ const userSchema = new mongoose.Schema(
     profileImagePublicId: {
       type: String,
     },
+
+    // ✅ Real-time Messaging Fields
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
+
+    lastSeen: {
+      type: Date,
+      default: null,
+    },
+
+    // ✅ User Flagging/Reporting Fields
+    reportFlags: {
+      type: Number,
+      default: 0,
+    },
+
+    isFlaggedByAnyNGO: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );

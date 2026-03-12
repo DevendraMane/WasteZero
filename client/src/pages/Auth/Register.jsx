@@ -16,6 +16,7 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     role: "volunteer",
+    adminCode: "", // NEW: for admin registration
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -53,6 +54,44 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    // Frontend validation
+    if (!formData.name.trim()) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Please enter your full name",
+      });
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Please enter your email",
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Please enter a valid email address",
+      });
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Password must be at least 6 characters",
+      });
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       Swal.fire({
         icon: "error",
@@ -62,27 +101,66 @@ const Register = () => {
       return;
     }
 
+    // NEW: Validate admin code if role is admin
+    if (formData.role === "admin" && !formData.adminCode.trim()) {
+      Swal.fire({
+        icon: "error",
+        title: "Admin Code Required",
+        text: "Please enter the admin secret code",
+      });
+      return;
+    }
+
     try {
-      await registerUser({
+      const result = await registerUser({
         name: formData.name,
         email: formData.email,
         password: formData.password,
         role: formData.role,
+        adminCode: formData.adminCode, // NEW: send admin code if provided
       });
 
       Swal.fire({
         icon: "success",
         title: "Registration Successful 🎉",
-        text: "Please verify your email before login.",
+        html: `<p>Welcome to WasteZero!</p><p style="margin-top: 10px;">A verification email has been sent to <strong>${formData.email}</strong></p><p style="margin-top: 10px; font-size: 14px; color: #666;">Please check your email and click the verification link to activate your account.</p>`,
         confirmButtonColor: "#16a34a",
+        confirmButtonText: "Go to Login",
+      });
+
+      // Clear form
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        role: "volunteer",
+        adminCode: "",
       });
 
       navigate("/login");
     } catch (error) {
+      console.error("Registration error:", error);
+
+      // Provide specific error messages
+      let errorTitle = "Registration Failed";
+      let errorText = error.message || "An error occurred during registration";
+
+      // Check for specific error scenarios
+      if (errorText.includes("already registered")) {
+        errorTitle = "Email Already Exists";
+        errorText =
+          "This email is already registered. Please login or use a different email.";
+      } else if (errorText.includes("disabled")) {
+        errorTitle = "Registrations Disabled";
+        errorText =
+          "New registrations are currently disabled. Please contact the administrator.";
+      }
+
       Swal.fire({
         icon: "error",
-        title: "Registration Failed",
-        text: error.message,
+        title: errorTitle,
+        text: errorText,
       });
     }
   };
@@ -224,8 +302,29 @@ const Register = () => {
           >
             <option value="volunteer">Volunteer</option>
             <option value="ngo">NGO</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
+
+        {/* Admin Code (only show if role is admin) */}
+        {formData.role === "admin" && (
+          <div className="md:w-1/2">
+            <label className="block mb-1 font-medium text-sm text-red-600">
+              Admin Secret Code *
+            </label>
+            <input
+              type="password"
+              name="adminCode"
+              placeholder="Enter admin code"
+              value={formData.adminCode}
+              onChange={handleChange}
+              className="w-full border border-red-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Required to create admin account
+            </p>
+          </div>
+        )}
 
         {/* Button */}
         <button

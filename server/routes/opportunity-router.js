@@ -2,6 +2,7 @@ import express from "express";
 import opportunityController from "../controllers/opportunity-controller.js";
 import { upload } from "../middlewares/upload.js";
 import { authMiddleware } from "../middlewares/auth-middleware.js";
+import { checkFeatureToggle } from "../middlewares/settings-middleware.js";
 
 const opportunityRouter = express.Router();
 
@@ -10,6 +11,7 @@ const opportunityRouter = express.Router();
 opportunityRouter.post(
   "/",
   authMiddleware,
+  checkFeatureToggle("allowOpportunities"),
   upload.single("image"),
   opportunityController.createOpportunity,
 );

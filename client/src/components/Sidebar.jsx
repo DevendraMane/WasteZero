@@ -41,14 +41,11 @@ const Sidebar = () => {
       { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
       { name: "User Management", path: "/users", icon: User },
       { name: "Reports & Analytics", path: "/analytics", icon: BarChart3 },
-      { name: "Messages", path: "/messages", icon: MessageCircle },
       {
         name: "Platform Settings",
         path: "/platform-settings",
         icon: Settings,
       },
-      { name: "Pickups", path: "/pickups", icon: CalendarDays },
-      { name: "Opportunities", path: "/admin-opportunities", icon: Briefcase },
     ],
   };
 

@@ -1,12 +1,18 @@
 import express from "express";
 import pickupController from "../controllers/pickup-controller.js";
 import { authMiddleware } from "../middlewares/auth-middleware.js";
+import { checkFeatureToggle } from "../middlewares/settings-middleware.js";
 
 const pickupRouter = express.Router();
 
 /* CREATE PICKUP */
 
-pickupRouter.post("/", authMiddleware, pickupController.createPickup);
+pickupRouter.post(
+  "/",
+  authMiddleware,
+  checkFeatureToggle("allowPickups"),
+  pickupController.createPickup,
+);
 
 /* VOLUNTEER PICKUPS */
 

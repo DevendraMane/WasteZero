@@ -14,4 +14,9 @@ router.get("/:userId", authMiddleware, messageController.getMessages);
 
 router.post("/", authMiddleware, messageController.sendMessage);
 
+// Flag/Report user endpoints
+router.post("/flag/report", authMiddleware, messageController.flagUser);
+
+router.post("/flag/unreport", authMiddleware, messageController.unflagUser);
+
 export default router;

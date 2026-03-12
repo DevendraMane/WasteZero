@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../store/AuthContext";
 import {
   BarChart,
   Bar,
@@ -15,38 +16,58 @@ import {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { API, authorizationToken } = useAuth();
 
-  // Bar chart data
-  const barData = [
-    { month: "Jan", pickups: 40 },
-    { month: "Feb", pickups: 60 },
-    { month: "Mar", pickups: 50 },
-    { month: "Apr", pickups: 80 },
-    { month: "May", pickups: 70 },
-  ];
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Pie chart data
-  const pieData = [
-    { name: "Volunteers", value: 60 },
-    { name: "NGOs", value: 25 },
-    { name: "Admins", value: 15 },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${API}/api/admin/dashboard-stats`, {
+          headers: { Authorization: authorizationToken },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const COLORS = ["#22c55e", "#6366f1", "#f59e0b"];
+    fetchStats();
+  }, [API, authorizationToken]);
 
-  // Dummy recent activity (connect later to AdminLogs API)
-  const recentActivity = [
-    { id: 1, action: "Suspended User #12", time: "2 hours ago" },
-    { id: 2, action: "Deleted Opportunity #8", time: "Yesterday" },
-    { id: 3, action: "Updated Pickup #4", time: "3 days ago" },
-  ];
+  const COLORS = ["#22c55e", "#6366f1", "#f59e0b", "#ef4444"];
 
-  // Dummy recent users preview
-  const recentUsers = [
-    { id: 1, name: "Rahul Kumar", role: "Volunteer" },
-    { id: 2, name: "Green Earth NGO", role: "NGO" },
-    { id: 3, name: "Admin Roshan", role: "Admin" },
-  ];
+  const formatTimeAgo = (dateStr) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500 text-lg">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  const barData = stats?.barData || [];
+  const pieData = stats?.pieData || [];
+  const recentUsers = stats?.recentUsers || [];
+  const filteredUsers = recentUsers.filter((u) =>
+    u.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   return (
     <div className="space-y-8">
@@ -65,7 +86,7 @@ const AdminDashboard = () => {
           className="cursor-pointer bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition"
         >
           <p className="text-sm opacity-80">Total Users</p>
-          <h2 className="text-3xl font-bold mt-2">104</h2>
+          <h2 className="text-3xl font-bold mt-2">{stats?.totalUsers ?? 0}</h2>
         </div>
 
         <div
@@ -73,7 +94,9 @@ const AdminDashboard = () => {
           className="cursor-pointer bg-gradient-to-r from-pink-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition"
         >
           <p className="text-sm opacity-80">Completed Pickups</p>
-          <h2 className="text-3xl font-bold mt-2">1,839</h2>
+          <h2 className="text-3xl font-bold mt-2">
+            {stats?.completedPickups?.toLocaleString() ?? 0}
+          </h2>
         </div>
 
         <div
@@ -81,7 +104,9 @@ const AdminDashboard = () => {
           className="cursor-pointer bg-gradient-to-r from-orange-400 to-red-500 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition"
         >
           <p className="text-sm opacity-80">Pending Pickups</p>
-          <h2 className="text-3xl font-bold mt-2">245</h2>
+          <h2 className="text-3xl font-bold mt-2">
+            {stats?.pendingPickups?.toLocaleString() ?? 0}
+          </h2>
         </div>
 
         <div
@@ -89,7 +114,9 @@ const AdminDashboard = () => {
           className="cursor-pointer bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition"
         >
           <p className="text-sm opacity-80">Active Opportunities</p>
-          <h2 className="text-3xl font-bold mt-2">56</h2>
+          <h2 className="text-3xl font-bold mt-2">
+            {stats?.activeOpportunities ?? 0}
+          </h2>
         </div>
       </div>
 
@@ -97,72 +124,48 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-6 rounded-2xl shadow-md">
           <h3 className="text-lg font-semibold mb-4">Monthly Pickups</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={barData}>
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="pickups" fill="#22c55e" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {barData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={barData}>
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="pickups" fill="#22c55e" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-gray-400 text-center py-20">
+              No pickup data yet
+            </p>
+          )}
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-md">
           <h3 className="text-lg font-semibold mb-4">User Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                dataKey="value"
-                label
-              >
-                {pieData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* RECENT ADMIN ACTIVITY */}
-      <div className="bg-white p-6 rounded-2xl shadow-md">
-        <h2 className="text-xl font-semibold mb-6">Recent Admin Activity</h2>
-
-        <ul className="space-y-3">
-          {recentActivity.map((item) => (
-            <li key={item.id} className="flex justify-between border-b pb-2">
-              <span className="text-gray-700">{item.action}</span>
-              <span className="text-sm text-gray-400">{item.time}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* REPORTS SECTION */}
-      <div className="bg-white p-6 rounded-2xl shadow-md">
-        <h2 className="text-xl font-semibold mb-6">Generate Reports</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <button className="bg-gray-100 hover:bg-green-100 transition p-3 rounded-xl font-medium">
-            Users Report
-          </button>
-          <button className="bg-gray-100 hover:bg-green-100 transition p-3 rounded-xl font-medium">
-            Pickups Report
-          </button>
-          <button className="bg-gray-100 hover:bg-green-100 transition p-3 rounded-xl font-medium">
-            Opportunities Report
-          </button>
-          <button className="bg-gray-100 hover:bg-green-100 transition p-3 rounded-xl font-medium">
-            Full Activity Report
-          </button>
+          {pieData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  dataKey="value"
+                  label
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-gray-400 text-center py-20">No user data yet</p>
+          )}
         </div>
       </div>
 
@@ -182,6 +185,8 @@ const AdminDashboard = () => {
         <input
           type="text"
           placeholder="Search users..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 mb-6"
         />
 
@@ -191,33 +196,35 @@ const AdminDashboard = () => {
         </h3>
 
         <div className="space-y-3">
-          {[
-            { name: "Rahul Kumar", role: "Volunteer", time: "2 hours ago" },
-            { name: "Green Earth NGO", role: "NGO", time: "Yesterday" },
-            { name: "Sneha Reddy", role: "Volunteer", time: "3 days ago" },
-          ].map((user, index) => (
-            <div
-              key={index}
-              className="flex justify-between items-center border-b pb-2"
-            >
-              <div>
-                <p className="font-medium text-gray-700">{user.name}</p>
-                <p className="text-xs text-gray-400">{user.time}</p>
-              </div>
-
-              <span
-                className={`text-xs px-3 py-1 rounded-full ${
-                  user.role === "Admin"
-                    ? "bg-purple-100 text-purple-600"
-                    : user.role === "NGO"
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-green-100 text-green-600"
-                }`}
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => (
+              <div
+                key={user._id}
+                className="flex justify-between items-center border-b pb-2"
               >
-                {user.role}
-              </span>
-            </div>
-          ))}
+                <div>
+                  <p className="font-medium text-gray-700">{user.name}</p>
+                  <p className="text-xs text-gray-400">
+                    {formatTimeAgo(user.createdAt)}
+                  </p>
+                </div>
+
+                <span
+                  className={`text-xs px-3 py-1 rounded-full ${
+                    user.role === "admin"
+                      ? "bg-purple-100 text-purple-600"
+                      : user.role === "ngo"
+                        ? "bg-blue-100 text-blue-600"
+                        : "bg-green-100 text-green-600"
+                  }`}
+                >
+                  {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-400 text-sm">No users found</p>
+          )}
         </div>
       </div>
     </div>
