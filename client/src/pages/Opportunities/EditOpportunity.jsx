@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 import debounce from "lodash.debounce";
 import MapPicker from "../../components/MapPicker";
 
@@ -9,6 +10,7 @@ const EditOpportunity = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { authorizationToken, API } = useAuth();
+  const { isDarkMode } = useDarkMode();
 
   const submittingRef = useRef(false);
 
@@ -175,7 +177,11 @@ const EditOpportunity = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-32">
+      <div
+        className={`flex justify-center items-center py-32 transition duration-300 ${
+          isDarkMode ? "bg-gray-900" : "bg-white"
+        }`}
+      >
         <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -183,16 +189,36 @@ const EditOpportunity = () => {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex justify-center overflow-y-auto py-10 z-50">
-      <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl max-h-[90vh] flex flex-col">
+      <div
+        className={`w-full max-w-4xl rounded-2xl shadow-2xl max-h-[90vh] flex flex-col transition duration-300 ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
         {/* HEADER */}
 
-        <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white z-10">
-          <h2 className="text-xl font-semibold">Edit Opportunity</h2>
+        <div
+          className={`flex justify-between items-center p-6 border-b sticky top-0 z-10 transition duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-gray-200"
+          }`}
+        >
+          <h2
+            className={`text-xl font-semibold transition duration-300 ${
+              isDarkMode ? "text-white" : "text-gray-900"
+            }`}
+          >
+            Edit Opportunity
+          </h2>
 
           <button
             disabled={saving}
             onClick={() => navigate(-1)}
-            className="text-gray-500 hover:text-black text-lg disabled:opacity-40"
+            className={`text-lg disabled:opacity-40 transition duration-300 ${
+              isDarkMode
+                ? "text-gray-400 hover:text-gray-200"
+                : "text-gray-500 hover:text-black"
+            }`}
           >
             ✕
           </button>
@@ -210,7 +236,11 @@ const EditOpportunity = () => {
             name="title"
             value={form.title}
             onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+            className={`w-full border rounded-lg px-4 py-3 transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                : "border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+            }`}
             required
           />
 
@@ -219,7 +249,11 @@ const EditOpportunity = () => {
             rows="4"
             value={form.description}
             onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+            className={`w-full border rounded-lg px-4 py-3 transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                : "border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+            }`}
             required
           />
 
@@ -227,15 +261,29 @@ const EditOpportunity = () => {
             name="required_skills"
             value={form.required_skills}
             onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+            className={`w-full border rounded-lg px-4 py-3 transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                : "border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+            }`}
           />
 
           {/* MAP */}
 
           <div>
-            <p className="text-sm text-gray-500 mb-2">Select exact location</p>
+            <p
+              className={`text-sm mb-2 transition duration-300 ${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              Select exact location
+            </p>
 
-            <div className="h-64 rounded-xl overflow-hidden border">
+            <div
+              className={`h-64 rounded-xl overflow-hidden border transition duration-300 ${
+                isDarkMode ? "border-gray-600" : "border-gray-300"
+              }`}
+            >
               <MapPicker
                 setCoordinates={setCoordinates}
                 setLocation={(address) =>
@@ -250,7 +298,11 @@ const EditOpportunity = () => {
 
           {/* IMAGE */}
 
-          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
+          <div
+            className={`border-2 border-dashed rounded-xl p-6 text-center transition duration-300 ${
+              isDarkMode ? "border-gray-600 bg-gray-700/50" : "border-gray-300"
+            }`}
+          >
             <label className="cursor-pointer block">
               <input
                 type="file"
@@ -266,7 +318,11 @@ const EditOpportunity = () => {
                   className="mx-auto h-32 object-cover rounded-lg"
                 />
               ) : (
-                <p className="text-gray-500">
+                <p
+                  className={`transition duration-300 ${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
                   Click to upload opportunity image
                 </p>
               )}
@@ -275,12 +331,20 @@ const EditOpportunity = () => {
 
           {/* BUTTONS */}
 
-          <div className="flex justify-end gap-4 pt-4 border-t">
+          <div
+            className={`flex justify-end gap-4 pt-4 border-t transition duration-300 ${
+              isDarkMode ? "border-gray-700" : "border-gray-200"
+            }`}
+          >
             <button
               type="button"
               disabled={saving}
               onClick={() => navigate(-1)}
-              className="bg-gray-100 px-6 py-2 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+              className={`px-6 py-2 rounded-lg disabled:opacity-50 transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 hover:bg-gray-600 text-white"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+              }`}
             >
               Cancel
             </button>
@@ -288,8 +352,7 @@ const EditOpportunity = () => {
             <button
               type="submit"
               disabled={saving}
-              className={`flex items-center gap-2 px-6 py-2 rounded-lg transition
-              ${
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg transition ${
                 saving
                   ? "bg-green-400 cursor-not-allowed text-white"
                   : "bg-green-600 hover:bg-green-700 text-white"
