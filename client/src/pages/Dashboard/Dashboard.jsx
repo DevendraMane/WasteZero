@@ -2,7 +2,7 @@ import React from "react";
 import { useAuth } from "../../store/AuthContext";
 import AdminDashboard from "./AdminDashboard";
 import VolunteerDashboard from "./VolunteerDashboard";
-import NgoDashboard from "./NGOdashboard";
+import NgoDashboard from "./NgoDashboard";
 
 const Dashboard = () => {
   const { user } = useAuth();
