@@ -226,7 +226,9 @@ const getSingleOpportunity = async (req, res) => {
 const deleteOpportunity = async (req, res) => {
   try {
     if (req.user?.role !== "ngo") {
-      return res.status(403).json({ message: "Only NGOs can delete opportunities" });
+      return res
+        .status(403)
+        .json({ message: "Only NGOs can delete opportunities" });
     }
 
     const opportunity = await Opportunity.findById(req.params.id);
@@ -258,7 +260,9 @@ const deleteOpportunity = async (req, res) => {
 const updateOpportunity = async (req, res) => {
   try {
     if (req.user?.role !== "ngo") {
-      return res.status(403).json({ message: "Only NGOs can edit opportunities" });
+      return res
+        .status(403)
+        .json({ message: "Only NGOs can edit opportunities" });
     }
 
     const { title, description, duration, location, required_skills, date } =

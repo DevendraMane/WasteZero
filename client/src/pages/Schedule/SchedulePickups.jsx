@@ -59,6 +59,12 @@ const SchedulePickups = () => {
 
   const debouncedSearch = useMemo(() => debounce(searchLocation, 500), []);
 
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
+
   /* FETCH PICKUPS */
 
   const fetchPickups = async () => {
@@ -201,17 +207,21 @@ const SchedulePickups = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* HEADER */}
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1
-            className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+            className={`text-2xl sm:text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
           >
             Pickup Scheduling
           </h1>
-          <p className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
+          <p
+            className={`mt-1 text-sm sm:text-base ${
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            }`}
+          >
             Schedule waste pickups and track collection status
           </p>
         </div>
@@ -222,7 +232,7 @@ const SchedulePickups = () => {
               setShowForm(!showForm);
               setEditingPickup(null);
             }}
-            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+            className="w-full sm:w-auto bg-green-600 text-white px-5 py-2.5 rounded-lg hover:bg-green-700 transition"
           >
             {showForm ? "Close Form" : "Schedule Pickup"}
           </button>
@@ -233,11 +243,11 @@ const SchedulePickups = () => {
 
       <div
         className={`transition-all duration-500 ease-in-out overflow-hidden ${
-          showForm ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"
+          showForm ? "max-h-175 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <div
-          className={`p-8 rounded-2xl shadow-md grid md:grid-cols-2 gap-6 transition duration-300 ${
+          className={`p-4 sm:p-6 rounded-2xl shadow-md grid md:grid-cols-2 gap-4 sm:gap-6 transition duration-300 ${
             isDarkMode ? "bg-gray-800" : "bg-white"
           }`}
         >
@@ -344,7 +354,7 @@ const SchedulePickups = () => {
             </p>
 
             <div
-              className={`h-64 rounded-xl overflow-hidden border transition duration-300 ${
+              className={`h-52 sm:h-64 rounded-xl overflow-hidden border transition duration-300 ${
                 isDarkMode ? "border-gray-600" : "border-gray-300"
               }`}
             >
@@ -363,7 +373,7 @@ const SchedulePickups = () => {
           <div className="md:col-span-2 flex justify-end">
             <button
               onClick={handleSubmitPickup}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+              className="w-full sm:w-auto bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition"
             >
               {editingPickup ? "Update Pickup" : "Confirm Pickup"}
             </button>
@@ -374,12 +384,14 @@ const SchedulePickups = () => {
       {/* PICKUP LIST */}
 
       <div
-        className={`p-8 rounded-2xl shadow-md transition duration-300 ${
+        className={`p-4 sm:p-6 rounded-2xl shadow-md transition duration-300 ${
           isDarkMode ? "bg-gray-800" : "bg-white"
         }`}
       >
         <h2
-          className={`text-xl font-semibold mb-6 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          className={`text-lg sm:text-xl font-semibold mb-4 sm:mb-6 ${
+            isDarkMode ? "text-white" : "text-gray-900"
+          }`}
         >
           Your Pickups
         </h2>
@@ -395,25 +407,35 @@ const SchedulePickups = () => {
             No pickups scheduled yet
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {pickups.map((pickup) => {
               const dateObj = new Date(pickup.scheduled_time);
 
               return (
                 <div
                   key={pickup._id}
-                  className={`border-b pb-4 space-y-2 transition duration-300 ${
-                    isDarkMode ? "border-gray-700" : "border-gray-200"
+                  className={`rounded-xl p-3 sm:p-4 border space-y-3 transition duration-300 ${
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600"
+                      : "bg-white border-gray-200"
                   }`}
                 >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-gray-800">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p
+                        className={`font-semibold leading-snug ${
+                          isDarkMode ? "text-white" : "text-gray-800"
+                        }`}
+                      >
                         {pickup.category} Waste Pickup
                       </p>
 
-                      <p className="text-sm text-gray-500">
-                        📅 {dateObj.toLocaleDateString()} | ⏱{" "}
+                      <p
+                        className={`text-sm mt-1 ${
+                          isDarkMode ? "text-gray-300" : "text-gray-500"
+                        }`}
+                      >
+                        {dateObj.toLocaleDateString()} |{" "}
                         {dateObj.toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -421,8 +443,12 @@ const SchedulePickups = () => {
                       </p>
 
                       {pickup.location && (
-                        <p className="text-sm text-gray-500">
-                          📍 {pickup.location}
+                        <p
+                          className={`text-sm mt-1 wrap-break-word ${
+                            isDarkMode ? "text-gray-400" : "text-gray-500"
+                          }`}
+                        >
+                          {pickup.location}
                         </p>
                       )}
                     </div>
@@ -430,15 +456,23 @@ const SchedulePickups = () => {
                     {/* STATUS BADGE */}
 
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold
+                      className={`px-3 py-1 rounded-full text-xs font-semibold capitalize shrink-0
                       ${
                         pickup.status === "pending"
-                          ? "bg-yellow-100 text-yellow-700"
+                          ? isDarkMode
+                            ? "bg-yellow-900 text-yellow-200"
+                            : "bg-yellow-100 text-yellow-700"
                           : pickup.status === "assigned"
-                            ? "bg-blue-100 text-blue-700"
+                            ? isDarkMode
+                              ? "bg-blue-900 text-blue-200"
+                              : "bg-blue-100 text-blue-700"
                             : pickup.status === "in-progress"
-                              ? "bg-purple-100 text-purple-700"
-                              : "bg-green-100 text-green-700"
+                              ? isDarkMode
+                                ? "bg-purple-900 text-purple-200"
+                                : "bg-purple-100 text-purple-700"
+                              : isDarkMode
+                                ? "bg-green-900 text-green-200"
+                                : "bg-green-100 text-green-700"
                       }`}
                     >
                       {pickup.status}
@@ -450,7 +484,9 @@ const SchedulePickups = () => {
                   {pickup.status === "pending" && (
                     <button
                       onClick={() => handleEditPickup(pickup)}
-                      className="text-blue-600 text-sm hover:underline"
+                      className={`text-sm font-medium hover:underline ${
+                        isDarkMode ? "text-blue-300" : "text-blue-600"
+                      }`}
                     >
                       Edit Pickup
                     </button>
@@ -461,14 +497,20 @@ const SchedulePickups = () => {
                   {(pickup.status === "assigned" ||
                     pickup.status === "in-progress" ||
                     pickup.status === "completed") && (
-                    <div className="bg-gray-50 p-3 rounded-lg text-sm text-gray-600 space-y-1">
-                      {pickup.agent_name && (
-                        <p>🚚 Agent: {pickup.agent_name}</p>
-                      )}
+                    <div
+                      className={`p-3 rounded-lg text-sm space-y-1 ${
+                        isDarkMode
+                          ? "bg-gray-800 text-gray-300"
+                          : "bg-gray-50 text-gray-600"
+                      }`}
+                    >
+                      {pickup.agent_name && <p>Agent: {pickup.agent_name}</p>}
 
                       <button
                         onClick={() => openAgentDetails(pickup)}
-                        className="text-green-600 text-sm hover:underline"
+                        className={`text-sm font-medium hover:underline ${
+                          isDarkMode ? "text-green-300" : "text-green-600"
+                        }`}
                       >
                         View Agent Details
                       </button>
@@ -484,13 +526,26 @@ const SchedulePickups = () => {
       {/* AGENT MODAL */}
 
       {showAgentModal && selectedPickup && (
-        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-md bg-black/20 z-50">
-          <div className="bg-white p-8 rounded-xl shadow-lg w-[400px]">
-            <h2 className="text-xl font-semibold mb-4 text-center">
+        <div className="fixed inset-0 flex items-center justify-center backdrop-blur-md bg-black/30 z-50 p-3">
+          <div
+            className={`p-4 sm:p-6 rounded-xl shadow-lg w-full max-w-md max-h-[85vh] overflow-y-auto ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h2
+              className={`text-lg sm:text-xl font-semibold mb-4 text-center ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
               Pickup Receipt
             </h2>
 
-            <div id="receipt" className="space-y-2 text-sm">
+            <div
+              id="receipt"
+              className={`space-y-2 text-sm ${
+                isDarkMode ? "text-gray-200" : "text-gray-700"
+              }`}
+            >
               <p>
                 <strong>Waste Type:</strong> {selectedPickup.category}
               </p>
@@ -524,17 +579,21 @@ const SchedulePickups = () => {
               </p>
             </div>
 
-            <div className="flex justify-between mt-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:justify-between mt-6">
               <button
                 onClick={printReceipt}
-                className="bg-green-600 text-white px-4 py-2 rounded"
+                className="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
               >
                 Print Receipt
               </button>
 
               <button
                 onClick={() => setShowAgentModal(false)}
-                className="bg-gray-300 px-4 py-2 rounded"
+                className={`w-full sm:w-auto px-4 py-2 rounded transition ${
+                  isDarkMode
+                    ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                    : "bg-gray-300 text-gray-800 hover:bg-gray-400"
+                }`}
               >
                 Close
               </button>

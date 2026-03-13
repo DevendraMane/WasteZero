@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
+import Loader from "../../components/Loader";
 
 const VolunteerDashboard = () => {
   const { API, authorizationToken } = useAuth();
@@ -90,6 +91,10 @@ const VolunteerDashboard = () => {
     (pickup) => pickup.status === "completed",
   );
 
+  if (loadingApps || loadingPickups) {
+    return <Loader />;
+  }
+
   return (
     <div className="space-y-6 sm:space-y-10">
       {/* ================= HEADER ================= */}
@@ -105,12 +110,13 @@ const VolunteerDashboard = () => {
       </div>
 
       {/* ================= STATS ================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {/* Opportunities Joined */}
         <StatCard
           title="Opportunities Joined"
           value={applications.length}
           color="from-purple-500 to-pink-600"
+          isLoading={loadingApps}
         />
 
         {/* Active Opportunities */}
@@ -118,6 +124,7 @@ const VolunteerDashboard = () => {
           title="Active Opportunities"
           value={totalActiveOpportunities}
           color="from-indigo-500 to-blue-600"
+          isLoading={loadingApps}
         />
 
         {/* Pickup Scheduled */}
@@ -125,6 +132,7 @@ const VolunteerDashboard = () => {
           title="Pickup Scheduled"
           value={pickups.length}
           color="from-green-500 to-emerald-600"
+          isLoading={loadingPickups}
         />
 
         {/* Pickup Completed */}
@@ -132,32 +140,50 @@ const VolunteerDashboard = () => {
           title="Pickup Completed"
           value={completedPickups.length}
           color="from-orange-400 to-red-500"
+          isLoading={loadingPickups}
         />
       </div>
 
-      <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+      <p
+        className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+      >
         My active opportunities: {myActiveOpportunities.length}
       </p>
 
       {/* ================= OPPORTUNITIES LIST ================= */}
       <div
-        className={`p-6 rounded-2xl shadow-md transition duration-300 ${
+        className={`p-4 sm:p-6 rounded-2xl shadow-md transition duration-300 ${
           isDarkMode ? "bg-gray-800" : "bg-white"
         }`}
       >
-        <h2
-          className={`text-xl font-semibold mb-6 ${isDarkMode ? "text-white" : "text-gray-900"}`}
-        >
-          My Joined Opportunities
-        </h2>
+        <div className="mb-4 sm:mb-6 flex items-start sm:items-center justify-between gap-3">
+          <div>
+            <h2
+              className={`text-lg sm:text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+            >
+              My Joined Opportunities
+            </h2>
+            <p
+              className={`text-sm mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+            >
+              Track your applied and accepted opportunities in one place.
+            </p>
+          </div>
 
-        {loadingApps ? (
-          <p className={isDarkMode ? "text-gray-400" : "text-gray-400"}>
-            Loading...
-          </p>
-        ) : applications.length === 0 ? (
+          <span
+            className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${
+              isDarkMode
+                ? "bg-gray-700 text-gray-200"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            {applications.length} total
+          </span>
+        </div>
+
+        {applications.length === 0 ? (
           <div
-            className={`text-center py-8 border border-dashed rounded-lg transition duration-300 ${
+            className={`text-center py-8 border border-dashed rounded-xl transition duration-300 ${
               isDarkMode
                 ? "text-gray-400 border-gray-700 bg-gray-700"
                 : "text-gray-400 border-gray-300 bg-gray-50"
@@ -166,7 +192,7 @@ const VolunteerDashboard = () => {
             You haven’t joined any opportunities yet
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {applications.map((app) => {
               const opp = app.opportunity_id;
               const isPast = opp?.date && new Date(opp.date) < new Date();
@@ -174,51 +200,77 @@ const VolunteerDashboard = () => {
               return (
                 <div
                   key={app._id}
-                  className={`p-4 rounded-xl flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 transition duration-300 ${
+                  className={`p-3 sm:p-4 rounded-xl border transition duration-300 ${
                     isDarkMode
-                      ? "bg-gray-700 border border-gray-600"
-                      : "bg-white border border-gray-200"
+                      ? "bg-gray-700 border-gray-600"
+                      : "bg-white border-gray-200"
                   }`}
                 >
-                  <div>
-                    <h3
-                      className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}
-                    >
-                      {opp?.title}
-                    </h3>
-
-                    <p
-                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
-                    >
-                      {opp?.location} • {opp?.duration}
-                    </p>
-
-                    {opp?.date && (
-                      <p
-                        className={`text-sm ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3
+                        className={`font-semibold leading-snug ${isDarkMode ? "text-white" : "text-gray-800"}`}
                       >
-                        📅 {new Date(opp.date).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
+                        {opp?.title || "Untitled Opportunity"}
+                      </h3>
 
-                  {isPast ? (
-                    <span
-                      className={`text-xs px-3 py-1 rounded-full ${
-                        isDarkMode
-                          ? "bg-red-900 text-red-200"
-                          : "bg-red-100 text-red-600"
-                      }`}
-                    >
-                      Closed
-                    </span>
-                  ) : (
-                    <StatusBadge
-                      status={app.status}
-                      date={opp?.date}
-                      isDarkMode={isDarkMode}
-                    />
-                  )}
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span
+                          className={`text-xs px-2.5 py-1 rounded-full ${
+                            isDarkMode
+                              ? "bg-gray-600 text-gray-200"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {opp?.location || "Location not set"}
+                        </span>
+
+                        {opp?.duration && (
+                          <span
+                            className={`text-xs px-2.5 py-1 rounded-full ${
+                              isDarkMode
+                                ? "bg-gray-600 text-gray-200"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {opp.duration}
+                          </span>
+                        )}
+
+                        {opp?.date && (
+                          <span
+                            className={`text-xs px-2.5 py-1 rounded-full ${
+                              isDarkMode
+                                ? "bg-gray-600 text-gray-200"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {new Date(opp.date).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="shrink-0">
+                      {isPast ? (
+                        <span
+                          className={`text-xs px-3 py-1 rounded-full font-medium ${
+                            isDarkMode
+                              ? "bg-red-900 text-red-200"
+                              : "bg-red-100 text-red-600"
+                          }`}
+                        >
+                          Closed
+                        </span>
+                      ) : (
+                        <StatusBadge
+                          status={app.status}
+                          date={opp?.date}
+                          isDarkMode={isDarkMode}
+                        />
+                      )}
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -231,12 +283,14 @@ const VolunteerDashboard = () => {
 
 /* ================= REUSABLE COMPONENTS ================= */
 
-const StatCard = ({ title, value, color }) => (
+const StatCard = ({ title, value, color, isLoading }) => (
   <div
-    className={`bg-linear-to-r ${color} text-white p-5 sm:p-6 rounded-2xl shadow-lg`}
+    className={`bg-linear-to-r ${color} text-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-md`}
   >
-    <p className="text-sm opacity-80">{title}</p>
-    <h2 className="text-2xl sm:text-3xl font-bold mt-2">{value}</h2>
+    <p className="text-xs sm:text-sm opacity-85 leading-tight">{title}</p>
+    <h2 className="text-xl sm:text-2xl font-bold mt-1.5 sm:mt-2">
+      {isLoading ? "..." : value}
+    </h2>
   </div>
 );
 
@@ -269,7 +323,9 @@ const StatusBadge = ({ status, date, isDarkMode }) => {
           : "bg-yellow-100 text-yellow-700";
 
   return (
-    <span className={`text-xs px-3 py-1 rounded-full ${styles}`}>{status}</span>
+    <span className={`text-xs px-3 py-1 rounded-full font-medium ${styles}`}>
+      {status}
+    </span>
   );
 };
 

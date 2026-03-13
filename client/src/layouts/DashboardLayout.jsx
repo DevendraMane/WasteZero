@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import MobileBottomNav from "../components/MobileBottomNav";
 import { Outlet } from "react-router-dom";
 import { useDarkMode } from "../store/DarkModeContext";
 
@@ -44,13 +45,15 @@ const DashboardLayout = () => {
 
         {/* PAGE CONTENT (Scrollable only here) */}
         <main
-          className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 transition duration-300 ${
+          className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 transition duration-300 ${
             isDarkMode ? "bg-gray-900" : "bg-gray-100"
           }`}
         >
           <Outlet />
         </main>
       </div>
+
+      <MobileBottomNav />
     </div>
   );
 };

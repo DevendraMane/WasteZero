@@ -14,6 +14,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import Loader from "../../components/Loader";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -57,15 +58,7 @@ const AdminDashboard = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p
-          className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
-        >
-          Loading dashboard...
-        </p>
-      </div>
-    );
+    return <Loader />;
   }
 
   const barData = stats?.barData || [];

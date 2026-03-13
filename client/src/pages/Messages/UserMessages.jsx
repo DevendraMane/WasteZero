@@ -405,6 +405,11 @@ const UserMessages = ({ isDarkMode = false }) => {
     );
   }, [debouncedSearch, conversations]);
 
+  const selectedConversation = useMemo(
+    () => conversations.find((c) => c.user?._id === selectedUser) || null,
+    [conversations, selectedUser],
+  );
+
   /* ================= DELETE CONVERSATION FUNCTION ================= */
 
   const handleDeleteConversation = async () => {
@@ -413,9 +418,9 @@ const UserMessages = ({ isDarkMode = false }) => {
     try {
       setIsDeletingConversation(true);
       const conversationId =
-        user._id < selectedUser._id
-          ? `${user._id}_${selectedUser._id}`
-          : `${selectedUser._id}_${user._id}`;
+        user._id < selectedUser
+          ? `${user._id}_${selectedUser}`
+          : `${selectedUser}_${user._id}`;
 
       const res = await fetch(`${API}/api/messages/delete-conversation`, {
         method: "POST",
@@ -425,15 +430,15 @@ const UserMessages = ({ isDarkMode = false }) => {
         },
         body: JSON.stringify({
           conversationId,
-          otherUserId: selectedUser._id,
+          otherUserId: selectedUser,
         }),
       });
 
       if (res.ok) {
-        const data = await res.json();
+        await res.json();
         // Remove conversation from list
-        setConversations(
-          conversations.filter((conv) => conv._id !== conversationId),
+        setConversations((prev) =>
+          prev.filter((conv) => conv.user?._id !== selectedUser),
         );
 
         // Clear messages and selected user
@@ -463,7 +468,7 @@ const UserMessages = ({ isDarkMode = false }) => {
       {/* LEFT PANEL */}
 
       <div
-        className={`w-1/3 flex flex-col transition duration-300 ${
+        className={`${selectedUser ? "hidden md:flex" : "flex"} w-full md:w-1/3 flex-col transition duration-300 ${
           isDarkMode
             ? "border-gray-700 bg-gray-900 border-r"
             : "border-r border-gray-200 bg-gray-50"
@@ -479,7 +484,7 @@ const UserMessages = ({ isDarkMode = false }) => {
           <h2
             className={`text-lg font-semibold mb-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}
           >
-            Messages
+            Chats
           </h2>
 
           <input
@@ -601,82 +606,103 @@ const UserMessages = ({ isDarkMode = false }) => {
 
       {/* RIGHT PANEL */}
 
-      <div className="flex-1 flex flex-col">
+      <div
+        className={`${selectedUser ? "flex" : "hidden md:flex"} flex-1 flex-col`}
+      >
         {selectedUser ? (
           <>
             {/* CHAT HEADER */}
             <div
-              className={`p-4 border-b flex justify-between items-center transition duration-300 ${
+              className={`p-3 sm:p-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 transition duration-300 ${
                 isDarkMode
                   ? "bg-gray-800 border-gray-700"
                   : "bg-white border-gray-200"
               }`}
             >
-              <div className="flex-1">
-                <h3
-                  className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+              <div className="w-full sm:w-auto flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setSelectedUser(null);
+                    setMessages([]);
+                    setIsUserTyping(false);
+                  }}
+                  className={`md:hidden inline-flex items-center justify-center h-8 w-8 rounded-full transition duration-300 ${
+                    isDarkMode
+                      ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                  aria-label="Back to chats"
                 >
-                  {conversations.find((c) => c.user?._id === selectedUser)?.user
-                    ?.name || "Unknown User"}
-                </h3>
+                  ←
+                </button>
 
-                {/* Status indicator */}
-                <div className="flex items-center gap-1">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      selectedUserStatus.isOnline
-                        ? "bg-green-500"
-                        : "bg-gray-400"
-                    }`}
-                  ></div>
-                  <p
-                    className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                <div className="flex-1">
+                  <h3
+                    className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
                   >
-                    {selectedUserStatus.isOnline
-                      ? "Online"
-                      : `Last seen ${formatLastSeen(
-                          selectedUserStatus.lastSeen,
-                        )}`}
-                  </p>
+                    {selectedConversation?.user?.name || "Unknown User"}
+                  </h3>
+
+                  <div className="flex items-center gap-1">
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        selectedUserStatus.isOnline
+                          ? "bg-green-500"
+                          : "bg-gray-400"
+                      }`}
+                    ></div>
+                    <p
+                      className={`text-xs ${
+                        isDarkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      {selectedUserStatus.isOnline
+                        ? "Online"
+                        : `Last seen ${formatLastSeen(
+                            selectedUserStatus.lastSeen,
+                          )}`}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               {/* Report button (only for NGOs) */}
-              {user?.role === "ngo" && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setFlagModalOpen(true)}
-                    className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition duration-300"
-                  >
-                    🚩 Report
-                  </button>
-                  <button
-                    onClick={handleBlockUser}
-                    disabled={isBlockingUser}
-                    className={`px-3 py-1 text-white text-sm rounded transition duration-300 ${
-                      isBlockingUser
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-orange-600 hover:bg-orange-700"
-                    }`}
-                  >
-                    🚫 Block
-                  </button>
-                </div>
-              )}
+              <div className="w-full sm:w-auto flex flex-wrap gap-2 sm:justify-end">
+                {user?.role === "ngo" && (
+                  <>
+                    <button
+                      onClick={() => setFlagModalOpen(true)}
+                      className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition duration-300"
+                    >
+                      Report
+                    </button>
+                    <button
+                      onClick={handleBlockUser}
+                      disabled={isBlockingUser}
+                      className={`px-3 py-1 text-white text-sm rounded transition duration-300 ${
+                        isBlockingUser
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-orange-600 hover:bg-orange-700"
+                      }`}
+                    >
+                      Block
+                    </button>
+                  </>
+                )}
 
-              {/* Delete Conversation button */}
-              <button
-                onClick={() => setDeleteConfirmOpen(true)}
-                className="px-3 py-1 bg-red-800 text-white text-sm rounded hover:bg-red-900 transition duration-300"
-              >
-                🗑️ Delete
-              </button>
+                <button
+                  onClick={() => setDeleteConfirmOpen(true)}
+                  className="px-3 py-1 bg-red-800 text-white text-sm rounded hover:bg-red-900 transition duration-300"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
 
             {/* CHAT BODY */}
 
             <div
-              className={`flex-1 p-6 overflow-y-auto space-y-4 transition duration-300 ${
+              className={`flex-1 p-3 sm:p-6 overflow-y-auto space-y-3 sm:space-y-4 transition duration-300 ${
                 isDarkMode ? "bg-gray-900" : "bg-gray-50"
               }`}
             >
@@ -734,7 +760,7 @@ const UserMessages = ({ isDarkMode = false }) => {
             {/* INPUT */}
 
             <div
-              className={`p-4 border-t flex gap-2 transition duration-300 ${
+              className={`p-3 sm:p-4 border-t flex gap-2 transition duration-300 ${
                 isDarkMode
                   ? "bg-gray-800 border-gray-700"
                   : "bg-white border-gray-200"
@@ -875,7 +901,7 @@ const UserMessages = ({ isDarkMode = false }) => {
       {deleteConfirmOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div
-            className={`rounded-xl p-6 w-96 shadow-lg transition duration-300 ${isDarkMode ? "bg-gray-800" : "bg-white"}`}
+            className={`rounded-xl p-6 w-full max-w-md mx-4 shadow-lg transition duration-300 ${isDarkMode ? "bg-gray-800" : "bg-white"}`}
           >
             <h3
               className={`text-lg font-semibold mb-2 ${isDarkMode ? "text-white" : "text-gray-800"}`}
@@ -887,8 +913,7 @@ const UserMessages = ({ isDarkMode = false }) => {
             >
               Are you sure you want to delete this conversation with{" "}
               <strong>
-                {conversations.find((c) => c.user?._id === selectedUser)?.user
-                  ?.name || "Unknown User"}
+                {selectedConversation?.user?.name || "Unknown User"}
               </strong>
               ? This action cannot be undone and all messages will be
               permanently deleted.

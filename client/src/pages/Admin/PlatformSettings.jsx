@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
+import Loader from "../../components/Loader";
 
 const PlatformSettings = () => {
   const { API, authorizationToken } = useAuth();
@@ -77,21 +78,7 @@ const PlatformSettings = () => {
   };
 
   if (loading) {
-    return (
-      <div
-        className={`flex items-center justify-center h-64 transition duration-300 ${
-          isDarkMode ? "bg-gray-900" : "bg-white"
-        }`}
-      >
-        <p
-          className={`text-lg transition duration-300 ${
-            isDarkMode ? "text-gray-400" : "text-gray-500"
-          }`}
-        >
-          Loading settings...
-        </p>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!settings) {

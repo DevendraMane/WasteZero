@@ -16,6 +16,7 @@ import {
   Legend,
   CartesianGrid,
 } from "recharts";
+import Loader from "../../components/Loader";
 
 const Analytics = () => {
   const { API, authorizationToken } = useAuth();
@@ -129,21 +130,7 @@ const Analytics = () => {
   };
 
   if (loading) {
-    return (
-      <div
-        className={`flex items-center justify-center h-64 transition duration-300 ${
-          isDarkMode ? "bg-gray-900" : "bg-white"
-        }`}
-      >
-        <p
-          className={`text-lg transition duration-300 ${
-            isDarkMode ? "text-gray-400" : "text-gray-500"
-          }`}
-        >
-          Loading analytics...
-        </p>
-      </div>
-    );
+    return <Loader />;
   }
 
   const stats = analytics?.stats || {};

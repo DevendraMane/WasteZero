@@ -87,7 +87,7 @@ const Topbar = ({ onMenuClick }) => {
 
   return (
     <div
-      className={`flex items-center justify-between gap-3 px-3 sm:px-4 lg:px-8 py-3 sm:py-4 shadow-sm transition duration-300 ${
+      className={`flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 lg:px-8 py-3 sm:py-4 shadow-sm transition duration-300 ${
         isDarkMode ? "bg-gray-800 border-b border-gray-700" : "bg-white"
       }`}
     >
@@ -103,21 +103,13 @@ const Topbar = ({ onMenuClick }) => {
       </button>
 
       {/* SEARCH BAR */}
-      <div className="hidden md:block flex-1">
+      <div className="flex-1 min-w-0">
         <SearchBar />
-      </div>
-
-      <div className="md:hidden flex-1">
-        <p
-          className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
-        >
-          Dashboard
-        </p>
       </div>
 
       {/* RIGHT SECTION */}
 
-      <div className="flex items-center gap-2 sm:gap-4 lg:gap-6">
+      <div className="flex items-center gap-2 sm:gap-3 lg:gap-6">
         {/* ================= BELL ================= */}
 
         <button
@@ -200,7 +192,7 @@ const Topbar = ({ onMenuClick }) => {
             </div>
 
             <span
-              className={`hidden sm:inline font-medium text-sm ${
+              className={`hidden md:inline font-medium text-sm ${
                 isDarkMode ? "text-gray-100" : "text-gray-900"
               }`}
             >

@@ -133,15 +133,15 @@ const Opportunities = () => {
 
   return (
     <div
-      className={`space-y-8 p-8 rounded-lg transition duration-300 ${
+      className={`space-y-6 sm:space-y-8 p-4 sm:p-6 lg:p-8 rounded-lg transition duration-300 ${
         isDarkMode ? "bg-gray-900" : "bg-gray-50"
       }`}
     >
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1
-            className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+            className={`text-2xl sm:text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
           >
             Volunteer Opportunities
           </h1>
@@ -154,7 +154,7 @@ const Opportunities = () => {
         {user?.role === "ngo" && (
           <button
             onClick={() => setShowForm(true)}
-            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
+            className="w-full sm:w-auto bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
           >
             + Create Opportunity
           </button>
@@ -197,7 +197,7 @@ const Opportunities = () => {
       )} */}
 
       {/* OPPORTUNITY CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
         {paginatedOpportunities.length === 0 ? (
           <div
             className={`col-span-full text-center py-16 border border-dashed rounded-xl transition duration-300 ${
@@ -227,11 +227,11 @@ const Opportunities = () => {
             return (
               <div
                 key={item._id}
-                className={`rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden ${
+                className={`rounded-xl border shadow-sm hover:shadow-md transition duration-300 overflow-hidden ${
                   isDarkMode ? "bg-gray-800" : "bg-white"
                 }`}
               >
-                <div className="h-48 overflow-hidden">
+                <div className="relative h-36 sm:h-40 overflow-hidden">
                   <img
                     src={
                       item.image ||
@@ -240,80 +240,96 @@ const Opportunities = () => {
                     alt={item.title}
                     className="w-full h-full object-cover hover:scale-105 transition duration-500"
                   />
+
+                  {new Date(item.date) < new Date() ? (
+                    <span
+                      className={`absolute top-2 right-2 text-[11px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm transition duration-300 ${
+                        isDarkMode
+                          ? "bg-red-900/90 text-red-200"
+                          : "bg-red-100/95 text-red-600"
+                      }`}
+                    >
+                      Closed
+                    </span>
+                  ) : (
+                    <span
+                      className={`absolute top-2 right-2 text-[11px] font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm transition duration-300 ${
+                        isDarkMode
+                          ? "bg-green-900/90 text-green-200"
+                          : "bg-green-100/95 text-green-700"
+                      }`}
+                    >
+                      Open
+                    </span>
+                  )}
                 </div>
 
-                <div className="p-6 space-y-4">
-                  <div className="flex justify-between items-start">
+                <div className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
                     <h3
-                      className={`text-lg font-semibold transition duration-300 ${
+                      className={`text-base font-semibold leading-snug line-clamp-2 transition duration-300 ${
                         isDarkMode ? "text-white" : "text-gray-800"
                       }`}
                     >
                       {item.title}
                     </h3>
-                    {new Date(item.date) < new Date() ? (
-                      <span
-                        className={`text-xs font-semibold px-3 py-1 rounded-full transition duration-300 ${
-                          isDarkMode
-                            ? "bg-red-900 text-red-200"
-                            : "bg-red-100 text-red-600"
-                        }`}
-                      >
-                        Closed
-                      </span>
-                    ) : (
-                      <span
-                        className={`text-xs font-semibold px-3 py-1 rounded-full transition duration-300 ${
-                          isDarkMode
-                            ? "bg-green-900 text-green-200"
-                            : "bg-green-100 text-green-700"
-                        }`}
-                      >
-                        Open
-                      </span>
-                    )}
                   </div>
 
                   <p
-                    className={`text-sm line-clamp-3 transition duration-300 ${
+                    className={`text-sm line-clamp-2 transition duration-300 ${
                       isDarkMode ? "text-gray-300" : "text-gray-500"
                     }`}
                   >
                     {item.description}
                   </p>
 
-                  <div
-                    className={`flex justify-between items-center text-sm gap-3 transition duration-300 ${
-                      isDarkMode ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  >
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span
-                      className="flex items-center gap-1 truncate max-w-[70%]"
+                      className={`inline-flex items-center gap-1 max-w-full truncate px-2.5 py-1 rounded-full ${
+                        isDarkMode
+                          ? "bg-gray-700 text-gray-300"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
                       title={item.location}
                     >
-                      📍 {item.location}
+                      {item.location}
                     </span>
-                    <span className="whitespace-nowrap">⏱ {item.duration}</span>
+
+                    <span
+                      className={`inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-full ${
+                        isDarkMode
+                          ? "bg-gray-700 text-gray-300"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {item.duration}
+                    </span>
+
+                    <span
+                      className={`inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-full ${
+                        isDarkMode
+                          ? "bg-gray-700 text-gray-300"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {new Date(item.date).toLocaleDateString()}
+                    </span>
                   </div>
 
                   {distance && (
-                    <div className="text-sm text-green-600 font-medium">
-                      📏 {distance} km away
+                    <div
+                      className={`text-xs font-medium ${
+                        isDarkMode ? "text-green-400" : "text-green-600"
+                      }`}
+                    >
+                      {distance} km away
                     </div>
                   )}
-
-                  <div
-                    className={`text-sm transition duration-300 ${
-                      isDarkMode ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  >
-                    📅 {new Date(item.date).toLocaleDateString()}
-                  </div>
 
                   <div className="space-y-2">
                     <button
                       onClick={() => navigate(`/opportunities/${item._id}`)}
-                      className={`w-full font-medium py-2 rounded-lg transition duration-300 ${
+                      className={`w-full text-sm font-medium py-2 rounded-lg transition duration-300 ${
                         isDarkMode
                           ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
                           : "bg-gray-100 hover:bg-green-100 text-gray-700"
@@ -326,14 +342,14 @@ const Opportunities = () => {
                       (appliedMap[item._id] === "accepted" ? (
                         <button
                           disabled
-                          className="w-full bg-green-600 text-white font-medium py-2 rounded-lg"
+                          className="w-full bg-green-600 text-white text-sm font-medium py-2 rounded-lg"
                         >
                           Accepted
                         </button>
                       ) : appliedMap[item._id] === "pending" ? (
                         <button
                           disabled
-                          className={`w-full font-medium py-2 rounded-lg transition duration-300 ${
+                          className={`w-full text-sm font-medium py-2 rounded-lg transition duration-300 ${
                             isDarkMode
                               ? "bg-yellow-900 text-yellow-200"
                               : "bg-yellow-100 text-yellow-700"
@@ -344,7 +360,7 @@ const Opportunities = () => {
                       ) : appliedMap[item._id] === "rejected" ? (
                         <button
                           disabled
-                          className={`w-full font-medium py-2 rounded-lg transition duration-300 ${
+                          className={`w-full text-sm font-medium py-2 rounded-lg transition duration-300 ${
                             isDarkMode
                               ? "bg-red-900 text-red-200"
                               : "bg-red-100 text-red-600"
@@ -355,7 +371,7 @@ const Opportunities = () => {
                       ) : new Date(item.date) < new Date() ? (
                         <button
                           disabled
-                          className={`w-full py-2 rounded-lg cursor-not-allowed transition duration-300 ${
+                          className={`w-full text-sm py-2 rounded-lg cursor-not-allowed transition duration-300 ${
                             isDarkMode
                               ? "bg-gray-700 text-gray-500"
                               : "bg-gray-200 text-gray-500"
@@ -367,7 +383,7 @@ const Opportunities = () => {
                         <button
                           onClick={() => handleApply(item._id)}
                           disabled={applyingId === item._id}
-                          className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+                          className="w-full bg-green-600 text-white text-sm py-2 rounded-lg hover:bg-green-700"
                         >
                           {applyingId === item._id
                             ? "Applying..."
@@ -384,7 +400,7 @@ const Opportunities = () => {
 
       {/* PAGINATION */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-4">
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
           {/* Prev button */}
           <button
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}

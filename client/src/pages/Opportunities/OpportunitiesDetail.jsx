@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
+import Loader from "../../components/Loader";
 
 const OpportunitiesDetail = () => {
   const { id } = useParams();
@@ -94,13 +95,7 @@ const OpportunitiesDetail = () => {
   };
 
   if (loading) {
-    return (
-      <div
-        className={`text-center py-20 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
-      >
-        Loading...
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!opportunity) {

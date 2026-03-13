@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
+import Loader from "../../components/Loader";
 const BASE_URL = "http://localhost:5000";
 
 const COLORS = {
@@ -126,12 +127,7 @@ const Impact = () => {
 
   const hasWasteData = wasteBreakdown.some((w) => w.value > 0);
 
-  if (loading)
-    return (
-      <div className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
-        Loading impact...
-      </div>
-    );
+  if (loading) return <Loader />;
 
   return (
     <div

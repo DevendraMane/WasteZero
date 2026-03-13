@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
+import Loader from "../../components/Loader";
 
 const PickupManagement = () => {
   const { API, authorizationToken } = useAuth();
@@ -38,6 +39,30 @@ const PickupManagement = () => {
 
   const [selectedAgent, setSelectedAgent] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const getStatusClasses = (status) => {
+    if (status === "pending") {
+      return isDarkMode
+        ? "bg-yellow-900 text-yellow-200"
+        : "bg-yellow-100 text-yellow-700";
+    }
+
+    if (status === "assigned") {
+      return isDarkMode
+        ? "bg-blue-900 text-blue-200"
+        : "bg-blue-100 text-blue-700";
+    }
+
+    if (status === "in-progress") {
+      return isDarkMode
+        ? "bg-purple-900 text-purple-200"
+        : "bg-purple-100 text-purple-700";
+    }
+
+    return isDarkMode
+      ? "bg-green-900 text-green-200"
+      : "bg-green-100 text-green-700";
+  };
 
   /* ================= FETCH PICKUPS ================= */
 
@@ -102,24 +127,40 @@ const PickupManagement = () => {
     if (res.ok) fetchPickups();
   };
 
-  if (loading)
-    return (
-      <div className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
-        Loading pickups...
-      </div>
-    );
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
-    <div className="space-y-8">
-      <h1
-        className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}
-      >
-        Pickup Management
-      </h1>
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex items-start sm:items-center justify-between gap-3">
+        <div>
+          <h1
+            className={`text-2xl sm:text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          >
+            Pickup Management
+          </h1>
+          <p
+            className={`mt-1 text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+          >
+            Assign agents and track pickup progress efficiently.
+          </p>
+        </div>
+
+        <span
+          className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold ${
+            isDarkMode
+              ? "bg-gray-700 text-gray-200"
+              : "bg-gray-100 text-gray-700"
+          }`}
+        >
+          {pickups.length} requests
+        </span>
+      </div>
 
       {pickups.length === 0 ? (
         <div
-          className={`text-center py-10 border border-dashed rounded-lg ${
+          className={`text-center py-10 border border-dashed rounded-xl ${
             isDarkMode
               ? "text-gray-400 border-gray-700 bg-gray-800"
               : "text-gray-400 border-gray-300 bg-white"
@@ -128,111 +169,121 @@ const PickupManagement = () => {
           No pickup requests
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {pickups.map((pickup) => {
             const dateObj = new Date(pickup.scheduled_time);
 
             return (
               <div
                 key={pickup._id}
-                className={`p-6 rounded-xl shadow flex justify-between items-center transition duration-300 ${
+                className={`p-4 sm:p-5 rounded-xl border transition duration-300 ${
                   isDarkMode
-                    ? "bg-gray-800 border border-gray-700"
-                    : "bg-white border border-gray-200"
+                    ? "bg-gray-800 border-gray-700"
+                    : "bg-white border-gray-200"
                 }`}
               >
-                <div>
-                  <p
-                    className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}
-                  >
-                    {pickup.category} Waste Pickup
-                  </p>
-
-                  <p
-                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
-                  >
-                    📅 {dateObj.toLocaleDateString()} | ⏱{" "}
-                    {dateObj.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-
-                  <p
-                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
-                  >
-                    Volunteer: {pickup.user_id?.name}
-                  </p>
-
-                  <p
-                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
-                  >
-                    Location: {pickup.location || "N/A"}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  {/* ASSIGN AGENT */}
-
-                  {pickup.status === "pending" && (
-                    <>
-                      <select
-                        value={selectedAgent[pickup._id] || ""}
-                        onChange={(e) =>
-                          setSelectedAgent((prev) => ({
-                            ...prev,
-                            [pickup._id]: e.target.value,
-                          }))
-                        }
-                        className={`px-3 py-1 rounded transition ${
-                          isDarkMode
-                            ? "bg-gray-700 border border-gray-600 text-white"
-                            : "bg-white border border-gray-300 text-gray-900"
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                  <div className="min-w-0 space-y-1.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <p
+                        className={`font-semibold ${
+                          isDarkMode ? "text-white" : "text-gray-800"
                         }`}
                       >
-                        <option value="">Select Agent</option>
+                        {pickup.category} Waste Pickup
+                      </p>
 
-                        {agents.map((agent) => (
-                          <option key={agent._id} value={agent._id}>
-                            {agent.name} ({agent.vehicle})
-                          </option>
-                        ))}
-                      </select>
-
-                      <button
-                        onClick={() => assignAgent(pickup._id)}
-                        className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+                      <span
+                        className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${getStatusClasses(
+                          pickup.status,
+                        )}`}
                       >
-                        Assign
+                        {pickup.status}
+                      </span>
+                    </div>
+
+                    <p
+                      className={`text-sm ${
+                        isDarkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      {dateObj.toLocaleDateString()} |{" "}
+                      {dateObj.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+
+                    <p
+                      className={`text-sm ${
+                        isDarkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      Volunteer: {pickup.user_id?.name || "N/A"}
+                    </p>
+
+                    <p
+                      className={`text-sm wrap-break-word ${
+                        isDarkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      Location: {pickup.location || "N/A"}
+                    </p>
+                  </div>
+
+                  <div className="w-full lg:w-auto space-y-2">
+                    {pickup.status === "pending" && (
+                      <>
+                        <select
+                          value={selectedAgent[pickup._id] || ""}
+                          onChange={(e) =>
+                            setSelectedAgent((prev) => ({
+                              ...prev,
+                              [pickup._id]: e.target.value,
+                            }))
+                          }
+                          className={`w-full min-w-55 px-3 py-2 rounded border transition ${
+                            isDarkMode
+                              ? "bg-gray-700 border-gray-600 text-white"
+                              : "bg-white border-gray-300 text-gray-900"
+                          }`}
+                        >
+                          <option value="">Select Agent</option>
+
+                          {agents.map((agent) => (
+                            <option key={agent._id} value={agent._id}>
+                              {agent.name} ({agent.vehicle})
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          onClick={() => assignAgent(pickup._id)}
+                          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                        >
+                          Assign Agent
+                        </button>
+                      </>
+                    )}
+
+                    {pickup.status === "assigned" && (
+                      <button
+                        onClick={() => updateStatus(pickup._id, "in-progress")}
+                        className="w-full bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+                      >
+                        Start Pickup
                       </button>
-                    </>
-                  )}
+                    )}
 
-                  {/* STATUS CONTROLS */}
-
-                  {pickup.status === "assigned" && (
-                    <button
-                      onClick={() => updateStatus(pickup._id, "in-progress")}
-                      className="bg-yellow-500 text-white px-4 py-1 rounded"
-                    >
-                      Start Pickup
-                    </button>
-                  )}
-
-                  {pickup.status === "in-progress" && (
-                    <button
-                      onClick={() => updateStatus(pickup._id, "completed")}
-                      className="bg-green-600 text-white px-4 py-1 rounded"
-                    >
-                      Mark Completed
-                    </button>
-                  )}
-
-                  <span
-                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
-                  >
-                    Status: {pickup.status}
-                  </span>
+                    {pickup.status === "in-progress" && (
+                      <button
+                        onClick={() => updateStatus(pickup._id, "completed")}
+                        className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                      >
+                        Mark Completed
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );

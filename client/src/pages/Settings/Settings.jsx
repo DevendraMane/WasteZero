@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
 import { useNavigate } from "react-router-dom";
+import Loader from "../../components/Loader";
 
 const Settings = () => {
   const { user, API, token } = useAuth();
@@ -166,15 +167,7 @@ const Settings = () => {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <p
-            className={`text-lg ${
-              isDarkMode ? "text-gray-400" : "text-gray-500"
-            }`}
-          >
-            Loading preferences...
-          </p>
-        </div>
+        <Loader />
       ) : (
         <>
           {/* NOTIFICATIONS */}

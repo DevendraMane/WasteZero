@@ -109,13 +109,13 @@ const SearchBar = () => {
     <div className="relative w-full max-w-2xl" ref={dropdownRef}>
       <input
         type="text"
-        placeholder="Search opportunities, pickups..."
+        placeholder="Search..."
         value={searchQuery}
         onChange={handleSearchChange}
         onFocus={() =>
           searchQuery && totalResults > 0 && setShowSuggestions(true)
         }
-        className={`w-full rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300 ${
+        className={`w-full rounded-lg pl-3 pr-8 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-300 ${
           isDarkMode
             ? "bg-gray-700 border border-gray-600 text-white placeholder-gray-400"
             : "bg-white border border-gray-300 text-gray-900 placeholder-gray-500"

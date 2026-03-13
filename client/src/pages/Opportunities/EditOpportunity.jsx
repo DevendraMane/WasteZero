@@ -5,6 +5,7 @@ import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
 import debounce from "lodash.debounce";
 import MapPicker from "../../components/MapPicker";
+import Loader from "../../components/Loader";
 
 const EditOpportunity = () => {
   const { id } = useParams();
@@ -190,15 +191,7 @@ const EditOpportunity = () => {
   };
 
   if (loading) {
-    return (
-      <div
-        className={`flex justify-center items-center py-32 transition duration-300 ${
-          isDarkMode ? "bg-gray-900" : "bg-white"
-        }`}
-      >
-        <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
