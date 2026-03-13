@@ -10,7 +10,7 @@ import {
   removeMessageListener,
 } from "../../utils/socket.js";
 
-const UserMessages = () => {
+const UserMessages = ({ isDarkMode = false }) => {
   const { user, API, authorizationToken } = useAuth();
 
   const [searchParams] = useSearchParams();
@@ -25,6 +25,7 @@ const UserMessages = () => {
 
   const [newMessage, setNewMessage] = useState("");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // Typing indicator states
   const [isUserTyping, setIsUserTyping] = useState(false);
@@ -35,6 +36,14 @@ const UserMessages = () => {
   const [flagReason, setFlagReason] = useState("abusive_language");
   const [flagDescription, setFlagDescription] = useState("");
   const [isReporting, setIsReporting] = useState(false);
+
+  // Block states
+  const [blockedUsers, setBlockedUsers] = useState([]);
+  const [isBlockingUser, setIsBlockingUser] = useState(false);
+
+  // Delete conversation states
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isDeletingConversation, setIsDeletingConversation] = useState(false);
 
   /* ================= SETUP SOCKET.IO ================= */
 
@@ -100,6 +109,16 @@ const UserMessages = () => {
     };
   }, [user._id, selectedUser]);
 
+  /* ================= DEBOUNCE SEARCH ================= */
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300); // 300ms debounce delay
+
+    return () => clearTimeout(debounceTimer);
+  }, [search]);
+
   /* ================= FETCH CONVERSATIONS ================= */
 
   const fetchConversations = async () => {
@@ -116,8 +135,24 @@ const UserMessages = () => {
     }
   };
 
+  const fetchBlockedUsers = async () => {
+    try {
+      const res = await fetch(`${API}/api/messages/blocked/list`, {
+        headers: { Authorization: authorizationToken },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setBlockedUsers(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Error fetching blocked users:", error);
+    }
+  };
+
   useEffect(() => {
     fetchConversations();
+    fetchBlockedUsers();
   }, []);
 
   /* ================= AUTO OPEN CHAT FROM URL ================= */
@@ -280,7 +315,7 @@ const UserMessages = () => {
       });
 
       if (res.ok) {
-        alert("✓ User reported successfully");
+        alert("✓ User reported successfully. Admin team will review shortly.");
         setFlagModalOpen(false);
         setFlagReason("abusive_language");
         setFlagDescription("");
@@ -296,29 +331,210 @@ const UserMessages = () => {
     }
   };
 
+  /* ================= BLOCK USER FUNCTION ================= */
+
+  const handleBlockUser = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setIsBlockingUser(true);
+      const res = await fetch(`${API}/api/messages/block`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authorizationToken,
+        },
+        body: JSON.stringify({
+          blockedUserId: selectedUser,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        alert("✓ " + data.message);
+        await fetchBlockedUsers();
+        setSelectedUser(null);
+        setMessages([]);
+      } else {
+        const error = await res.json();
+        alert("✗ " + error.message);
+      }
+    } catch (error) {
+      console.error("Block error:", error);
+      alert("Error blocking user");
+    } finally {
+      setIsBlockingUser(false);
+    }
+  };
+
+  /* ================= UNBLOCK USER FUNCTION ================= */
+
+  const handleUnblockUser = async (blockedUserId) => {
+    try {
+      const res = await fetch(`${API}/api/messages/unblock`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authorizationToken,
+        },
+        body: JSON.stringify({
+          blockedUserId,
+        }),
+      });
+
+      if (res.ok) {
+        alert("✓ User unblocked successfully");
+        await fetchBlockedUsers();
+      } else {
+        const error = await res.json();
+        alert("✗ " + error.message);
+      }
+    } catch (error) {
+      console.error("Unblock error:", error);
+      alert("Error unblocking user");
+    }
+  };
+
   const filteredChats = useMemo(() => {
     if (!Array.isArray(conversations)) return [];
 
     return conversations.filter((c) =>
-      (c.user?.name || "").toLowerCase().includes(search.toLowerCase()),
+      (c.user?.name || "")
+        .toLowerCase()
+        .includes(debouncedSearch.toLowerCase()),
     );
-  }, [search, conversations]);
+  }, [debouncedSearch, conversations]);
+
+  /* ================= DELETE CONVERSATION FUNCTION ================= */
+
+  const handleDeleteConversation = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setIsDeletingConversation(true);
+      const conversationId =
+        user._id < selectedUser._id
+          ? `${user._id}_${selectedUser._id}`
+          : `${selectedUser._id}_${user._id}`;
+
+      const res = await fetch(`${API}/api/messages/delete-conversation`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authorizationToken,
+        },
+        body: JSON.stringify({
+          conversationId,
+          otherUserId: selectedUser._id,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // Remove conversation from list
+        setConversations(
+          conversations.filter((conv) => conv._id !== conversationId),
+        );
+
+        // Clear messages and selected user
+        setMessages([]);
+        setSelectedUser(null);
+        setDeleteConfirmOpen(false);
+
+        alert("✓ Conversation deleted successfully");
+      } else {
+        const error = await res.json();
+        alert("✗ " + error.message);
+      }
+    } catch (error) {
+      console.error("Delete conversation error:", error);
+      alert("Error deleting conversation");
+    } finally {
+      setIsDeletingConversation(false);
+    }
+  };
 
   return (
-    <div className="flex h-[80vh] bg-white rounded-2xl shadow overflow-hidden">
+    <div
+      className={`flex h-[80vh] rounded-2xl shadow overflow-hidden transition duration-300 ${
+        isDarkMode ? "bg-gray-800" : "bg-white"
+      }`}
+    >
       {/* LEFT PANEL */}
 
-      <div className="w-1/3 border-r bg-gray-50 flex flex-col">
-        <div className="p-4 border-b bg-white">
-          <h2 className="text-lg font-semibold mb-3">Messages</h2>
+      <div
+        className={`w-1/3 flex flex-col transition duration-300 ${
+          isDarkMode
+            ? "border-gray-700 bg-gray-900 border-r"
+            : "border-r border-gray-200 bg-gray-50"
+        }`}
+      >
+        <div
+          className={`p-4 border-b transition duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-gray-200"
+          }`}
+        >
+          <h2
+            className={`text-lg font-semibold mb-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          >
+            Messages
+          </h2>
 
           <input
             type="text"
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border rounded-lg px-3 py-2 text-sm"
+            className={`w-full rounded-lg px-3 py-2 text-sm border transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+            }`}
           />
+
+          {/* Show blocked users count (only for NGOs) */}
+          {user?.role === "ngo" && blockedUsers.length > 0 && (
+            <div
+              className={`mt-3 p-2 rounded border transition duration-300 ${
+                isDarkMode
+                  ? "bg-orange-900 border-orange-700"
+                  : "bg-orange-50 border-orange-200"
+              }`}
+            >
+              <p
+                className={`text-xs font-semibold ${isDarkMode ? "text-orange-200" : "text-orange-600"}`}
+              >
+                🚫 {blockedUsers.length} Blocked User
+                {blockedUsers.length !== 1 ? "s" : ""}
+              </p>
+              <div className="mt-2 space-y-1">
+                {blockedUsers.map((blockedUser) => (
+                  <div
+                    key={blockedUser._id}
+                    className={`flex items-center justify-between text-xs p-1 rounded transition duration-300 ${
+                      isDarkMode
+                        ? "bg-gray-700 text-gray-300"
+                        : "bg-white text-gray-700"
+                    }`}
+                  >
+                    <span>{blockedUser.name}</span>
+                    <button
+                      onClick={() => handleUnblockUser(blockedUser._id)}
+                      className={`font-semibold hover:underline ${
+                        isDarkMode
+                          ? "text-blue-400 hover:text-blue-300"
+                          : "text-blue-600 hover:text-blue-700"
+                      }`}
+                    >
+                      Unblock
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -329,8 +545,18 @@ const UserMessages = () => {
               <div
                 key={conv._id}
                 onClick={() => loadMessages(otherUser)}
-                className={`p-4 cursor-pointer hover:bg-gray-100 border-b ${
-                  selectedUser === otherUser ? "bg-green-100" : ""
+                className={`p-4 cursor-pointer border-b transition duration-300 ${
+                  isDarkMode
+                    ? `border-gray-700 ${
+                        selectedUser === otherUser
+                          ? "bg-green-900"
+                          : "hover:bg-gray-800"
+                      }`
+                    : `border-gray-200 ${
+                        selectedUser === otherUser
+                          ? "bg-green-100"
+                          : "hover:bg-gray-100"
+                      }`
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -342,26 +568,29 @@ const UserMessages = () => {
                           : `https://ui-avatars.com/api/?name=${conv.user?.name}`
                       }
                       className="w-8 h-8 rounded-full"
+                      alt={conv.user?.name}
                     />
-                    {/* Online status indicator */}
-                    {conv.user?.isOnline && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border border-white"></div>
-                    )}
+                    <div
+                      className={`absolute w-2.5 h-2.5 rounded-full bottom-0 right-0 border-2 ${
+                        conv.user?.isOnline
+                          ? "bg-green-500 border-white"
+                          : isDarkMode
+                            ? "bg-gray-600 border-gray-800"
+                            : "bg-gray-300 border-white"
+                      }`}
+                    />
                   </div>
-
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{conv.user?.name}</p>
-
-                    <p className="text-xs text-gray-500 truncate">
-                      {conv.lastMessage}
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={`font-medium text-sm truncate ${isDarkMode ? "text-white" : "text-gray-900"}`}
+                    >
+                      {conv.user?.name}
                     </p>
-
-                    {/* Show flagged status if user is flagged */}
-                    {conv.user?.isFlaggedByAnyNGO && (
-                      <p className="text-xs text-red-500 font-semibold">
-                        🚩 Flagged ({conv.user?.reportFlags})
-                      </p>
-                    )}
+                    <p
+                      className={`text-xs truncate ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                    >
+                      {conv.lastMessage || "No messages yet"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -376,9 +605,17 @@ const UserMessages = () => {
         {selectedUser ? (
           <>
             {/* CHAT HEADER */}
-            <div className="p-4 border-b flex justify-between items-center bg-white">
+            <div
+              className={`p-4 border-b flex justify-between items-center transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-800 border-gray-700"
+                  : "bg-white border-gray-200"
+              }`}
+            >
               <div className="flex-1">
-                <h3 className="font-semibold">
+                <h3
+                  className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+                >
                   {conversations.find((c) => c.user?._id === selectedUser)?.user
                     ?.name || "Unknown User"}
                 </h3>
@@ -392,7 +629,9 @@ const UserMessages = () => {
                         : "bg-gray-400"
                     }`}
                   ></div>
-                  <p className="text-xs text-gray-500">
+                  <p
+                    className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                  >
                     {selectedUserStatus.isOnline
                       ? "Online"
                       : `Last seen ${formatLastSeen(
@@ -404,18 +643,43 @@ const UserMessages = () => {
 
               {/* Report button (only for NGOs) */}
               {user?.role === "ngo" && (
-                <button
-                  onClick={() => setFlagModalOpen(true)}
-                  className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition"
-                >
-                  🚩 Report
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setFlagModalOpen(true)}
+                    className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition duration-300"
+                  >
+                    🚩 Report
+                  </button>
+                  <button
+                    onClick={handleBlockUser}
+                    disabled={isBlockingUser}
+                    className={`px-3 py-1 text-white text-sm rounded transition duration-300 ${
+                      isBlockingUser
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-orange-600 hover:bg-orange-700"
+                    }`}
+                  >
+                    🚫 Block
+                  </button>
+                </div>
               )}
+
+              {/* Delete Conversation button */}
+              <button
+                onClick={() => setDeleteConfirmOpen(true)}
+                className="px-3 py-1 bg-red-800 text-white text-sm rounded hover:bg-red-900 transition duration-300"
+              >
+                🗑️ Delete
+              </button>
             </div>
 
             {/* CHAT BODY */}
 
-            <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-gray-50">
+            <div
+              className={`flex-1 p-6 overflow-y-auto space-y-4 transition duration-300 ${
+                isDarkMode ? "bg-gray-900" : "bg-gray-50"
+              }`}
+            >
               {messages.map((msg, i) => {
                 const isMe = msg.sender_id?.toString() === user._id;
 
@@ -425,8 +689,12 @@ const UserMessages = () => {
                     className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`px-4 py-2 rounded-xl max-w-xs text-sm ${
-                        isMe ? "bg-green-600 text-white" : "bg-white shadow"
+                      className={`px-4 py-2 rounded-xl max-w-xs text-sm transition duration-300 ${
+                        isMe
+                          ? "bg-green-600 text-white"
+                          : isDarkMode
+                            ? "bg-gray-700 text-gray-200 shadow"
+                            : "bg-white text-gray-900 shadow"
                       }`}
                     >
                       {msg.content}
@@ -438,15 +706,23 @@ const UserMessages = () => {
               {/* Typing indicator */}
               {isUserTyping && (
                 <div className="flex justify-start">
-                  <div className="px-4 py-2 rounded-xl bg-white shadow text-sm text-gray-600">
+                  <div
+                    className={`px-4 py-2 rounded-xl text-sm transition duration-300 ${
+                      isDarkMode
+                        ? "bg-gray-700 text-gray-300 shadow"
+                        : "bg-white text-gray-600 shadow"
+                    }`}
+                  >
                     <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></div>
                       <div
-                        className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"
+                        className={`w-2 h-2 rounded-full animate-bounce ${isDarkMode ? "bg-gray-400" : "bg-gray-600"}`}
+                      ></div>
+                      <div
+                        className={`w-2 h-2 rounded-full animate-bounce ${isDarkMode ? "bg-gray-400" : "bg-gray-600"}`}
                         style={{ animationDelay: "0.1s" }}
                       ></div>
                       <div
-                        className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"
+                        className={`w-2 h-2 rounded-full animate-bounce ${isDarkMode ? "bg-gray-400" : "bg-gray-600"}`}
                         style={{ animationDelay: "0.2s" }}
                       ></div>
                     </div>
@@ -457,14 +733,24 @@ const UserMessages = () => {
 
             {/* INPUT */}
 
-            <div className="p-4 border-t flex gap-2 bg-white">
+            <div
+              className={`p-4 border-t flex gap-2 transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-800 border-gray-700"
+                  : "bg-white border-gray-200"
+              }`}
+            >
               <input
                 type="text"
                 placeholder="Type your message..."
                 value={newMessage}
                 onChange={handleMessageChange}
                 onKeyPress={(e) => e.key === "Enter" && handleSend()}
-                className="flex-1 border rounded-full px-4 py-2"
+                className={`flex-1 rounded-full px-4 py-2 border transition duration-300 ${
+                  isDarkMode
+                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                }`}
               />
 
               <button
@@ -476,7 +762,13 @@ const UserMessages = () => {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-400">
+          <div
+            className={`flex-1 flex items-center justify-center transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-900 text-gray-400"
+                : "bg-white text-gray-400"
+            }`}
+          >
             Select a conversation
           </div>
         )}
@@ -485,18 +777,38 @@ const UserMessages = () => {
       {/* REPORT MODAL */}
       {flagModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-lg font-semibold mb-4">Report User</h2>
+          <div
+            className={`rounded-lg shadow-lg p-6 max-w-md w-full mx-4 transition duration-300 ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h2
+              className={`text-lg font-semibold mb-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+            >
+              Report User
+            </h2>
+            <p
+              className={`text-sm mb-4 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+            >
+              Help us maintain a safe community by reporting inappropriate
+              behavior. Your report will be reviewed by our admin team.
+            </p>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  className={`block text-sm font-medium mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+                >
                   Report Reason
                 </label>
                 <select
                   value={flagReason}
                   onChange={(e) => setFlagReason(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className={`w-full rounded-lg px-3 py-2 border transition duration-300 ${
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
                 >
                   <option value="abusive_language">Abusive Language</option>
                   <option value="inappropriate_behavior">
@@ -509,15 +821,21 @@ const UserMessages = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  className={`block text-sm font-medium mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+                >
                   Description (Optional)
                 </label>
                 <textarea
                   value={flagDescription}
                   onChange={(e) => setFlagDescription(e.target.value)}
                   rows="3"
-                  className="w-full border rounded-lg px-3 py-2"
-                  placeholder="Provide more details..."
+                  className={`w-full rounded-lg px-3 py-2 border transition duration-300 ${
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                  }`}
+                  placeholder="Provide more details about the issue..."
                 />
               </div>
 
@@ -528,7 +846,11 @@ const UserMessages = () => {
                     setFlagReason("abusive_language");
                     setFlagDescription("");
                   }}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  className={`px-4 py-2 border rounded-lg transition duration-300 ${
+                    isDarkMode
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                      : "border-gray-300 text-gray-900 hover:bg-gray-50"
+                  }`}
                 >
                   Cancel
                 </button>
@@ -544,6 +866,48 @@ const UserMessages = () => {
                   {isReporting ? "Reporting..." : "Report User"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteConfirmOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            className={`rounded-xl p-6 w-96 shadow-lg transition duration-300 ${isDarkMode ? "bg-gray-800" : "bg-white"}`}
+          >
+            <h3
+              className={`text-lg font-semibold mb-2 ${isDarkMode ? "text-white" : "text-gray-800"}`}
+            >
+              Delete Conversation? 🗑️
+            </h3>
+            <p
+              className={`mb-6 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+            >
+              Are you sure you want to delete this conversation with{" "}
+              <strong>
+                {conversations.find((c) => c.user?._id === selectedUser)?.user
+                  ?.name || "Unknown User"}
+              </strong>
+              ? This action cannot be undone and all messages will be
+              permanently deleted.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirmOpen(false)}
+                disabled={isDeletingConversation}
+                className={`px-4 py-2 rounded-lg transition disabled:opacity-50 ${isDarkMode ? "bg-gray-700 text-gray-300 hover:bg-gray-600" : "bg-gray-300 text-gray-700 hover:bg-gray-400"}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConversation}
+                disabled={isDeletingConversation}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {isDeletingConversation ? "Deleting..." : "Delete Permanently"}
+              </button>
             </div>
           </div>
         </div>

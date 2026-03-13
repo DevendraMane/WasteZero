@@ -1,6 +1,7 @@
 import Opportunity from "../models/opportunity-model.js";
 import Notification from "../models/notification-model.js";
 import User from "../models/user-model.js";
+import Pickup from "../models/pickup-model.js";
 import { io } from "../server.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
@@ -268,6 +269,65 @@ const getOpportunitiesForNGO = async (req, res) => {
   }
 };
 
+/* ================= SEARCH OPPORTUNITIES AND PICKUPS ================= */
+
+const searchOpportunitiesAndPickups = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q || q.trim().length < 2) {
+      return res.json({ opportunities: [], pickups: [] });
+    }
+
+    const searchRegex = { $regex: q, $options: "i" }; // Case-insensitive search
+
+    // Search opportunities by title, location, description
+    const opportunities = await Opportunity.find({
+      $or: [
+        { title: searchRegex },
+        { location: searchRegex },
+        { description: searchRegex },
+      ],
+    })
+      .populate("ngo_id", "name profileImage")
+      .limit(8)
+      .select("_id title location image ngo_id date");
+
+    // Search pickups by location and category
+    const pickups = await Pickup.find({
+      $or: [{ location: searchRegex }, { category: searchRegex }],
+    })
+      .populate("user_id", "name")
+      .limit(8)
+      .select("_id location category status user_id scheduled_time")
+      .sort({ scheduled_time: -1 });
+
+    res.status(200).json({
+      opportunities: opportunities.map((opp) => ({
+        _id: opp._id,
+        title: opp.title,
+        location: opp.location,
+        image: opp.image,
+        date: opp.date,
+        ngoName: opp.ngo_id?.name,
+        type: "opportunity",
+      })),
+      pickups: pickups.map((pickup) => ({
+        _id: pickup._id,
+        location: pickup.location,
+        category: pickup.category,
+        status: pickup.status,
+        userName: pickup.user_id?.name,
+        scheduledTime: pickup.scheduled_time,
+        type: "pickup",
+      })),
+    });
+  } catch (error) {
+    console.error("Search error:", error);
+    res.status(500).json({ message: "Search failed" });
+  }
+};
+
 export default {
   getAllOpportunities,
   createOpportunity,
@@ -275,4 +335,5 @@ export default {
   deleteOpportunity,
   updateOpportunity,
   getOpportunitiesForNGO,
+  searchOpportunitiesAndPickups,
 };

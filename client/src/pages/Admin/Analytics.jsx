@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 import {
   BarChart,
   Bar,
@@ -18,6 +19,7 @@ import {
 
 const Analytics = () => {
   const { API, authorizationToken } = useAuth();
+  const { isDarkMode } = useDarkMode();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState("");
@@ -128,8 +130,18 @@ const Analytics = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500 text-lg">Loading analytics...</p>
+      <div
+        className={`flex items-center justify-center h-64 transition duration-300 ${
+          isDarkMode ? "bg-gray-900" : "bg-white"
+        }`}
+      >
+        <p
+          className={`text-lg transition duration-300 ${
+            isDarkMode ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
+          Loading analytics...
+        </p>
       </div>
     );
   }
@@ -142,26 +154,52 @@ const Analytics = () => {
   const completionRate = stats.completionRate || 0;
 
   return (
-    <div className="space-y-10">
+    <div
+      className={`space-y-10 transition duration-300 ${
+        isDarkMode ? "bg-gray-900 min-h-screen p-4" : "bg-white"
+      }`}
+    >
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-semibold text-gray-900">
+        <h1
+          className={`text-3xl font-semibold transition duration-300 ${
+            isDarkMode ? "text-white" : "text-gray-900"
+          }`}
+        >
           Reports & Analytics
         </h1>
-        <p className="text-gray-500 mt-2">
+        <p
+          className={`mt-2 transition duration-300 ${
+            isDarkMode ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
           In-depth system performance and growth insights
         </p>
       </div>
 
       {/* DATE RANGE FILTER */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <div
+        className={`p-6 rounded-xl shadow-sm transition duration-300 ${
+          isDarkMode
+            ? "bg-gray-800 border border-gray-700"
+            : "bg-white border border-gray-100"
+        }`}
+      >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-medium text-gray-800">
+          <h3
+            className={`text-lg font-medium transition duration-300 ${
+              isDarkMode ? "text-white" : "text-gray-800"
+            }`}
+          >
             Date Range Filter
           </h3>
           <button
             onClick={handleResetFilter}
-            className="text-sm text-gray-500 hover:text-gray-800"
+            className={`text-sm transition duration-300 ${
+              isDarkMode
+                ? "text-gray-400 hover:text-gray-200"
+                : "text-gray-500 hover:text-gray-800"
+            }`}
           >
             Reset
           </button>
@@ -169,26 +207,42 @@ const Analytics = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">
+            <label
+              className={`block text-sm font-medium mb-2 transition duration-300 ${
+                isDarkMode ? "text-gray-300" : "text-gray-600"
+              }`}
+            >
               From Date
             </label>
             <input
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full border rounded-lg px-4 py-2 transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  : "border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+              }`}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">
+            <label
+              className={`block text-sm font-medium mb-2 transition duration-300 ${
+                isDarkMode ? "text-gray-300" : "text-gray-600"
+              }`}
+            >
               To Date
             </label>
             <input
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full border rounded-lg px-4 py-2 transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+                  : "border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500"
+              }`}
             />
           </div>
 
@@ -218,12 +272,26 @@ const Analytics = () => {
         ].map((card, index) => (
           <div
             key={index}
-            className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition"
+            className={`p-6 rounded-xl shadow-sm transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-800 border border-gray-700 hover:shadow-lg"
+                : "bg-white border border-gray-100 hover:shadow-md"
+            }`}
           >
-            <p className="text-sm text-gray-500">{card.label}</p>
+            <p
+              className={`text-sm transition duration-300 ${
+                isDarkMode ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
+              {card.label}
+            </p>
             <h2
-              className={`text-2xl font-semibold mt-3 ${
-                card.highlight ? "text-green-600" : "text-gray-900"
+              className={`text-2xl font-semibold mt-3 transition duration-300 ${
+                card.highlight
+                  ? "text-green-600"
+                  : isDarkMode
+                    ? "text-white"
+                    : "text-gray-900"
               }`}
             >
               {card.value}
@@ -235,41 +303,95 @@ const Analytics = () => {
       {/* CHART SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* PICKUP TREND */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-6">
+        <div
+          className={`p-6 rounded-xl shadow-sm transition duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 border border-gray-700"
+              : "bg-white border border-gray-100"
+          }`}
+        >
+          <h3
+            className={`text-lg font-medium mb-6 transition duration-300 ${
+              isDarkMode ? "text-white" : "text-gray-800"
+            }`}
+          >
             Pickup Trend Analysis
           </h3>
 
           {monthlyPickupData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyPickupData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={isDarkMode ? "#374151" : "#f3f4f6"}
+                />
+                <XAxis
+                  dataKey="month"
+                  stroke={isDarkMode ? "#9ca3af" : "#000"}
+                />
+                <YAxis stroke={isDarkMode ? "#9ca3af" : "#000"} />
+                <Tooltip
+                  contentStyle={
+                    isDarkMode
+                      ? {
+                          backgroundColor: "#1f2937",
+                          border: "1px solid #374151",
+                        }
+                      : {}
+                  }
+                />
                 <Bar dataKey="pickups" fill="#16a34a" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-gray-400 text-center py-20">
+            <p
+              className={`text-center py-20 transition duration-300 ${
+                isDarkMode ? "text-gray-500" : "text-gray-400"
+              }`}
+            >
               No pickup data yet
             </p>
           )}
         </div>
 
         {/* OPPORTUNITY TREND */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-6">
+        <div
+          className={`p-6 rounded-xl shadow-sm transition duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 border border-gray-700"
+              : "bg-white border border-gray-100"
+          }`}
+        >
+          <h3
+            className={`text-lg font-medium mb-6 transition duration-300 ${
+              isDarkMode ? "text-white" : "text-gray-800"
+            }`}
+          >
             Opportunity Trend Analysis
           </h3>
 
           {monthlyPickupData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyPickupData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={isDarkMode ? "#374151" : "#f3f4f6"}
+                />
+                <XAxis
+                  dataKey="month"
+                  stroke={isDarkMode ? "#9ca3af" : "#000"}
+                />
+                <YAxis stroke={isDarkMode ? "#9ca3af" : "#000"} />
+                <Tooltip
+                  contentStyle={
+                    isDarkMode
+                      ? {
+                          backgroundColor: "#1f2937",
+                          border: "1px solid #374151",
+                        }
+                      : {}
+                  }
+                />
                 <Bar
                   dataKey="opportunities"
                   fill="#3b82f6"
@@ -278,7 +400,11 @@ const Analytics = () => {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-gray-400 text-center py-20">
+            <p
+              className={`text-center py-20 transition duration-300 ${
+                isDarkMode ? "text-gray-500" : "text-gray-400"
+              }`}
+            >
               No opportunity data yet
             </p>
           )}
@@ -288,18 +414,43 @@ const Analytics = () => {
       {/* SECOND CHART ROW */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* USER GROWTH */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-6">
+        <div
+          className={`p-6 rounded-xl shadow-sm transition duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 border border-gray-700"
+              : "bg-white border border-gray-100"
+          }`}
+        >
+          <h3
+            className={`text-lg font-medium mb-6 transition duration-300 ${
+              isDarkMode ? "text-white" : "text-gray-800"
+            }`}
+          >
             User Growth Over Time
           </h3>
 
           {userGrowthData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={userGrowthData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke={isDarkMode ? "#374151" : "#f3f4f6"}
+                />
+                <XAxis
+                  dataKey="month"
+                  stroke={isDarkMode ? "#9ca3af" : "#000"}
+                />
+                <YAxis stroke={isDarkMode ? "#9ca3af" : "#000"} />
+                <Tooltip
+                  contentStyle={
+                    isDarkMode
+                      ? {
+                          backgroundColor: "#1f2937",
+                          border: "1px solid #374151",
+                        }
+                      : {}
+                  }
+                />
                 <Line
                   type="monotone"
                   dataKey="users"
@@ -310,13 +461,29 @@ const Analytics = () => {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-gray-400 text-center py-20">No user data yet</p>
+            <p
+              className={`text-center py-20 transition duration-300 ${
+                isDarkMode ? "text-gray-500" : "text-gray-400"
+              }`}
+            >
+              No user data yet
+            </p>
           )}
         </div>
 
         {/* ROLE DISTRIBUTION */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-6">
+        <div
+          className={`p-6 rounded-xl shadow-sm transition duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 border border-gray-700"
+              : "bg-white border border-gray-100"
+          }`}
+        >
+          <h3
+            className={`text-lg font-medium mb-6 transition duration-300 ${
+              isDarkMode ? "text-white" : "text-gray-800"
+            }`}
+          >
             User Role Distribution
           </h3>
 
@@ -329,17 +496,23 @@ const Analytics = () => {
                   cy="50%"
                   outerRadius={100}
                   dataKey="value"
-                  label
+                  label={{ fill: isDarkMode ? "#e5e7eb" : "#000" }}
                 >
                   {userDistribution.map((entry, index) => (
                     <Cell key={index} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Legend />
+                <Legend
+                  wrapperStyle={{ color: isDarkMode ? "#e5e7eb" : "#000" }}
+                />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-gray-400 text-center py-20">
+            <p
+              className={`text-center py-20 transition duration-300 ${
+                isDarkMode ? "text-gray-500" : "text-gray-400"
+              }`}
+            >
               No distribution data yet
             </p>
           )}
@@ -347,21 +520,39 @@ const Analytics = () => {
       </div>
 
       {/* EXPORT SECTION */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-medium text-gray-800 mb-6">
+      <div
+        className={`p-6 rounded-xl shadow-sm transition duration-300 ${
+          isDarkMode
+            ? "bg-gray-800 border border-gray-700"
+            : "bg-white border border-gray-100"
+        }`}
+      >
+        <h3
+          className={`text-lg font-medium mb-6 transition duration-300 ${
+            isDarkMode ? "text-white" : "text-gray-800"
+          }`}
+        >
           Export Reports
         </h3>
 
         <div className="flex flex-wrap gap-4">
           <button
             onClick={handleExportUsersCSV}
-            className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition"
+            className={`border px-4 py-2 rounded-lg transition duration-300 ${
+              isDarkMode
+                ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+            }`}
           >
             Export Users CSV
           </button>
           <button
             onClick={handleExportPickupsCSV}
-            className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition"
+            className={`border px-4 py-2 rounded-lg transition duration-300 ${
+              isDarkMode
+                ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                : "border-gray-300 text-gray-700 hover:bg-gray-50"
+            }`}
           >
             Export Pickups CSV
           </button>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 import {
   BarChart,
   Bar,
@@ -17,6 +18,7 @@ import {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { API, authorizationToken } = useAuth();
+  const { isDarkMode } = useDarkMode();
 
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,11 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500 text-lg">Loading dashboard...</p>
+        <p
+          className={`text-lg ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+        >
+          Loading dashboard...
+        </p>
       </div>
     );
   }
@@ -73,8 +79,12 @@ const AdminDashboard = () => {
     <div className="space-y-8">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-        <p className="text-gray-500 mt-2">
+        <h1
+          className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+        >
+          Admin Dashboard
+        </h1>
+        <p className={`mt-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
           Overview of platform performance and recent activity
         </p>
       </div>
@@ -122,8 +132,16 @@ const AdminDashboard = () => {
 
       {/* CHART SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-2xl shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Monthly Pickups</h3>
+        <div
+          className={`p-6 rounded-2xl shadow-md transition duration-300 ${
+            isDarkMode ? "bg-gray-800" : "bg-white"
+          }`}
+        >
+          <h3
+            className={`text-lg font-semibold mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          >
+            Monthly Pickups
+          </h3>
           {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={barData}>
@@ -140,8 +158,16 @@ const AdminDashboard = () => {
           )}
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-md">
-          <h3 className="text-lg font-semibold mb-4">Monthly Opportunities</h3>
+        <div
+          className={`p-6 rounded-2xl shadow-md transition duration-300 ${
+            isDarkMode ? "bg-gray-800" : "bg-white"
+          }`}
+        >
+          <h3
+            className={`text-lg font-semibold mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          >
+            Monthly Opportunities
+          </h3>
           {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={barData}>
@@ -163,8 +189,16 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-md">
-        <h3 className="text-lg font-semibold mb-4">User Distribution</h3>
+      <div
+        className={`p-6 rounded-2xl shadow-md transition duration-300 ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
+        <h3
+          className={`text-lg font-semibold mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+        >
+          User Distribution
+        </h3>
         {pieData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -192,12 +226,20 @@ const AdminDashboard = () => {
       </div>
 
       {/* USERS OVERVIEW SECTION */}
-      <div className="bg-white p-6 rounded-2xl shadow-md">
+      <div
+        className={`p-6 rounded-2xl shadow-md transition duration-300 ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Users Overview</h2>
+          <h2
+            className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          >
+            Users Overview
+          </h2>
           <button
             onClick={() => navigate("/admin/users")}
-            className="text-green-600 font-medium hover:underline"
+            className={`font-medium hover:underline ${isDarkMode ? "text-green-400" : "text-green-600"}`}
           >
             View All Users
           </button>
@@ -209,11 +251,19 @@ const AdminDashboard = () => {
           placeholder="Search users..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 mb-6"
+          className={`w-full rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 mb-6 transition duration-300 ${
+            isDarkMode
+              ? "bg-gray-700 border border-gray-600 text-white placeholder-gray-400"
+              : "bg-white border border-gray-300 text-gray-900 placeholder-gray-500"
+          }`}
         />
 
         {/* Recent Registrations */}
-        <h3 className="text-sm font-semibold text-gray-500 mb-4">
+        <h3
+          className={`text-sm font-semibold mb-4 ${
+            isDarkMode ? "text-gray-400" : "text-gray-500"
+          }`}
+        >
           Recent Registrations
         </h3>
 
@@ -222,11 +272,19 @@ const AdminDashboard = () => {
             filteredUsers.map((user) => (
               <div
                 key={user._id}
-                className="flex justify-between items-center border-b pb-2"
+                className={`flex justify-between items-center border-b pb-2 ${
+                  isDarkMode ? "border-gray-700" : "border-gray-200"
+                }`}
               >
                 <div>
-                  <p className="font-medium text-gray-700">{user.name}</p>
-                  <p className="text-xs text-gray-400">
+                  <p
+                    className={`font-medium ${isDarkMode ? "text-white" : "text-gray-700"}`}
+                  >
+                    {user.name}
+                  </p>
+                  <p
+                    className={`text-xs ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}
+                  >
                     {formatTimeAgo(user.createdAt)}
                   </p>
                 </div>
@@ -245,7 +303,11 @@ const AdminDashboard = () => {
               </div>
             ))
           ) : (
-            <p className="text-gray-400 text-sm">No users found</p>
+            <p
+              className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-400"}`}
+            >
+              No users found
+            </p>
           )}
         </div>
       </div>

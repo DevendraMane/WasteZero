@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import axios from "axios";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 import debounce from "lodash.debounce";
 import MapPicker from "../../components/MapPicker";
 
 const CreateOpportunity = ({ onClose, onCreated }) => {
   const { authorizationToken, API } = useAuth();
+  const { isDarkMode } = useDarkMode();
 
   const submittingRef = useRef(false);
 
@@ -134,16 +136,34 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex justify-center overflow-y-auto py-10 z-50">
-      <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl max-h-[90vh] flex flex-col">
+      <div
+        className={`w-full max-w-4xl rounded-2xl shadow-2xl max-h-[90vh] flex flex-col transition duration-300 ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
         {/* HEADER */}
 
-        <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white z-10">
-          <h2 className="text-xl font-semibold">Create Opportunity</h2>
+        <div
+          className={`flex justify-between items-center p-6 border-b sticky top-0 z-10 transition duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-gray-200"
+          }`}
+        >
+          <h2
+            className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          >
+            Create Opportunity
+          </h2>
 
           <button
             disabled={creating}
             onClick={onClose}
-            className="text-gray-500 hover:text-black text-lg disabled:opacity-40"
+            className={`text-lg disabled:opacity-40 transition ${
+              isDarkMode
+                ? "text-gray-400 hover:text-gray-200"
+                : "text-gray-500 hover:text-black"
+            }`}
           >
             ✕
           </button>
@@ -162,7 +182,11 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
             placeholder="Opportunity Title"
             value={form.title}
             onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+            className={`w-full rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border border-gray-600 text-white placeholder-gray-400"
+                : "bg-white border border-gray-300 text-gray-900 placeholder-gray-500"
+            }`}
             required
           />
 
@@ -174,7 +198,11 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
             rows="4"
             value={form.description}
             onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+            className={`w-full rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border border-gray-600 text-white placeholder-gray-400"
+                : "bg-white border border-gray-300 text-gray-900 placeholder-gray-500"
+            }`}
             required
           />
 
@@ -185,7 +213,11 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
             placeholder="Skills (comma separated)"
             value={form.required_skills}
             onChange={handleChange}
-            className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+            className={`w-full rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border border-gray-600 text-white placeholder-gray-400"
+                : "bg-white border border-gray-300 text-gray-900 placeholder-gray-500"
+            }`}
           />
 
           {/* DURATION + DATE */}
@@ -195,7 +227,11 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
               name="duration"
               value={form.duration}
               onChange={handleChange}
-              className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+              className={`rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 border border-gray-600 text-white"
+                  : "bg-white border border-gray-300 text-gray-900"
+              }`}
             >
               <option value="">Select Duration</option>
               <option value="1 hour">1 Hour</option>
@@ -211,7 +247,11 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
               name="date"
               value={form.date}
               onChange={handleChange}
-              className="border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+              className={`rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 border border-gray-600 text-white"
+                  : "bg-white border border-gray-300 text-gray-900"
+              }`}
               required
             />
           </div>
@@ -219,9 +259,17 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
           {/* MAP */}
 
           <div>
-            <p className="text-sm text-gray-500 mb-2">Select exact location</p>
+            <p
+              className={`text-sm mb-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+            >
+              Select exact location
+            </p>
 
-            <div className="h-64 rounded-xl overflow-hidden border">
+            <div
+              className={`h-64 rounded-xl overflow-hidden border ${
+                isDarkMode ? "border-gray-600" : "border-gray-300"
+              }`}
+            >
               <MapPicker
                 setCoordinates={setCoordinates}
                 setLocation={(address) =>
@@ -236,7 +284,13 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
 
           {/* IMAGE */}
 
-          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
+          <div
+            className={`border-2 border-dashed rounded-xl p-6 text-center transition duration-300 ${
+              isDarkMode
+                ? "border-gray-600 bg-gray-700"
+                : "border-gray-300 bg-white"
+            }`}
+          >
             <label className="cursor-pointer block">
               <input
                 type="file"
@@ -252,7 +306,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
                   className="mx-auto h-32 object-cover rounded-lg"
                 />
               ) : (
-                <p className="text-gray-500">
+                <p className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
                   Click to upload opportunity image
                 </p>
               )}
@@ -261,12 +315,20 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
 
           {/* BUTTONS */}
 
-          <div className="flex justify-end gap-4 pt-4 border-t">
+          <div
+            className={`flex justify-end gap-4 pt-4 border-t ${
+              isDarkMode ? "border-gray-700" : "border-gray-200"
+            }`}
+          >
             <button
               type="button"
               disabled={creating}
               onClick={onClose}
-              className="bg-gray-100 px-6 py-2 rounded-lg hover:bg-gray-200 disabled:opacity-50"
+              className={`px-6 py-2 rounded-lg disabled:opacity-50 transition ${
+                isDarkMode
+                  ? "bg-gray-700 hover:bg-gray-600 text-gray-100"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+              }`}
             >
               Cancel
             </button>

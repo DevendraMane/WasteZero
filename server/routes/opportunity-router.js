@@ -6,6 +6,14 @@ import { checkFeatureToggle } from "../middlewares/settings-middleware.js";
 
 const opportunityRouter = express.Router();
 
+/* SEARCH OPPORTUNITIES AND PICKUPS */
+
+opportunityRouter.get(
+  "/search/all",
+  authMiddleware,
+  opportunityController.searchOpportunitiesAndPickups,
+);
+
 /* CREATE OPPORTUNITY */
 
 opportunityRouter.post(

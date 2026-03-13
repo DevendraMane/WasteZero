@@ -99,6 +99,14 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    // ✅ User Blocking Fields
+    blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
     // ✅ User Preferences
     notifications: {
       email: {

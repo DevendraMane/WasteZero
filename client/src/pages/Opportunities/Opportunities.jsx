@@ -4,7 +4,7 @@ import CreateOpportunity from "./CreateOpportunity";
 import { useAuth } from "../../store/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { calculateDistance } from "../../utils/calculateDistance";
-import DistanceFilter from "../../components/DistanceFilter";
+import { useDarkMode } from "../../store/DarkModeContext";
 import Loader from "../../components/Loader";
 
 const ITEMS_PER_PAGE = 6;
@@ -18,6 +18,7 @@ const Opportunities = () => {
   const [maxDistance, setMaxDistance] = useState(50);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const { isDarkMode } = useDarkMode();
   const [totalPages, setTotalPages] = useState(1);
 
   const navigate = useNavigate();
@@ -105,14 +106,22 @@ const Opportunities = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="space-y-8">
+    <div
+      className={`space-y-8 p-8 rounded-lg transition duration-300 ${
+        isDarkMode ? "bg-gray-900" : "bg-gray-50"
+      }`}
+    >
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">
+          <h1
+            className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+          >
             Volunteer Opportunities
           </h1>
-          <p className="text-gray-500 mt-2">
+          <p
+            className={`mt-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+          >
             Browse and manage waste management initiatives
           </p>
         </div>
@@ -164,7 +173,13 @@ const Opportunities = () => {
       {/* OPPORTUNITY CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {paginatedOpportunities.length === 0 ? (
-          <div className="col-span-full text-center text-gray-400 py-16 border border-dashed rounded-xl">
+          <div
+            className={`col-span-full text-center py-16 border border-dashed rounded-xl transition duration-300 ${
+              isDarkMode
+                ? "text-gray-400 border-gray-700 bg-gray-900"
+                : "text-gray-400 border-gray-300 bg-white"
+            }`}
+          >
             No opportunities within selected distance
           </div>
         ) : (
@@ -187,7 +202,9 @@ const Opportunities = () => {
             return (
               <div
                 key={item._id}
-                className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden"
+                className={`rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden ${
+                  isDarkMode ? "bg-gray-800" : "bg-white"
+                }`}
               >
                 <div className="h-48 overflow-hidden">
                   <img
@@ -202,25 +219,49 @@ const Opportunities = () => {
 
                 <div className="p-6 space-y-4">
                   <div className="flex justify-between items-start">
-                    <h3 className="text-lg font-semibold text-gray-800">
+                    <h3
+                      className={`text-lg font-semibold transition duration-300 ${
+                        isDarkMode ? "text-white" : "text-gray-800"
+                      }`}
+                    >
                       {item.title}
                     </h3>
                     {new Date(item.date) < new Date() ? (
-                      <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
+                      <span
+                        className={`text-xs font-semibold px-3 py-1 rounded-full transition duration-300 ${
+                          isDarkMode
+                            ? "bg-red-900 text-red-200"
+                            : "bg-red-100 text-red-600"
+                        }`}
+                      >
                         Closed
                       </span>
                     ) : (
-                      <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
+                      <span
+                        className={`text-xs font-semibold px-3 py-1 rounded-full transition duration-300 ${
+                          isDarkMode
+                            ? "bg-green-900 text-green-200"
+                            : "bg-green-100 text-green-700"
+                        }`}
+                      >
                         Open
                       </span>
                     )}
                   </div>
 
-                  <p className="text-gray-500 text-sm line-clamp-3">
+                  <p
+                    className={`text-sm line-clamp-3 transition duration-300 ${
+                      isDarkMode ? "text-gray-300" : "text-gray-500"
+                    }`}
+                  >
                     {item.description}
                   </p>
 
-                  <div className="flex justify-between items-center text-sm text-gray-500 gap-3">
+                  <div
+                    className={`flex justify-between items-center text-sm gap-3 transition duration-300 ${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
                     <span
                       className="flex items-center gap-1 truncate max-w-[70%]"
                       title={item.location}
@@ -236,14 +277,22 @@ const Opportunities = () => {
                     </div>
                   )}
 
-                  <div className="text-sm text-gray-500">
+                  <div
+                    className={`text-sm transition duration-300 ${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
                     📅 {new Date(item.date).toLocaleDateString()}
                   </div>
 
                   <div className="space-y-2">
                     <button
                       onClick={() => navigate(`/opportunities/${item._id}`)}
-                      className="w-full bg-gray-100 hover:bg-green-100 text-gray-700 font-medium py-2 rounded-lg transition"
+                      className={`w-full font-medium py-2 rounded-lg transition duration-300 ${
+                        isDarkMode
+                          ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                          : "bg-gray-100 hover:bg-green-100 text-gray-700"
+                      }`}
                     >
                       View Details
                     </button>
@@ -259,21 +308,33 @@ const Opportunities = () => {
                       ) : appliedMap[item._id] === "pending" ? (
                         <button
                           disabled
-                          className="w-full bg-yellow-100 text-yellow-700 font-medium py-2 rounded-lg"
+                          className={`w-full font-medium py-2 rounded-lg transition duration-300 ${
+                            isDarkMode
+                              ? "bg-yellow-900 text-yellow-200"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
                         >
                           Applied (Pending)
                         </button>
                       ) : appliedMap[item._id] === "rejected" ? (
                         <button
                           disabled
-                          className="w-full bg-red-100 text-red-600 font-medium py-2 rounded-lg"
+                          className={`w-full font-medium py-2 rounded-lg transition duration-300 ${
+                            isDarkMode
+                              ? "bg-red-900 text-red-200"
+                              : "bg-red-100 text-red-600"
+                          }`}
                         >
                           Rejected
                         </button>
                       ) : new Date(item.date) < new Date() ? (
                         <button
                           disabled
-                          className="w-full bg-gray-200 text-gray-500 py-2 rounded-lg cursor-not-allowed"
+                          className={`w-full py-2 rounded-lg cursor-not-allowed transition duration-300 ${
+                            isDarkMode
+                              ? "bg-gray-700 text-gray-500"
+                              : "bg-gray-200 text-gray-500"
+                          }`}
                         >
                           Opportunity Closed
                         </button>
@@ -303,7 +364,11 @@ const Opportunities = () => {
           <button
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            className={`px-4 py-2 rounded-lg border text-sm font-medium transition duration-300 ${
+              isDarkMode
+                ? "border-gray-700 text-gray-300 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                : "border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            }`}
           >
             ← Prev
           </button>
@@ -313,10 +378,12 @@ const Opportunities = () => {
             <button
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`w-9 h-9 rounded-lg text-sm font-semibold transition ${
+              className={`w-9 h-9 rounded-lg text-sm font-semibold transition duration-300 ${
                 currentPage === page
                   ? "bg-green-600 text-white shadow-sm"
-                  : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  : isDarkMode
+                    ? "border border-gray-700 text-gray-300 hover:bg-gray-700"
+                    : "border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}
             >
               {page}
@@ -327,7 +394,11 @@ const Opportunities = () => {
           <button
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            className={`px-4 py-2 rounded-lg border text-sm font-medium transition duration-300 ${
+              isDarkMode
+                ? "border-gray-700 text-gray-300 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                : "border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            }`}
           >
             Next →
           </button>

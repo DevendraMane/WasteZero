@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const { user, API, token } = useAuth();
   const navigate = useNavigate();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [notifications, setNotifications] = useState({
     email: true,
   });
-
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("darkMode") === "true",
-  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -35,10 +33,6 @@ const Settings = () => {
           const data = await res.json();
           if (data.notifications) {
             setNotifications(data.notifications);
-          }
-          if (data.darkMode !== undefined) {
-            setDarkMode(data.darkMode);
-            localStorage.setItem("darkMode", data.darkMode);
           }
         }
       } catch (error) {
@@ -92,9 +86,7 @@ const Settings = () => {
   };
 
   const handleDarkMode = async () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem("darkMode", newDarkMode);
+    toggleDarkMode();
 
     // Save to backend
     try {
@@ -105,7 +97,7 @@ const Settings = () => {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          darkMode: newDarkMode,
+          darkMode: !isDarkMode,
         }),
       });
     } catch (error) {
@@ -154,33 +146,71 @@ const Settings = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div
+      className={`max-w-4xl mx-auto space-y-8 transition duration-300 ${
+        isDarkMode ? "bg-gray-900 min-h-screen p-8" : "p-8"
+      }`}
+    >
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">Settings</h1>
-        <p className="text-gray-500 mt-2">
+        <h1
+          className={`text-3xl font-bold ${
+            isDarkMode ? "text-white" : "text-gray-800"
+          }`}
+        >
+          Settings
+        </h1>
+        <p className={`mt-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
           Manage your account preferences and configurations
         </p>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <p className="text-gray-500 text-lg">Loading preferences...</p>
+          <p
+            className={`text-lg ${
+              isDarkMode ? "text-gray-400" : "text-gray-500"
+            }`}
+          >
+            Loading preferences...
+          </p>
         </div>
       ) : (
         <>
           {/* NOTIFICATIONS */}
-          <div className="bg-white p-8 rounded-2xl shadow-md space-y-6">
-            <h2 className="text-xl font-semibold">Notifications</h2>
+          <div
+            className={`p-8 rounded-2xl shadow-md space-y-6 transition duration-300 ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h2
+              className={`text-xl font-semibold ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Notifications
+            </h2>
 
             {["email"].map((type) => (
               <div
                 key={type}
-                className="flex justify-between items-center border-b pb-4"
+                className={`flex justify-between items-center border-b pb-4 ${
+                  isDarkMode ? "border-gray-700" : "border-gray-200"
+                }`}
               >
                 <div>
-                  <p className="font-medium capitalize">{type} Notifications</p>
-                  <p className="text-sm text-gray-500">
+                  <p
+                    className={`font-medium capitalize ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    {type} Notifications
+                  </p>
+                  <p
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
                     Receive updates via {type}
                   </p>
                 </div>
@@ -191,7 +221,9 @@ const Settings = () => {
                   className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
                     notifications[type]
                       ? "bg-green-500 justify-end"
-                      : "bg-gray-300 justify-start"
+                      : isDarkMode
+                        ? "bg-gray-600 justify-start"
+                        : "bg-gray-300 justify-start"
                   } ${saving ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   <div className="w-4 h-4 bg-white rounded-full shadow"></div>
@@ -201,21 +233,43 @@ const Settings = () => {
           </div>
 
           {/* APPEARANCE */}
-          <div className="bg-white p-8 rounded-2xl shadow-md space-y-6">
-            <h2 className="text-xl font-semibold">Appearance</h2>
+          <div
+            className={`p-8 rounded-2xl shadow-md space-y-6 transition duration-300 ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h2
+              className={`text-xl font-semibold ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Appearance
+            </h2>
 
             <div className="flex justify-between items-center">
               <div>
-                <p className="font-medium">Dark Mode</p>
-                <p className="text-sm text-gray-500">Toggle dark theme</p>
+                <p
+                  className={`font-medium ${
+                    isDarkMode ? "text-white" : "text-gray-900"
+                  }`}
+                >
+                  Dark Mode
+                </p>
+                <p
+                  className={`text-sm ${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  }`}
+                >
+                  Toggle dark theme
+                </p>
               </div>
 
               <button
                 onClick={handleDarkMode}
                 disabled={saving}
                 className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
-                  darkMode
-                    ? "bg-green-500 justify-end"
+                  isDarkMode
+                    ? "bg-green-600 justify-end"
                     : "bg-gray-300 justify-start"
                 } ${saving ? "opacity-50 cursor-not-allowed" : ""}`}
               >
@@ -227,10 +281,14 @@ const Settings = () => {
           {/* STATUS MESSAGE */}
           {message && (
             <div
-              className={`p-4 rounded-lg ${
+              className={`p-4 rounded-lg transition duration-300 ${
                 message.startsWith("✓")
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
+                  ? isDarkMode
+                    ? "bg-green-900 text-green-200"
+                    : "bg-green-100 text-green-800"
+                  : isDarkMode
+                    ? "bg-red-900 text-red-200"
+                    : "bg-red-100 text-red-800"
               }`}
             >
               {message}
@@ -239,15 +297,35 @@ const Settings = () => {
 
           {/* DANGER ZONE */}
           {user && user.role !== "admin" && (
-            <div className="bg-white p-8 rounded-2xl shadow-md space-y-6 border border-red-200">
-              <h2 className="text-xl font-semibold text-red-600">
+            <div
+              className={`p-8 rounded-2xl shadow-md space-y-6 transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-800 border border-red-900"
+                  : "bg-white border border-red-200"
+              }`}
+            >
+              <h2
+                className={`text-xl font-semibold ${
+                  isDarkMode ? "text-red-400" : "text-red-600"
+                }`}
+              >
                 Danger Zone
               </h2>
 
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-medium">Delete Account</p>
-                  <p className="text-sm text-gray-500">
+                  <p
+                    className={`font-medium ${
+                      isDarkMode ? "text-white" : "text-gray-900"
+                    }`}
+                  >
+                    Delete Account
+                  </p>
+                  <p
+                    className={`text-sm ${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  >
                     Permanently remove your account and data
                   </p>
                 </div>
@@ -255,9 +333,11 @@ const Settings = () => {
                 <button
                   onClick={handleDeleteAccount}
                   disabled={saving}
-                  className={`bg-red-100 text-red-600 px-6 py-2 rounded-lg hover:bg-red-200 ${
-                    saving ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`px-6 py-2 rounded-lg transition duration-300 ${
+                    isDarkMode
+                      ? "bg-red-900 text-red-200 hover:bg-red-800"
+                      : "bg-red-100 text-red-600 hover:bg-red-200"
+                  } ${saving ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {saving ? "Deleting..." : "Delete"}
                 </button>

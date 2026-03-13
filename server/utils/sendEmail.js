@@ -230,3 +230,76 @@ export const sendIssueReportEmail = async (adminEmail, reportData) => {
 
   await transporter.sendMail(mailOptions);
 };
+
+// ================= USER REPORT EMAIL (To Admins) =================
+export const sendUserReportEmail = async (adminEmail, reportData) => {
+  const {
+    reportedUserName,
+    reportedUserEmail,
+    reportedUserRole,
+    reportReason,
+    reportDescription,
+    reporterName,
+    reporterEmail,
+    reporterRole,
+  } = reportData;
+
+  const mailOptions = {
+    from: `"WasteZero ♻ - Admin Alert" <${process.env.EMAIL_USER}>`,
+    to: adminEmail,
+    subject: `⚠️ User Report: ${reportedUserName} - Action Required`,
+    html: `
+      <div style="font-family: Arial; padding:20px; background:#fafafa;">
+        <div style="background:white; padding:25px; border-radius:10px; max-width:650px; margin:0 auto; border-left:5px solid #d32f2f;">
+          <h2 style="color:#d32f2f; margin:0 0 20px 0;">⚠️ User Report Submitted</h2>
+          
+          <p style="font-size:14px; margin:0 0 20px 0;">A user has been reported for misconduct. Please review and take appropriate action.</p>
+
+          <div style="background:#ffebee; padding:15px; border-left:4px solid #d32f2f; margin:15px 0;">
+            <h3 style="color:#c62828; margin:0 0 10px 0;">Reported User Details</h3>
+            <p style="margin:8px 0;"><strong>Name:</strong> ${reportedUserName}</p>
+            <p style="margin:8px 0;"><strong>Email:</strong> ${reportedUserEmail}</p>
+            <p style="margin:8px 0;"><strong>Role:</strong> ${reportedUserRole.charAt(0).toUpperCase() + reportedUserRole.slice(1)}</p>
+          </div>
+
+          <div style="background:#fff3e0; padding:15px; border-left:4px solid #f57c00; margin:15px 0;">
+            <h3 style="color:#e65100; margin:0 0 10px 0;">Report Details</h3>
+            <p style="margin:8px 0;"><strong>Reason:</strong> ${reportReason}</p>
+            <p style="margin:8px 0;"><strong>Description:</strong></p>
+            <p style="margin:8px 0; background:#f5f5f5; padding:10px; border-radius:5px; white-space:pre-wrap;">${reportDescription}</p>
+          </div>
+
+          <div style="background:#e3f2fd; padding:15px; border-left:4px solid #1976d2; margin:15px 0;">
+            <h3 style="color:#0d47a1; margin:0 0 10px 0;">Reporter Information</h3>
+            <p style="margin:8px 0;"><strong>Name:</strong> ${reporterName}</p>
+            <p style="margin:8px 0;"><strong>Email:</strong> ${reporterEmail}</p>
+            <p style="margin:8px 0;"><strong>Role:</strong> ${reporterRole.charAt(0).toUpperCase() + reporterRole.slice(1)}</p>
+          </div>
+
+          <div style="background:#f5f5f5; padding:15px; border-radius:5px; margin:15px 0;">
+            <p style="margin:0; font-size:12px; color:#666;">
+              <strong>Report ID:</strong> ${Date.now()}<br>
+              <strong>Submitted:</strong> ${new Date().toLocaleString()}
+            </p>
+          </div>
+
+          <div style="background:#e8f5e9; padding:15px; border-radius:5px; margin:20px 0;">
+            <p style="margin:0; font-size:14px; color:#2e7d32;">
+              <strong>Recommended Action:</strong><br>
+              1. Review the reported user's account and activity<br>
+              2. If violation confirmed, suspend or ban the user<br>
+              3. Update the reporter about the action taken<br>
+            </p>
+          </div>
+
+          <p style="margin-top:20px; color:#666; font-size:13px; border-top:1px solid #ddd; padding-top:15px;">
+            This is an automated notification from <strong>WasteZero Admin System</strong> ♻<br>
+            Please check the admin dashboard for more details and to take action.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};

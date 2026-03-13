@@ -33,8 +33,6 @@ const updateSettings = async (req, res) => {
       "allowRegistrations",
       "allowPickups",
       "allowOpportunities",
-      "enableMessageMonitoring",
-      "autoFlagThreshold",
       "platformName",
       "supportEmail",
       "maintenanceMode",

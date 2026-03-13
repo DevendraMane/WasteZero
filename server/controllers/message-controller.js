@@ -5,6 +5,7 @@ import Notification from "../models/notification-model.js";
 import mongoose from "mongoose";
 import { io } from "../server.js";
 import Settings from "../models/settings-model.js";
+import { sendUserReportEmail } from "../utils/sendEmail.js";
 
 /* ================= FLAG/REPORT USER ================= */
 
@@ -40,14 +41,18 @@ const flagUser = async (req, res) => {
       description,
     });
 
+    // Get reported user details
+    const reportedUser =
+      await User.findById(reportedUserId).select("name email role");
+
     // Update user's flag count
     const totalFlags = await UserFlag.countDocuments({
       reportedUserId,
       status: "active",
     });
 
-    const settings = await Settings.getInstance();
-    const flagThreshold = settings.autoFlagThreshold || 3;
+    // Auto-flag user after 3 reports
+    const flagThreshold = 3;
 
     if (totalFlags >= flagThreshold) {
       await User.findByIdAndUpdate(reportedUserId, {
@@ -56,8 +61,33 @@ const flagUser = async (req, res) => {
       });
     }
 
+    // Send email to all admins
+    const admins = await User.find({ role: "admin" }).select("email");
+    const reportData = {
+      reportedUserName: reportedUser.name,
+      reportedUserEmail: reportedUser.email,
+      reportedUserRole: reportedUser.role,
+      reportReason: reason,
+      reportDescription: description,
+      reporterName: ngo.name,
+      reporterEmail: ngo.email,
+      reporterRole: ngo.role,
+    };
+
+    const emailPromises = admins.map((admin) =>
+      sendUserReportEmail(admin.email, reportData).catch((err) =>
+        console.error(`Failed to send email to ${admin.email}:`, err),
+      ),
+    );
+
+    await Promise.all(emailPromises);
+
+    console.log(
+      `[REPORT USER] User ${reportedUser.name} reported by NGO ${ngo.name} - Reason: ${reason}`,
+    );
+
     res.status(201).json({
-      message: "User reported successfully",
+      message: "User reported successfully. Admin team will review shortly.",
       flag,
       totalFlags,
     });
@@ -101,8 +131,8 @@ const unflagUser = async (req, res) => {
       status: "active",
     });
 
-    const settings = await Settings.getInstance();
-    const flagThreshold = settings.autoFlagThreshold || 3;
+    // Auto-flag user after 3 reports
+    const flagThreshold = 3;
 
     if (totalFlags < flagThreshold) {
       await User.findByIdAndUpdate(reportedUserId, {
@@ -176,10 +206,19 @@ const sendMessage = async (req, res) => {
       return res.status(404).json({ message: "Receiver not found" });
     }
 
+    // Check if sender is blocked by receiver
+    if (receiver.blockedUsers && receiver.blockedUsers.includes(sender_id)) {
+      return res.status(403).json({
+        message:
+          "You are blocked by this user and cannot send messages to them.",
+        blocked: true,
+      });
+    }
+
     // Check if sender is flagged by this NGO (if receiver is NGO)
     if (receiver.role === "ngo") {
-      const settings = await Settings.getInstance();
-      const flagThreshold = settings.autoFlagThreshold || 3;
+      // Auto-flag user after 3 reports
+      const flagThreshold = 3;
 
       const flag = await UserFlag.findOne({
         reportedUserId: sender_id,
@@ -296,10 +335,135 @@ const getConversations = async (req, res) => {
   }
 };
 
+/* ================= BLOCK USER ================= */
+
+const blockUser = async (req, res) => {
+  try {
+    const { blockedUserId } = req.body;
+    const blockingUserId = req.user.userId;
+
+    // Prevent blocking yourself
+    if (blockedUserId === blockingUserId) {
+      return res.status(400).json({ message: "You cannot block yourself" });
+    }
+
+    // Check if already blocked
+    const user = await User.findById(blockingUserId);
+    if (user.blockedUsers.includes(blockedUserId)) {
+      return res.status(400).json({ message: "User already blocked" });
+    }
+
+    // Add user to blocked list
+    await User.findByIdAndUpdate(blockingUserId, {
+      $push: { blockedUsers: blockedUserId },
+    });
+
+    console.log(`[BLOCK USER] User ${blockingUserId} blocked ${blockedUserId}`);
+
+    res.status(200).json({
+      message: "User blocked successfully. They cannot message you anymore.",
+    });
+  } catch (error) {
+    console.error("Block user error:", error);
+    res.status(500).json({ message: "Error blocking user" });
+  }
+};
+
+/* ================= UNBLOCK USER ================= */
+
+const unblockUser = async (req, res) => {
+  try {
+    const { blockedUserId } = req.body;
+    const blockingUserId = req.user.userId;
+
+    // Remove user from blocked list
+    await User.findByIdAndUpdate(blockingUserId, {
+      $pull: { blockedUsers: blockedUserId },
+    });
+
+    console.log(
+      `[UNBLOCK USER] User ${blockingUserId} unblocked ${blockedUserId}`,
+    );
+
+    res.status(200).json({
+      message: "User unblocked successfully.",
+    });
+  } catch (error) {
+    console.error("Unblock user error:", error);
+    res.status(500).json({ message: "Error unblocking user" });
+  }
+};
+
+/* ================= GET BLOCKED USERS ================= */
+
+const getBlockedUsers = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const user = await User.findById(userId).populate(
+      "blockedUsers",
+      "name email role",
+    );
+
+    res.status(200).json(user.blockedUsers || []);
+  } catch (error) {
+    console.error("Get blocked users error:", error);
+    res.status(500).json({ message: "Error fetching blocked users" });
+  }
+};
+
+/* ================= DELETE CONVERSATION ================= */
+
+const deleteConversation = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { conversationId, otherUserId } = req.body;
+
+    if (!conversationId || !otherUserId) {
+      return res.status(400).json({
+        message: "Conversation ID and other user ID are required",
+      });
+    }
+
+    // Verify the conversation exists and user is part of it
+    const conversation = await Message.findOne({
+      conversationId,
+      $or: [{ sender_id: userId }, { receiver_id: userId }],
+    });
+
+    if (!conversation) {
+      return res.status(404).json({
+        message: "Conversation not found or access denied",
+      });
+    }
+
+    // Delete all messages in this conversation
+    const result = await Message.deleteMany({ conversationId });
+
+    console.log(
+      `[DELETE CONVERSATION] User ${userId} deleted conversation with ${otherUserId}. Deleted ${result.deletedCount} messages.`,
+    );
+
+    res.status(200).json({
+      message: "Conversation deleted successfully",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("[DELETE CONVERSATION ERROR]:", error);
+    res.status(500).json({
+      message: "Failed to delete conversation",
+    });
+  }
+};
+
 export default {
   getMessages,
   sendMessage,
   getConversations,
   flagUser,
   unflagUser,
+  blockUser,
+  unblockUser,
+  getBlockedUsers,
+  deleteConversation,
 };

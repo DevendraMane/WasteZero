@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
+import { useDarkMode } from "../store/DarkModeContext";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -20,7 +21,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logoutUser } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   const roleMenus = {
     volunteer: [
@@ -57,9 +58,19 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 bg-white border-r h-screen flex flex-col">
+    <div
+      className={`w-64 border-r h-screen flex flex-col transition duration-300 ${
+        isDarkMode ? "bg-gray-900 border-gray-800" : "bg-white"
+      }`}
+    >
       {/* FIXED LOGO — outside scroll area */}
-      <div className="px-6 pt-6 pb-4 border-b bg-white shrink-0">
+      <div
+        className={`px-6 pt-6 pb-4 border-b shrink-0 transition duration-300 ${
+          isDarkMode
+            ? "bg-gray-800 border-gray-700"
+            : "bg-white border-gray-200"
+        }`}
+      >
         <div className="flex items-center gap-3">
           <div className="bg-green-100 p-2 rounded-xl shadow-sm">
             <img
@@ -68,7 +79,11 @@ const Sidebar = () => {
               className="w-8 h-8 object-contain"
             />
           </div>
-          <span className="text-xl font-bold tracking-wide text-gray-800">
+          <span
+            className={`text-xl font-bold tracking-wide ${
+              isDarkMode ? "text-gray-100" : "text-gray-800"
+            }`}
+          >
             <span className="text-green-600">Waste</span>Zero
           </span>
         </div>
@@ -77,7 +92,11 @@ const Sidebar = () => {
       {/* SCROLLABLE CONTENT */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
         {/* USER INFO */}
-        <div className="mb-8 border-b pb-6">
+        <div
+          className={`mb-8 border-b pb-6 transition duration-300 ${
+            isDarkMode ? "border-gray-700" : "border-gray-200"
+          }`}
+        >
           <div className="flex items-center gap-3">
             <div className="relative group">
               <img
@@ -111,10 +130,18 @@ const Sidebar = () => {
             </div>
 
             <div>
-              <p className="font-medium text-gray-800">
+              <p
+                className={`font-medium ${
+                  isDarkMode ? "text-gray-100" : "text-gray-800"
+                }`}
+              >
                 {user?.name || "User"}
               </p>
-              <span className="text-sm text-gray-500 capitalize">
+              <span
+                className={`text-sm ${
+                  isDarkMode ? "text-gray-400" : "text-gray-500"
+                } capitalize`}
+              >
                 {user?.role || "Role"}
               </span>
             </div>
@@ -122,7 +149,11 @@ const Sidebar = () => {
         </div>
 
         {/* MAIN MENU */}
-        <div className="text-xs text-gray-400 uppercase tracking-wider mb-3">
+        <div
+          className={`text-xs tracking-wider mb-3 ${
+            isDarkMode ? "text-gray-500" : "text-gray-400"
+          } uppercase`}
+        >
           Main Menu
         </div>
 
@@ -137,8 +168,12 @@ const Sidebar = () => {
                 onClick={() => navigate(item.path)}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${
                   isActive
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-600 hover:bg-gray-50"
+                    ? isDarkMode
+                      ? "bg-gray-800 text-green-400 font-medium"
+                      : "bg-gray-100 text-gray-900 font-medium"
+                    : isDarkMode
+                      ? "text-gray-300 hover:bg-gray-800"
+                      : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 <Icon size={18} />
@@ -149,7 +184,11 @@ const Sidebar = () => {
         </nav>
 
         {/* SETTINGS SECTION */}
-        <div className="text-xs text-gray-400 uppercase tracking-wider mt-8 mb-3">
+        <div
+          className={`text-xs tracking-wider mt-8 mb-3 ${
+            isDarkMode ? "text-gray-500" : "text-gray-400"
+          } uppercase`}
+        >
           Settings
         </div>
 
@@ -158,8 +197,12 @@ const Sidebar = () => {
             onClick={() => navigate("/profile")}
             className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition ${
               location.pathname === "/profile"
-                ? "bg-gray-100 text-gray-900 font-medium"
-                : "text-gray-600 hover:bg-gray-50"
+                ? isDarkMode
+                  ? "bg-gray-800 text-green-400 font-medium"
+                  : "bg-gray-100 text-gray-900 font-medium"
+                : isDarkMode
+                  ? "text-gray-300 hover:bg-gray-800"
+                  : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             <div className="relative">
@@ -180,8 +223,12 @@ const Sidebar = () => {
             onClick={() => navigate("/settings")}
             className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition ${
               location.pathname === "/settings"
-                ? "bg-gray-100 text-gray-900 font-medium"
-                : "text-gray-600 hover:bg-gray-50"
+                ? isDarkMode
+                  ? "bg-gray-800 text-green-400 font-medium"
+                  : "bg-gray-100 text-gray-900 font-medium"
+                : isDarkMode
+                  ? "text-gray-300 hover:bg-gray-800"
+                  : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             <Settings size={18} />
@@ -193,8 +240,12 @@ const Sidebar = () => {
               onClick={() => navigate("/help")}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition ${
                 location.pathname === "/help"
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? isDarkMode
+                    ? "bg-gray-800 text-green-400 font-medium"
+                    : "bg-gray-100 text-gray-900 font-medium"
+                  : isDarkMode
+                    ? "text-gray-300 hover:bg-gray-800"
+                    : "text-gray-600 hover:bg-gray-50"
               }`}
             >
               <HelpCircle size={18} />
@@ -205,19 +256,31 @@ const Sidebar = () => {
       </div>
 
       {/* FIXED BOTTOM SECTION */}
-      <div className="border-t px-6 py-6 bg-white">
+      <div
+        className={`border-t px-6 py-6 transition duration-300 ${
+          isDarkMode
+            ? "bg-gray-800 border-gray-700"
+            : "bg-white border-gray-200"
+        }`}
+      >
         {/* DARK MODE */}
         <div className="flex items-center justify-between mb-4">
-          <span className="text-sm text-gray-600">Dark Mode</span>
+          <span
+            className={`text-sm ${
+              isDarkMode ? "text-gray-300" : "text-gray-600"
+            }`}
+          >
+            Dark Mode
+          </span>
           <button
-            onClick={() => setDarkMode(!darkMode)}
+            onClick={toggleDarkMode}
             className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
-              darkMode ? "bg-gray-800" : "bg-gray-300"
+              isDarkMode ? "bg-green-600" : "bg-gray-300"
             }`}
           >
             <div
               className={`w-4 h-4 bg-white rounded-full shadow-md transform transition ${
-                darkMode ? "translate-x-6" : ""
+                isDarkMode ? "translate-x-6" : ""
               }`}
             />
           </button>
@@ -226,13 +289,13 @@ const Sidebar = () => {
         {/* SIGN OUT */}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 
-                   border border-red-300 
-                   text-red-600 
+          className={`w-full flex items-center justify-center gap-2 
                    py-2.5 rounded-lg 
-                   hover:bg-red-50 
-                   hover:border-red-400
-                   transition font-medium"
+                   transition font-medium ${
+                     isDarkMode
+                       ? "border border-red-800 text-red-400 hover:bg-red-900 hover:border-red-700"
+                       : "border border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400"
+                   }`}
         >
           <LogOut size={16} />
           Sign Out

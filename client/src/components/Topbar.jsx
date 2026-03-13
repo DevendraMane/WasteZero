@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
+import { useDarkMode } from "../store/DarkModeContext";
 import { socket } from "../utils/socket";
 import { motion } from "framer-motion";
+import SearchBar from "./SearchBar";
 
 const Topbar = () => {
   const navigate = useNavigate();
   const { user, logoutUser, API, authorizationToken } = useAuth();
+  const { isDarkMode } = useDarkMode();
 
   const [showMenu, setShowMenu] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -82,16 +85,14 @@ const Topbar = () => {
   };
 
   return (
-    <div className="flex items-center justify-between px-8 py-4 bg-white shadow-sm">
-      {/* SEARCH */}
+    <div
+      className={`flex items-center justify-between px-8 py-4 shadow-sm transition duration-300 ${
+        isDarkMode ? "bg-gray-800 border-b border-gray-700" : "bg-white"
+      }`}
+    >
+      {/* SEARCH BAR */}
 
-      <div className="w-1/2">
-        <input
-          type="text"
-          placeholder="Search pickups, opportunities..."
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
+      <SearchBar />
 
       {/* RIGHT SECTION */}
 
@@ -101,7 +102,13 @@ const Topbar = () => {
         <button
           onClick={handleBellClick}
           className={`relative w-10 h-10 flex items-center justify-center rounded-full transition
-          ${unreadCount > 0 ? "bg-green-100" : "bg-gray-100 hover:bg-gray-200"}`}
+          ${
+            unreadCount > 0
+              ? "bg-green-100"
+              : isDarkMode
+                ? "bg-gray-700 hover:bg-gray-600"
+                : "bg-gray-100 hover:bg-gray-200"
+          }`}
         >
           <motion.span
             className="text-xl"
@@ -132,7 +139,11 @@ const Topbar = () => {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setShowMenu((prev) => !prev)}
-            className="flex items-center gap-3 bg-gray-100 px-3 py-2 rounded-full hover:bg-gray-200 transition"
+            className={`flex items-center gap-3 px-3 py-2 rounded-full transition ${
+              isDarkMode
+                ? "bg-gray-700 hover:bg-gray-600"
+                : "bg-gray-100 hover:bg-gray-200"
+            }`}
           >
             <div className="relative">
               <img
@@ -167,17 +178,33 @@ const Topbar = () => {
               )}
             </div>
 
-            <span className="font-medium text-sm">{user?.name || "User"}</span>
+            <span
+              className={`font-medium text-sm ${
+                isDarkMode ? "text-gray-100" : "text-gray-900"
+              }`}
+            >
+              {user?.name || "User"}
+            </span>
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 mt-3 w-48 bg-white shadow-xl rounded-xl border overflow-hidden z-50">
+            <div
+              className={`absolute right-0 mt-3 w-48 rounded-xl border overflow-hidden z-50 transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 border-gray-600 shadow-lg"
+                  : "bg-white border-gray-200 shadow-xl"
+              }`}
+            >
               <button
                 onClick={() => {
                   navigate("/profile");
                   setShowMenu(false);
                 }}
-                className="w-full text-left px-4 py-3 hover:bg-gray-100"
+                className={`w-full text-left px-4 py-3 transition ${
+                  isDarkMode
+                    ? "hover:bg-gray-600 text-gray-100"
+                    : "hover:bg-gray-100 text-gray-900"
+                }`}
               >
                 My Profile
               </button>
@@ -187,16 +214,26 @@ const Topbar = () => {
                   navigate("/settings");
                   setShowMenu(false);
                 }}
-                className="w-full text-left px-4 py-3 hover:bg-gray-100"
+                className={`w-full text-left px-4 py-3 transition ${
+                  isDarkMode
+                    ? "hover:bg-gray-600 text-gray-100"
+                    : "hover:bg-gray-100 text-gray-900"
+                }`}
               >
                 Settings
               </button>
 
-              <div className="border-t"></div>
+              <div
+                className={`${isDarkMode ? "border-gray-600" : "border-gray-200"} border-t`}
+              ></div>
 
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50"
+                className={`w-full text-left px-4 py-3 transition ${
+                  isDarkMode
+                    ? "text-red-400 hover:bg-gray-600"
+                    : "text-red-600 hover:bg-red-50"
+                }`}
               >
                 Logout
               </button>

@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 
 const OpportunitiesDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { API, authorizationToken, user } = useAuth();
+  const { isDarkMode } = useDarkMode();
 
   const [opportunity, setOpportunity] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -92,11 +94,23 @@ const OpportunitiesDetail = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-20">Loading...</div>;
+    return (
+      <div
+        className={`text-center py-20 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+      >
+        Loading...
+      </div>
+    );
   }
 
   if (!opportunity) {
-    return <div className="text-center py-20">Opportunity not found</div>;
+    return (
+      <div
+        className={`text-center py-20 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+      >
+        Opportunity not found
+      </div>
+    );
   }
 
   const isClosed = new Date(opportunity.date) < new Date();
@@ -115,7 +129,11 @@ const OpportunitiesDetail = () => {
 
       <button
         onClick={() => navigate("/opportunities")}
-        className="text-gray-500 hover:text-green-600 transition"
+        className={`transition ${
+          isDarkMode
+            ? "text-gray-400 hover:text-green-400"
+            : "text-gray-500 hover:text-green-600"
+        }`}
       >
         ← Back to Opportunities
       </button>
@@ -124,22 +142,38 @@ const OpportunitiesDetail = () => {
 
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold text-gray-800">
+          <h1
+            className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+          >
             {opportunity.title}
           </h1>
 
           {isClosed ? (
-            <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
+            <span
+              className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                isDarkMode
+                  ? "bg-red-900 text-red-200"
+                  : "bg-red-100 text-red-600"
+              }`}
+            >
               Closed
             </span>
           ) : (
-            <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">
+            <span
+              className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                isDarkMode
+                  ? "bg-green-900 text-green-200"
+                  : "bg-green-100 text-green-700"
+              }`}
+            >
               Open
             </span>
           )}
         </div>
 
-        <p className="text-gray-500 mt-1">Volunteer opportunity details</p>
+        <p className={`mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+          Volunteer opportunity details
+        </p>
       </div>
 
       {/* MAIN GRID */}
@@ -164,21 +198,43 @@ const OpportunitiesDetail = () => {
 
           {/* DESCRIPTION */}
 
-          <div className="bg-white p-6 rounded-2xl shadow-md">
-            <h2 className="text-xl font-semibold mb-3">Description</h2>
-            <p className="text-gray-600">{opportunity.description}</p>
+          <div
+            className={`p-6 rounded-2xl shadow-md transition duration-300 ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h2
+              className={`text-xl font-semibold mb-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+            >
+              Description
+            </h2>
+            <p className={isDarkMode ? "text-gray-300" : "text-gray-600"}>
+              {opportunity.description}
+            </p>
           </div>
 
           {/* SKILLS */}
 
-          <div className="bg-white p-6 rounded-2xl shadow-md">
-            <h2 className="text-xl font-semibold mb-3">Required Skills</h2>
+          <div
+            className={`p-6 rounded-2xl shadow-md transition duration-300 ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h2
+              className={`text-xl font-semibold mb-3 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+            >
+              Required Skills
+            </h2>
 
             <div className="flex flex-wrap gap-2">
               {opportunity.required_skills?.map((skill, index) => (
                 <span
                   key={index}
-                  className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm"
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    isDarkMode
+                      ? "bg-green-900 text-green-200"
+                      : "bg-green-100 text-green-700"
+                  }`}
                 >
                   {skill}
                 </span>
@@ -189,10 +245,20 @@ const OpportunitiesDetail = () => {
 
         {/* RIGHT */}
 
-        <div className="bg-white p-6 rounded-2xl shadow-md space-y-6 h-fit">
-          <h2 className="text-xl font-semibold">Opportunity Details</h2>
+        <div
+          className={`p-6 rounded-2xl shadow-md space-y-6 h-fit transition duration-300 ${
+            isDarkMode ? "bg-gray-800" : "bg-white"
+          }`}
+        >
+          <h2
+            className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          >
+            Opportunity Details
+          </h2>
 
-          <div className="space-y-3 text-gray-600">
+          <div
+            className={`space-y-3 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}
+          >
             <p>📅 Date: {formattedDate}</p>
             <p>⏱ Duration: {opportunity.duration}</p>
             <p>📍 Location: {opportunity.location}</p>
@@ -205,7 +271,11 @@ const OpportunitiesDetail = () => {
             <div className="flex gap-3 pt-4">
               <button
                 onClick={() => navigate(`/opportunities/edit/${id}`)}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 py-2 rounded-lg transition"
+                className={`flex-1 py-2 rounded-lg transition ${
+                  isDarkMode
+                    ? "bg-gray-700 hover:bg-gray-600 text-gray-100"
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+                }`}
               >
                 Edit
               </button>
@@ -245,21 +315,33 @@ const OpportunitiesDetail = () => {
               ) : applicationStatus === "pending" ? (
                 <button
                   disabled
-                  className="w-full bg-yellow-100 text-yellow-700 py-2 rounded-lg"
+                  className={`w-full py-2 rounded-lg ${
+                    isDarkMode
+                      ? "bg-yellow-900 text-yellow-200"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
                 >
                   Applied (Pending)
                 </button>
               ) : applicationStatus === "rejected" ? (
                 <button
                   disabled
-                  className="w-full bg-red-100 text-red-600 py-2 rounded-lg"
+                  className={`w-full py-2 rounded-lg ${
+                    isDarkMode
+                      ? "bg-red-900 text-red-200"
+                      : "bg-red-100 text-red-600"
+                  }`}
                 >
                   Rejected
                 </button>
               ) : isClosed ? (
                 <button
                   disabled
-                  className="w-full bg-gray-200 text-gray-500 py-2 rounded-lg cursor-not-allowed"
+                  className={`w-full py-2 rounded-lg cursor-not-allowed ${
+                    isDarkMode
+                      ? "bg-gray-700 text-gray-400"
+                      : "bg-gray-200 text-gray-500"
+                  }`}
                 >
                   Opportunity Closed
                 </button>

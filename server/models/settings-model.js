@@ -16,17 +16,6 @@ const settingsSchema = new mongoose.Schema(
       default: true,
     },
 
-    // Moderation
-    enableMessageMonitoring: {
-      type: Boolean,
-      default: true,
-    },
-    autoFlagThreshold: {
-      type: Number,
-      default: 3,
-      min: 1,
-    },
-
     // System Configuration
     platformName: {
       type: String,

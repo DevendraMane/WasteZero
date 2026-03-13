@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 
 const PickupManagement = () => {
   const { API, authorizationToken } = useAuth();
+  const { isDarkMode } = useDarkMode();
 
   const [pickups, setPickups] = useState([]);
 
@@ -100,14 +102,29 @@ const PickupManagement = () => {
     if (res.ok) fetchPickups();
   };
 
-  if (loading) return <div>Loading pickups...</div>;
+  if (loading)
+    return (
+      <div className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
+        Loading pickups...
+      </div>
+    );
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold">Pickup Management</h1>
+      <h1
+        className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+      >
+        Pickup Management
+      </h1>
 
       {pickups.length === 0 ? (
-        <div className="text-gray-400 text-center py-10 border border-dashed rounded-lg">
+        <div
+          className={`text-center py-10 border border-dashed rounded-lg ${
+            isDarkMode
+              ? "text-gray-400 border-gray-700 bg-gray-800"
+              : "text-gray-400 border-gray-300 bg-white"
+          }`}
+        >
           No pickup requests
         </div>
       ) : (
@@ -118,14 +135,22 @@ const PickupManagement = () => {
             return (
               <div
                 key={pickup._id}
-                className="bg-white p-6 rounded-xl shadow flex justify-between items-center"
+                className={`p-6 rounded-xl shadow flex justify-between items-center transition duration-300 ${
+                  isDarkMode
+                    ? "bg-gray-800 border border-gray-700"
+                    : "bg-white border border-gray-200"
+                }`}
               >
                 <div>
-                  <p className="font-semibold text-gray-800">
+                  <p
+                    className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+                  >
                     {pickup.category} Waste Pickup
                   </p>
 
-                  <p className="text-sm text-gray-500">
+                  <p
+                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                  >
                     📅 {dateObj.toLocaleDateString()} | ⏱{" "}
                     {dateObj.toLocaleTimeString([], {
                       hour: "2-digit",
@@ -133,11 +158,15 @@ const PickupManagement = () => {
                     })}
                   </p>
 
-                  <p className="text-sm text-gray-500">
+                  <p
+                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                  >
                     Volunteer: {pickup.user_id?.name}
                   </p>
 
-                  <p className="text-sm text-gray-500">
+                  <p
+                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                  >
                     Location: {pickup.location || "N/A"}
                   </p>
                 </div>
@@ -155,7 +184,11 @@ const PickupManagement = () => {
                             [pickup._id]: e.target.value,
                           }))
                         }
-                        className="border px-3 py-1 rounded"
+                        className={`px-3 py-1 rounded transition ${
+                          isDarkMode
+                            ? "bg-gray-700 border border-gray-600 text-white"
+                            : "bg-white border border-gray-300 text-gray-900"
+                        }`}
                       >
                         <option value="">Select Agent</option>
 
@@ -168,7 +201,7 @@ const PickupManagement = () => {
 
                       <button
                         onClick={() => assignAgent(pickup._id)}
-                        className="bg-blue-600 text-white px-4 py-1 rounded"
+                        className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
                       >
                         Assign
                       </button>
@@ -195,7 +228,9 @@ const PickupManagement = () => {
                     </button>
                   )}
 
-                  <span className="text-sm text-gray-500">
+                  <span
+                    className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                  >
                     Status: {pickup.status}
                   </span>
                 </div>

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 
-const AdminMessages = () => {
+const AdminMessages = ({ isDarkMode = false }) => {
   const [selected, setSelected] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
@@ -86,21 +86,50 @@ const AdminMessages = () => {
     }
   };
 
+  const getStatusColorDark = (status) => {
+    switch (status) {
+      case "safe":
+        return "bg-green-900 text-green-200";
+      case "under_review":
+        return "bg-yellow-900 text-yellow-200";
+      case "flagged":
+        return "bg-red-900 text-red-200";
+      case "system":
+        return "bg-blue-900 text-blue-200";
+      default:
+        return "bg-gray-700 text-gray-300";
+    }
+  };
+
   return (
-    <div className="flex flex-col h-[85vh] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div
+      className={`flex flex-col h-[85vh] rounded-xl shadow-sm border overflow-hidden transition duration-300 ${
+        isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
+      }`}
+    >
       {/* HEADER + FILTER */}
-      <div className="p-6 border-b space-y-4">
-        <h1 className="text-2xl font-semibold">Admin Message Monitoring</h1>
+      <div
+        className={`p-6 border-b space-y-4 transition duration-300 ${
+          isDarkMode ? "border-gray-700" : "border-gray-200"
+        }`}
+      >
+        <h1
+          className={`text-2xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+        >
+          Admin Message Monitoring
+        </h1>
 
         <div className="flex gap-3 flex-wrap">
           {["all", "flagged", "under_review", "system"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg text-sm ${
+              className={`px-4 py-2 rounded-lg text-sm transition duration-300 ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
-                  : "bg-gray-100 hover:bg-gray-200"
+                  : isDarkMode
+                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    : "bg-gray-100 hover:bg-gray-200"
               }`}
             >
               {tab.replace("_", " ")}
@@ -113,18 +142,34 @@ const AdminMessages = () => {
           placeholder="Search conversations..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full border rounded-lg px-4 py-2"
+          className={`w-full rounded-lg px-4 py-2 border transition duration-300 ${
+            isDarkMode
+              ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+              : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+          }`}
         />
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* LEFT PANEL */}
-        <div className="w-1/3 border-r bg-gray-50 overflow-y-auto">
+        <div
+          className={`w-1/3 border-r overflow-y-auto transition duration-300 ${
+            isDarkMode
+              ? "bg-gray-800 border-gray-700"
+              : "bg-gray-50 border-gray-200"
+          }`}
+        >
           {filteredConversations.map((conv, index) => (
             <div
               key={conv.id}
-              className={`p-4 border-b cursor-pointer hover:bg-gray-100 ${
-                selected === index ? "bg-gray-100" : ""
+              className={`p-4 border-b cursor-pointer transition duration-300 ${
+                isDarkMode
+                  ? `border-gray-700 ${
+                      selected === index ? "bg-gray-700" : "hover:bg-gray-700"
+                    }`
+                  : `border-gray-200 ${
+                      selected === index ? "bg-gray-100" : "hover:bg-gray-100"
+                    }`
               }`}
               onClick={() => setSelected(index)}
             >
@@ -138,25 +183,35 @@ const AdminMessages = () => {
                       toggleBulk(conv.id);
                     }}
                   />
-                  <p className="text-sm font-medium">{conv.participants}</p>
+                  <p
+                    className={`text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+                  >
+                    {conv.participants}
+                  </p>
                 </div>
 
                 <span
-                  className={`text-xs px-2 py-1 rounded-full ${getStatusColor(
-                    conv.status,
-                  )}`}
+                  className={`text-xs px-2 py-1 rounded-full ${
+                    isDarkMode
+                      ? getStatusColorDark(conv.status)
+                      : getStatusColor(conv.status)
+                  }`}
                 >
                   {conv.status.replace("_", " ")}
                 </span>
               </div>
 
               {conv.reports > 0 && (
-                <p className="text-xs text-red-500 mt-1">
+                <p
+                  className={`text-xs mt-1 ${isDarkMode ? "text-red-400" : "text-red-500"}`}
+                >
                   🚨 {conv.reports} reports
                 </p>
               )}
 
-              <p className="text-xs text-gray-500 mt-1">
+              <p
+                className={`text-xs mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
                 Risk Score: {conv.riskScore}%
               </p>
             </div>
@@ -168,10 +223,22 @@ const AdminMessages = () => {
           {current ? (
             <>
               {/* HEADER */}
-              <div className="p-4 border-b flex justify-between items-center">
+              <div
+                className={`p-4 border-b flex justify-between items-center transition duration-300 ${
+                  isDarkMode
+                    ? "bg-gray-800 border-gray-700"
+                    : "bg-white border-gray-200"
+                }`}
+              >
                 <div>
-                  <h3 className="font-semibold">{current.participants}</h3>
-                  <p className="text-xs text-gray-500">
+                  <h3
+                    className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+                  >
+                    {current.participants}
+                  </h3>
+                  <p
+                    className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                  >
                     Last activity: {current.lastActivity}
                   </p>
                 </div>
@@ -179,19 +246,27 @@ const AdminMessages = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => confirmAction("Marked Safe")}
-                    className="px-3 py-1 border rounded hover:bg-gray-50"
+                    className={`px-3 py-1 rounded border transition duration-300 ${
+                      isDarkMode
+                        ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
                     Mark Safe
                   </button>
                   <button
                     onClick={() => confirmAction("Flagged Conversation")}
-                    className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                    className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition duration-300"
                   >
                     Flag
                   </button>
                   <button
                     onClick={() => confirmAction("Suspended User")}
-                    className="px-3 py-1 border border-red-300 text-red-600 rounded hover:bg-red-50"
+                    className={`px-3 py-1 rounded border transition duration-300 ${
+                      isDarkMode
+                        ? "border-red-700 text-red-400 hover:bg-red-900"
+                        : "border-red-300 text-red-600 hover:bg-red-50"
+                    }`}
                   >
                     Suspend
                   </button>
@@ -199,47 +274,90 @@ const AdminMessages = () => {
               </div>
 
               {/* CHAT VIEW */}
-              <div className="flex-1 p-6 bg-gray-50 overflow-y-auto space-y-3">
+              <div
+                className={`flex-1 p-6 overflow-y-auto space-y-3 transition duration-300 ${
+                  isDarkMode ? "bg-gray-900" : "bg-gray-50"
+                }`}
+              >
                 {current.messages.map((msg, i) => (
-                  <div key={i} className="bg-white p-3 rounded-lg shadow-sm">
-                    <p className="text-xs text-gray-500 mb-1">{msg.sender}</p>
-                    <p className="text-sm">{msg.text}</p>
+                  <div
+                    key={i}
+                    className={`p-3 rounded-lg shadow-sm transition duration-300 ${
+                      isDarkMode ? "bg-gray-800" : "bg-white"
+                    }`}
+                  >
+                    <p
+                      className={`text-xs mb-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                    >
+                      {msg.sender}
+                    </p>
+                    <p
+                      className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+                    >
+                      {msg.text}
+                    </p>
                   </div>
                 ))}
               </div>
 
               {/* INSIGHTS + NOTES */}
-              <div className="p-4 border-t bg-white space-y-4">
+              <div
+                className={`p-4 border-t space-y-4 transition duration-300 ${
+                  isDarkMode
+                    ? "bg-gray-800 border-gray-700"
+                    : "bg-white border-gray-200"
+                }`}
+              >
                 <div>
-                  <h4 className="font-medium text-sm mb-2">
+                  <h4
+                    className={`font-medium text-sm mb-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+                  >
                     Conversation Insights
                   </h4>
-                  <p className="text-xs text-gray-600">
+                  <p
+                    className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                  >
                     Total Messages: {current.messages.length}
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p
+                    className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                  >
                     Reports: {current.reports}
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p
+                    className={`text-xs ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                  >
                     Risk Score: {current.riskScore}%
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-sm mb-2">Moderation Notes</h4>
+                  <h4
+                    className={`font-medium text-sm mb-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+                  >
+                    Moderation Notes
+                  </h4>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full border rounded-lg p-2 text-sm"
+                    className={`w-full rounded-lg p-2 text-sm border transition duration-300 ${
+                      isDarkMode
+                        ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                        : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+                    }`}
                     placeholder="Add internal note..."
                   />
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-sm mb-2">
+                  <h4
+                    className={`font-medium text-sm mb-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+                  >
                     Activity Timeline
                   </h4>
-                  <div className="text-xs text-gray-600 space-y-1 max-h-24 overflow-y-auto">
+                  <div
+                    className={`text-xs space-y-1 max-h-24 overflow-y-auto ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                  >
                     {timeline.length === 0 && <p>No moderation actions yet.</p>}
                     {timeline.map((item, i) => (
                       <p key={i}>{item}</p>
@@ -249,7 +367,13 @@ const AdminMessages = () => {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-400">
+            <div
+              className={`flex-1 flex items-center justify-center transition duration-300 ${
+                isDarkMode
+                  ? "text-gray-500 bg-gray-900"
+                  : "text-gray-400 bg-white"
+              }`}
+            >
               Select a conversation
             </div>
           )}

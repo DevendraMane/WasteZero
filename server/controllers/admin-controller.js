@@ -67,10 +67,49 @@ const getDashboardStats = async (req, res) => {
       "Dec",
     ];
 
-    const barData = monthlyPickups.map((item) => ({
-      month: monthNames[item._id.month - 1],
-      pickups: item.pickups,
-    }));
+    // Monthly opportunities for the last 6 months
+    const monthlyOpportunities = await Opportunity.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          opportunities: { $sum: 1 },
+        },
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } },
+    ]);
+
+    // Create array of all months in the last 6 months
+    const currentDate = new Date();
+    const barData = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - i,
+        1,
+      );
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const monthName = monthNames[month - 1];
+
+      const pickupCount =
+        monthlyPickups.find((p) => p._id.year === year && p._id.month === month)
+          ?.pickups || 0;
+
+      const opportunityCount =
+        monthlyOpportunities.find(
+          (o) => o._id.year === year && o._id.month === month,
+        )?.opportunities || 0;
+
+      barData.push({
+        month: monthName,
+        pickups: pickupCount,
+        opportunities: opportunityCount,
+      });
+    }
 
     // Recent users (last 5 registrations)
     const recentUsers = await User.find()
@@ -238,10 +277,55 @@ const getAnalytics = async (req, res) => {
       "Dec",
     ];
 
-    const monthlyPickupData = monthlyPickups.map((item) => ({
-      month: monthNames[item._id.month - 1],
-      pickups: item.count,
-    }));
+    // Monthly opportunities data (last 12 months or filtered range)
+    const monthlyOpportunities = await Opportunity.aggregate([
+      {
+        $match:
+          Object.keys(dateFilter).length > 0 ? { createdAt: dateFilter } : {},
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } },
+    ]);
+
+    // Merge pickups and opportunities data - include all months
+    const monthlyPickupData = [];
+    const startDate = fromDate
+      ? new Date(fromDate)
+      : new Date(new Date().setMonth(new Date().getMonth() - 11));
+    const endDate = toDate ? new Date(toDate) : new Date();
+
+    for (
+      let d = new Date(startDate);
+      d <= endDate;
+      d.setMonth(d.getMonth() + 1)
+    ) {
+      const year = d.getFullYear();
+      const month = d.getMonth() + 1;
+      const monthName = monthNames[month - 1];
+
+      const pickupCount =
+        monthlyPickups.find((p) => p._id.year === year && p._id.month === month)
+          ?.count || 0;
+
+      const opportunityCount =
+        monthlyOpportunities.find(
+          (o) => o._id.year === year && o._id.month === month,
+        )?.count || 0;
+
+      monthlyPickupData.push({
+        month: monthName,
+        pickups: pickupCount,
+        opportunities: opportunityCount,
+      });
+    }
 
     // User growth data (cumulative users over time)
     const userGrowth = await User.aggregate([

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 
 const VolunteerDashboard = () => {
   const { API, authorizationToken } = useAuth();
+  const { isDarkMode } = useDarkMode();
 
   const [applications, setApplications] = useState([]);
   const [pickups, setPickups] = useState([]);
@@ -64,10 +66,12 @@ const VolunteerDashboard = () => {
     <div className="space-y-10">
       {/* ================= HEADER ================= */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">
+        <h1
+          className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+        >
           Volunteer Dashboard
         </h1>
-        <p className="text-gray-500 mt-2">
+        <p className={`mt-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
           Manage your volunteering activities and waste pickups
         </p>
       </div>
@@ -104,13 +108,29 @@ const VolunteerDashboard = () => {
       </div>
 
       {/* ================= OPPORTUNITIES LIST ================= */}
-      <div className="bg-white p-6 rounded-2xl shadow-md">
-        <h2 className="text-xl font-semibold mb-6">My Joined Opportunities</h2>
+      <div
+        className={`p-6 rounded-2xl shadow-md transition duration-300 ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
+        <h2
+          className={`text-xl font-semibold mb-6 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+        >
+          My Joined Opportunities
+        </h2>
 
         {loadingApps ? (
-          <p className="text-gray-400">Loading...</p>
+          <p className={isDarkMode ? "text-gray-400" : "text-gray-400"}>
+            Loading...
+          </p>
         ) : applications.length === 0 ? (
-          <div className="text-gray-400 text-center py-8 border border-dashed rounded-lg">
+          <div
+            className={`text-center py-8 border border-dashed rounded-lg transition duration-300 ${
+              isDarkMode
+                ? "text-gray-400 border-gray-700 bg-gray-700"
+                : "text-gray-400 border-gray-300 bg-gray-50"
+            }`}
+          >
             You haven’t joined any opportunities yet
           </div>
         ) : (
@@ -122,30 +142,50 @@ const VolunteerDashboard = () => {
               return (
                 <div
                   key={app._id}
-                  className="p-4 border rounded-xl flex justify-between items-center"
+                  className={`p-4 rounded-xl flex justify-between items-center transition duration-300 ${
+                    isDarkMode
+                      ? "bg-gray-700 border border-gray-600"
+                      : "bg-white border border-gray-200"
+                  }`}
                 >
                   <div>
-                    <h3 className="font-semibold text-gray-800">
+                    <h3
+                      className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+                    >
                       {opp?.title}
                     </h3>
 
-                    <p className="text-sm text-gray-500">
+                    <p
+                      className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                    >
                       {opp?.location} • {opp?.duration}
                     </p>
 
                     {opp?.date && (
-                      <p className="text-sm text-gray-400">
+                      <p
+                        className={`text-sm ${isDarkMode ? "text-gray-500" : "text-gray-400"}`}
+                      >
                         📅 {new Date(opp.date).toLocaleDateString()}
                       </p>
                     )}
                   </div>
 
                   {isPast ? (
-                    <span className="text-xs px-3 py-1 rounded-full bg-red-100 text-red-600">
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full ${
+                        isDarkMode
+                          ? "bg-red-900 text-red-200"
+                          : "bg-red-100 text-red-600"
+                      }`}
+                    >
                       Closed
                     </span>
                   ) : (
-                    <StatusBadge status={app.status} date={opp?.date} />
+                    <StatusBadge
+                      status={app.status}
+                      date={opp?.date}
+                      isDarkMode={isDarkMode}
+                    />
                   )}
                 </div>
               );
@@ -168,12 +208,16 @@ const StatCard = ({ title, value, color }) => (
   </div>
 );
 
-const StatusBadge = ({ status, date }) => {
+const StatusBadge = ({ status, date, isDarkMode }) => {
   const isPast = new Date(date) < new Date();
 
   if (isPast && status === "accepted") {
     return (
-      <span className="text-xs px-3 py-1 rounded-full bg-gray-200 text-gray-600">
+      <span
+        className={`text-xs px-3 py-1 rounded-full ${
+          isDarkMode ? "bg-gray-600 text-gray-200" : "bg-gray-200 text-gray-600"
+        }`}
+      >
         Completed
       </span>
     );
@@ -181,10 +225,16 @@ const StatusBadge = ({ status, date }) => {
 
   const styles =
     status === "accepted"
-      ? "bg-green-100 text-green-700"
+      ? isDarkMode
+        ? "bg-green-900 text-green-200"
+        : "bg-green-100 text-green-700"
       : status === "rejected"
-        ? "bg-red-100 text-red-700"
-        : "bg-yellow-100 text-yellow-700";
+        ? isDarkMode
+          ? "bg-red-900 text-red-200"
+          : "bg-red-100 text-red-700"
+        : isDarkMode
+          ? "bg-yellow-900 text-yellow-200"
+          : "bg-yellow-100 text-yellow-700";
 
   return (
     <span className={`text-xs px-3 py-1 rounded-full ${styles}`}>{status}</span>

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 import axios from "axios";
 import debounce from "lodash.debounce";
 import MapPicker from "../../components/MapPicker";
 
 const SchedulePickups = () => {
   const { API, authorizationToken, user } = useAuth();
+  const { isDarkMode } = useDarkMode();
 
   const [showForm, setShowForm] = useState(false);
   const [pickups, setPickups] = useState([]);
@@ -204,10 +206,12 @@ const SchedulePickups = () => {
 
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">
+          <h1
+            className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+          >
             Pickup Scheduling
           </h1>
-          <p className="text-gray-500">
+          <p className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
             Schedule waste pickups and track collection status
           </p>
         </div>
@@ -232,13 +236,21 @@ const SchedulePickups = () => {
           showForm ? "max-h-[700px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="bg-white p-8 rounded-2xl shadow-md grid md:grid-cols-2 gap-6">
+        <div
+          className={`p-8 rounded-2xl shadow-md grid md:grid-cols-2 gap-6 transition duration-300 ${
+            isDarkMode ? "bg-gray-800" : "bg-white"
+          }`}
+        >
           <input
             type="date"
             name="date"
             value={formData.date}
             onChange={handleChange}
-            className="border px-4 py-2 rounded"
+            className={`px-4 py-2 rounded border transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            }`}
           />
 
           <input
@@ -246,14 +258,22 @@ const SchedulePickups = () => {
             name="time"
             value={formData.time}
             onChange={handleChange}
-            className="border px-4 py-2 rounded"
+            className={`px-4 py-2 rounded border transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            }`}
           />
 
           <select
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="border px-4 py-2 rounded md:col-span-2"
+            className={`px-4 py-2 rounded md:col-span-2 border transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            }`}
           >
             <option value="">Select Waste Type</option>
             <option value="Plastic">Plastic</option>
@@ -274,11 +294,21 @@ const SchedulePickups = () => {
                 setLocationQuery(value);
                 debouncedSearch(value);
               }}
-              className="border rounded-lg px-4 py-3 w-full"
+              className={`rounded-lg px-4 py-3 w-full border transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+              }`}
             />
 
             {suggestions.length > 0 && (
-              <div className="border rounded-lg max-h-40 overflow-y-auto">
+              <div
+                className={`rounded-lg max-h-40 overflow-y-auto border transition duration-300 ${
+                  isDarkMode
+                    ? "bg-gray-700 border-gray-600"
+                    : "bg-white border-gray-300"
+                }`}
+              >
                 {suggestions.map((place) => (
                   <div
                     key={place.place_id}
@@ -291,7 +321,11 @@ const SchedulePickups = () => {
                       setLocationQuery(place.display_name);
                       setSuggestions([]);
                     }}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    className={`px-4 py-2 cursor-pointer transition duration-300 ${
+                      isDarkMode
+                        ? "hover:bg-gray-600 text-gray-300"
+                        : "hover:bg-gray-100 text-gray-900"
+                    }`}
                   >
                     {place.display_name}
                   </div>
@@ -303,11 +337,17 @@ const SchedulePickups = () => {
           {/* MAP PICKER */}
 
           <div className="md:col-span-2">
-            <p className="text-sm text-gray-500 mb-2">
+            <p
+              className={`text-sm mb-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+            >
               Or pick exact pickup location on map
             </p>
 
-            <div className="h-64 rounded-xl overflow-hidden border">
+            <div
+              className={`h-64 rounded-xl overflow-hidden border transition duration-300 ${
+                isDarkMode ? "border-gray-600" : "border-gray-300"
+              }`}
+            >
               <MapPicker
                 setCoordinates={setCoordinates}
                 setLocation={(address) =>
@@ -323,7 +363,7 @@ const SchedulePickups = () => {
           <div className="md:col-span-2 flex justify-end">
             <button
               onClick={handleSubmitPickup}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
             >
               {editingPickup ? "Update Pickup" : "Confirm Pickup"}
             </button>
@@ -333,11 +373,25 @@ const SchedulePickups = () => {
 
       {/* PICKUP LIST */}
 
-      <div className="bg-white p-8 rounded-2xl shadow-md">
-        <h2 className="text-xl font-semibold mb-6">Your Pickups</h2>
+      <div
+        className={`p-8 rounded-2xl shadow-md transition duration-300 ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
+        <h2
+          className={`text-xl font-semibold mb-6 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+        >
+          Your Pickups
+        </h2>
 
         {pickups.length === 0 ? (
-          <div className="text-gray-400 text-center py-10 border border-dashed rounded-lg">
+          <div
+            className={`text-center py-10 border border-dashed rounded-lg transition duration-300 ${
+              isDarkMode
+                ? "text-gray-400 border-gray-700 bg-gray-900"
+                : "text-gray-400 border-gray-300 bg-white"
+            }`}
+          >
             No pickups scheduled yet
           </div>
         ) : (
@@ -346,7 +400,12 @@ const SchedulePickups = () => {
               const dateObj = new Date(pickup.scheduled_time);
 
               return (
-                <div key={pickup._id} className="border-b pb-4 space-y-2">
+                <div
+                  key={pickup._id}
+                  className={`border-b pb-4 space-y-2 transition duration-300 ${
+                    isDarkMode ? "border-gray-700" : "border-gray-200"
+                  }`}
+                >
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="font-medium text-gray-800">

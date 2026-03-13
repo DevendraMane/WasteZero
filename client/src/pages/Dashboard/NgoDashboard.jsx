@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 import CreateOpportunity from "../Opportunities/CreateOpportunity.jsx";
 
 const NgoDashboard = () => {
   const navigate = useNavigate();
   const { API, authorizationToken } = useAuth();
+  const { isDarkMode } = useDarkMode();
 
   const [showForm, setShowForm] = useState(false);
 
@@ -71,8 +73,12 @@ const NgoDashboard = () => {
     <div className="space-y-10">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">NGO Dashboard</h1>
-        <p className="text-gray-500 mt-2">
+        <h1
+          className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+        >
+          NGO Dashboard
+        </h1>
+        <p className={`mt-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
           Manage opportunities, review applications, and engage volunteers
         </p>
       </div>
@@ -105,27 +111,47 @@ const NgoDashboard = () => {
       </div>
 
       {/* QUICK ACTIONS */}
-      <div className="bg-white p-8 rounded-2xl shadow-md">
-        <h2 className="text-xl font-semibold mb-6">Quick Actions</h2>
+      <div
+        className={`p-8 rounded-2xl shadow-md transition duration-300 ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
+        <h2
+          className={`text-xl font-semibold mb-6 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+        >
+          Quick Actions
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button
             onClick={() => setShowForm(true)}
-            className="bg-green-100 hover:bg-green-200 transition p-5 rounded-xl font-medium text-green-700"
+            className={`transition p-5 rounded-xl font-medium ${
+              isDarkMode
+                ? "bg-green-900 hover:bg-green-800 text-green-200"
+                : "bg-green-100 hover:bg-green-200 text-green-700"
+            }`}
           >
             + Create New Opportunity
           </button>
 
           <button
             onClick={() => navigate("/opportunities")}
-            className="bg-indigo-100 hover:bg-indigo-200 transition p-5 rounded-xl font-medium text-indigo-700"
+            className={`transition p-5 rounded-xl font-medium ${
+              isDarkMode
+                ? "bg-indigo-900 hover:bg-indigo-800 text-indigo-200"
+                : "bg-indigo-100 hover:bg-indigo-200 text-indigo-700"
+            }`}
           >
             View All Opportunities
           </button>
 
           <button
             onClick={() => navigate("/applications")}
-            className="bg-orange-100 hover:bg-orange-200 transition p-5 rounded-xl font-medium text-orange-700"
+            className={`transition p-5 rounded-xl font-medium ${
+              isDarkMode
+                ? "bg-orange-900 hover:bg-orange-800 text-orange-200"
+                : "bg-orange-100 hover:bg-orange-200 text-orange-700"
+            }`}
           >
             Review Applications
           </button>
@@ -142,46 +168,108 @@ const NgoDashboard = () => {
         />
       )}
 
-      <div className="bg-white p-8 rounded-2xl shadow-md">
-        <h2 className="text-xl font-semibold mb-6">Recent Opportunities</h2>
+      <div
+        className={`p-8 rounded-2xl shadow-md transition duration-300 ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
+        <h2
+          className={`text-xl font-semibold mb-6 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+        >
+          Recent Opportunities
+        </h2>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="border-b">
+            <thead
+              className={`border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"}`}
+            >
               <tr>
-                <th className="py-3">Title</th>
-                <th className="py-3">Location</th>
-                <th className="py-3">Date</th>
-                <th className="py-3">Status</th>
-                <th className="py-3">Applications</th>
+                <th
+                  className={`py-3 ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+                >
+                  Title
+                </th>
+                <th
+                  className={`py-3 ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+                >
+                  Location
+                </th>
+                <th
+                  className={`py-3 ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+                >
+                  Date
+                </th>
+                <th
+                  className={`py-3 ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+                >
+                  Status
+                </th>
+                <th
+                  className={`py-3 ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+                >
+                  Applications
+                </th>
               </tr>
             </thead>
 
             <tbody>
               {recentOpportunities.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center py-6 text-gray-400">
+                  <td
+                    colSpan="5"
+                    className={`text-center py-6 ${isDarkMode ? "text-gray-400" : "text-gray-400"}`}
+                  >
                     No opportunities created yet
                   </td>
                 </tr>
               ) : (
                 recentOpportunities.map((opp) => (
-                  <tr key={opp._id} className="border-b hover:bg-gray-50">
-                    <td className="py-3">{opp.title}</td>
+                  <tr
+                    key={opp._id}
+                    className={`border-b transition ${
+                      isDarkMode
+                        ? "hover:bg-gray-700 border-gray-700"
+                        : "hover:bg-gray-50 border-gray-200"
+                    }`}
+                  >
+                    <td
+                      className={`py-3 ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+                    >
+                      {opp.title}
+                    </td>
 
-                    <td className="py-3">{opp.location}</td>
+                    <td
+                      className={`py-3 ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+                    >
+                      {opp.location}
+                    </td>
 
-                    <td className="py-3">
+                    <td
+                      className={`py-3 ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+                    >
                       {new Date(opp.date).toLocaleDateString()}
                     </td>
 
                     <td className="py-3">
                       {new Date(opp.date) < new Date() ? (
-                        <span className="px-3 py-1 rounded-full text-sm bg-red-100 text-red-600">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm ${
+                            isDarkMode
+                              ? "bg-red-900 text-red-200"
+                              : "bg-red-100 text-red-600"
+                          }`}
+                        >
                           Closed
                         </span>
                       ) : (
-                        <span className="px-3 py-1 rounded-full text-sm bg-green-100 text-green-700">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm ${
+                            isDarkMode
+                              ? "bg-green-900 text-green-200"
+                              : "bg-green-100 text-green-700"
+                          }`}
+                        >
                           Open
                         </span>
                       )}
@@ -200,7 +288,7 @@ const NgoDashboard = () => {
         <div className="text-center mt-6">
           <button
             onClick={() => navigate("/opportunities")}
-            className="text-green-600 hover:underline"
+            className={`hover:underline ${isDarkMode ? "text-green-400" : "text-green-600"}`}
           >
             View All Opportunities →
           </button>

@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useAuth } from "../../store/AuthContext";
+import { useDarkMode } from "../../store/DarkModeContext";
 const BASE_URL = "http://localhost:5000";
 
 const COLORS = {
@@ -23,6 +24,7 @@ const Impact = () => {
   const [pickups, setPickups] = useState([]);
   const [loading, setLoading] = useState(true);
   const { API, authorizationToken } = useAuth();
+  const { isDarkMode } = useDarkMode();
   console.log("Applications State:", applications);
   console.log("Pickups State:", pickups);
   /* FETCH DATA */
@@ -125,33 +127,72 @@ const Impact = () => {
   const hasWasteData = wasteBreakdown.some((w) => w.value > 0);
 
   if (loading)
-    return <div className="p-6 text-gray-500">Loading impact...</div>;
+    return (
+      <div className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
+        Loading impact...
+      </div>
+    );
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-800">
+    <div
+      className={`space-y-8 p-8 rounded-lg transition duration-300 ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
+    >
+      <h1
+        className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+      >
         My Environmental Impact
       </h1>
 
       {/* STAT CARDS */}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Opportunities Joined" value={total} icon="📋" />
-
-        <StatCard label="Accepted" value={accepted} icon="✅" />
-
-        <StatCard label="Hours Invested" value={`${totalHours}h`} icon="⏱️" />
-
-        <StatCard label="CO₂ Saved" value={`${co2Saved}kg`} icon="🌍" />
+        <StatCard
+          label="Opportunities Joined"
+          value={total}
+          icon="📋"
+          isDarkMode={isDarkMode}
+        />
+        <StatCard
+          label="Accepted"
+          value={accepted}
+          icon="✅"
+          isDarkMode={isDarkMode}
+        />
+        <StatCard
+          label="Hours Invested"
+          value={`${totalHours}h`}
+          icon="⏱️"
+          isDarkMode={isDarkMode}
+        />
+        <StatCard
+          label="CO₂ Saved"
+          value={`${co2Saved}kg`}
+          icon="🌍"
+          isDarkMode={isDarkMode}
+        />
       </div>
 
       {/* WASTE CHART */}
 
-      <div className="bg-white p-8 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">Waste Breakdown by Type</h2>
+      <div
+        className={`p-8 rounded-xl shadow transition duration-300 ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
+        <h2
+          className={`text-xl font-semibold mb-4 ${isDarkMode ? "text-white" : "text-gray-900"}`}
+        >
+          Waste Breakdown by Type
+        </h2>
 
         {!hasWasteData ? (
-          <div className="text-gray-400 text-center py-10 border border-dashed rounded-lg">
+          <div
+            className={`text-center py-10 border border-dashed rounded-lg transition duration-300 ${
+              isDarkMode
+                ? "text-gray-400 border-gray-700 bg-gray-900"
+                : "text-gray-400 border-gray-300 bg-white"
+            }`}
+          >
             No waste collected yet. Complete a pickup to see impact.
           </div>
         ) : (
@@ -176,17 +217,27 @@ const Impact = () => {
           </ResponsiveContainer>
         )}
 
-        <div className="mt-4 font-semibold text-green-600">
+        <div
+          className={`mt-4 font-semibold ${isDarkMode ? "text-green-400" : "text-green-600"}`}
+        >
           Total Waste Collected: {totalWaste} kg
         </div>
       </div>
 
       {/* STREAK */}
 
-      <div className="bg-white p-6 rounded-xl shadow flex justify-between items-center">
+      <div
+        className={`p-6 rounded-xl shadow flex justify-between items-center transition duration-300 ${
+          isDarkMode ? "bg-gray-800" : "bg-white"
+        }`}
+      >
         <div>
-          <div className="text-gray-500 text-sm">Participation Streak</div>
-          <div className="text-xl font-bold text-orange-500">
+          <div className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
+            Participation Streak
+          </div>
+          <div
+            className={`text-xl font-bold ${isDarkMode ? "text-orange-400" : "text-orange-500"}`}
+          >
             {streak} week{streak !== 1 && "s"}
           </div>
         </div>
@@ -196,11 +247,25 @@ const Impact = () => {
   );
 };
 
-const StatCard = ({ label, value, icon }) => (
-  <div className="bg-white p-5 rounded-xl shadow flex justify-between items-center">
+const StatCard = ({ label, value, icon, isDarkMode }) => (
+  <div
+    className={`p-5 rounded-xl shadow flex justify-between items-center transition duration-300 ${
+      isDarkMode ? "bg-gray-800" : "bg-white"
+    }`}
+  >
     <div>
-      <div className="text-gray-500 text-sm">{label}</div>
-      <div className="text-2xl font-bold">{value}</div>
+      <div
+        className={
+          isDarkMode ? "text-gray-400 text-sm" : "text-gray-500 text-sm"
+        }
+      >
+        {label}
+      </div>
+      <div
+        className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+      >
+        {value}
+      </div>
     </div>
     <div className="text-2xl">{icon}</div>
   </div>

@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import debounce from "lodash.debounce";
 import MapPicker from "../../components/MapPicker";
+import { useDarkMode } from "../../store/DarkModeContext";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, API, authorizationToken, fetchProfile } = useAuth();
+  const { isDarkMode } = useDarkMode();
 
   const [editMode, setEditMode] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -171,7 +173,11 @@ const Profile = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white p-10 rounded-3xl shadow-lg space-y-8">
+    <div
+      className={`max-w-4xl mx-auto p-10 rounded-3xl shadow-lg space-y-8 transition duration-300 ${
+        isDarkMode ? "bg-gray-800" : "bg-white"
+      }`}
+    >
       {/* PROFILE IMAGE */}
 
       <div className="flex items-center gap-6">
@@ -183,7 +189,9 @@ const Profile = () => {
           }
           referrerPolicy="no-referrer"
           alt="Profile"
-          className="w-24 h-24 rounded-full object-cover border"
+          className={`w-24 h-24 rounded-full object-cover border transition duration-300 ${
+            isDarkMode ? "border-gray-600" : "border-gray-300"
+          }`}
         />
 
         {editMode && (
@@ -200,27 +208,55 @@ const Profile = () => {
 
       <div className="grid md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium">Name</label>
+          <label
+            className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+          >
+            Name
+          </label>
           {editMode ? (
             <input
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full border px-4 py-2 rounded-lg"
+              className={`w-full rounded-lg px-4 py-2 border transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 border-gray-600 text-white"
+                  : "bg-white border-gray-300 text-gray-900"
+              }`}
             />
           ) : (
-            <p className="mt-1">{formData.name}</p>
+            <p
+              className={`mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-900"}`}
+            >
+              {formData.name}
+            </p>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Email</label>
-          <p className="mt-1">{formData.email}</p>
+          <label
+            className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+          >
+            Email
+          </label>
+          <p
+            className={`mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-900"}`}
+          >
+            {formData.email}
+          </p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Role</label>
-          <p className="mt-1 capitalize">{formData.role}</p>
+          <label
+            className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+          >
+            Role
+          </label>
+          <p
+            className={`mt-1 capitalize ${isDarkMode ? "text-gray-400" : "text-gray-900"}`}
+          >
+            {formData.role}
+          </p>
         </div>
       </div>
 
@@ -237,11 +273,21 @@ const Profile = () => {
               setLocationQuery(value);
               debouncedSearch(value);
             }}
-            className="border rounded-lg px-4 py-3 w-full"
+            className={`rounded-lg px-4 py-3 w-full border transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+            }`}
           />
 
           {suggestions.length > 0 && (
-            <div className="border rounded-lg max-h-40 overflow-y-auto">
+            <div
+              className={`rounded-lg max-h-40 overflow-y-auto border transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 border-gray-600"
+                  : "bg-white border-gray-300"
+              }`}
+            >
               {suggestions.map((place) => (
                 <div
                   key={place.place_id}
@@ -254,7 +300,11 @@ const Profile = () => {
                     setLocationQuery(place.display_name);
                     setSuggestions([]);
                   }}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  className={`px-4 py-2 cursor-pointer transition duration-300 ${
+                    isDarkMode
+                      ? "hover:bg-gray-600 text-gray-300"
+                      : "hover:bg-gray-100 text-gray-900"
+                  }`}
                 >
                   {place.display_name}
                 </div>
@@ -263,11 +313,17 @@ const Profile = () => {
           )}
 
           <div>
-            <p className="text-sm text-gray-500 mb-2">
+            <p
+              className={`text-sm mb-2 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+            >
               Or pick exact location on map
             </p>
 
-            <div className="h-72 rounded-xl overflow-hidden border">
+            <div
+              className={`h-72 rounded-xl overflow-hidden border transition duration-300 ${
+                isDarkMode ? "border-gray-600" : "border-gray-300"
+              }`}
+            >
               <MapPicker
                 setCoordinates={setCoordinates}
                 setLocation={(address) =>
@@ -282,22 +338,38 @@ const Profile = () => {
         </div>
       ) : (
         <div>
-          <label className="block text-sm font-medium">Location</label>
-          <p className="mt-1">{formData.location}</p>
+          <label
+            className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+          >
+            Location
+          </label>
+          <p
+            className={`mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-900"}`}
+          >
+            {formData.location}
+          </p>
         </div>
       )}
 
       {/* SKILLS */}
 
       <div>
-        <label className="block text-sm font-medium">Skills</label>
+        <label
+          className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+        >
+          Skills
+        </label>
 
         {editMode ? (
           <input
             name="skills"
             value={formData.skills}
             onChange={handleChange}
-            className="w-full border px-4 py-2 rounded-lg"
+            className={`w-full rounded-lg px-4 py-2 border transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            }`}
           />
         ) : (
           <div className="flex flex-wrap gap-2 mt-2">
@@ -308,7 +380,11 @@ const Profile = () => {
               .map((skill, index) => (
                 <span
                   key={index}
-                  className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm"
+                  className={`px-3 py-1 rounded-full text-sm transition duration-300 ${
+                    isDarkMode
+                      ? "bg-green-900 text-green-200"
+                      : "bg-green-100 text-green-700"
+                  }`}
                 >
                   {skill}
                 </span>
@@ -320,16 +396,28 @@ const Profile = () => {
       {/* BIO */}
 
       <div>
-        <label className="block text-sm font-medium">Bio</label>
+        <label
+          className={`block text-sm font-medium ${isDarkMode ? "text-gray-300" : "text-gray-900"}`}
+        >
+          Bio
+        </label>
         {editMode ? (
           <textarea
             name="bio"
             value={formData.bio}
             onChange={handleChange}
-            className="w-full border px-4 py-2 rounded-lg"
+            className={`w-full rounded-lg px-4 py-2 border transition duration-300 ${
+              isDarkMode
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            }`}
           />
         ) : (
-          <p className="mt-1">{formData.bio}</p>
+          <p
+            className={`mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-900"}`}
+          >
+            {formData.bio}
+          </p>
         )}
       </div>
 
@@ -339,7 +427,11 @@ const Profile = () => {
         {!editMode && !user?.googleId && (
           <button
             onClick={() => navigate("/change-password")}
-            className="border border-blue-500 text-blue-600 px-6 py-2 rounded-lg hover:bg-blue-50"
+            className={`px-6 py-2 rounded-lg border transition duration-300 ${
+              isDarkMode
+                ? "border-blue-600 text-blue-400 hover:bg-blue-900"
+                : "border-blue-500 text-blue-600 hover:bg-blue-50"
+            }`}
           >
             Change Password
           </button>
@@ -352,14 +444,18 @@ const Profile = () => {
                 setEditMode(false);
                 fetchProfile();
               }}
-              className="bg-gray-100 px-6 py-2 rounded-lg"
+              className={`px-6 py-2 rounded-lg transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+              }`}
             >
               Cancel
             </button>
 
             <button
               onClick={handleUpdate}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
             >
               Save
             </button>
@@ -367,7 +463,7 @@ const Profile = () => {
         ) : (
           <button
             onClick={() => setEditMode(true)}
-            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
+            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
           >
             Edit Profile
           </button>
