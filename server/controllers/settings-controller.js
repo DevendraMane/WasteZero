@@ -1,4 +1,5 @@
 import Settings from "../models/settings-model.js";
+import logger from "../utils/logger.js";
 
 /*
 ---------------------------------------
@@ -10,7 +11,7 @@ const getSettings = async (req, res) => {
     const settings = await Settings.getInstance();
     res.status(200).json(settings);
   } catch (error) {
-    console.error("Get settings error:", error);
+    logger.error("Get settings error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -58,7 +59,7 @@ const updateSettings = async (req, res) => {
       settings,
     });
   } catch (error) {
-    console.error("Update settings error:", error);
+    logger.error("Update settings error:", error);
     res.status(500).json({ message: error.message });
   }
 };

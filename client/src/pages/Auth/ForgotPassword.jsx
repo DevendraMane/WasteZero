@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../store/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { showError, showSuccess } from "../../utils/alert";
 
 const ForgotPassword = () => {
   const { API } = useAuth();
@@ -14,7 +15,7 @@ const ForgotPassword = () => {
     e.preventDefault();
 
     if (!email) {
-      alert("Please enter your email");
+      showError("Please enter your email");
       return;
     }
 
@@ -36,8 +37,9 @@ const ForgotPassword = () => {
       }
 
       setSuccess(true);
+      showSuccess("If the email exists, a reset link has been sent.");
     } catch (error) {
-      alert(error.message);
+      showError(error.message);
     } finally {
       setLoading(false);
     }

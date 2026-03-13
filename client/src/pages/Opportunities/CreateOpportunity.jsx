@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import axios from "axios";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
-import debounce from "lodash.debounce";
 import MapPicker from "../../components/MapPicker";
+import { showError, showSuccess } from "../../utils/alert";
 
 const CreateOpportunity = ({ onClose, onCreated }) => {
   const { authorizationToken, API } = useAuth();
@@ -30,9 +30,6 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  const [locationQuery, setLocationQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
-
   /* ================= INPUT HANDLER ================= */
 
   const handleChange = ({ target: { name, value } }) => {
@@ -53,39 +50,6 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
     setImage(file);
     setPreview(URL.createObjectURL(file));
   };
-
-  /* ================= LOCATION SEARCH ================= */
-
-  const searchLocation = async (query) => {
-    if (!query || query.length < 3) {
-      setSuggestions([]);
-      return;
-    }
-
-    try {
-      const res = await axios.get(
-        "https://nominatim.openstreetmap.org/search",
-        {
-          params: {
-            q: query,
-            format: "json",
-            addressdetails: 1,
-            limit: 5,
-          },
-        },
-      );
-
-      setSuggestions(res.data);
-    } catch (err) {
-      console.error("Location search error:", err);
-    }
-  };
-
-  const debouncedSearch = useMemo(() => debounce(searchLocation, 500), []);
-
-  useEffect(() => {
-    return () => debouncedSearch.cancel();
-  }, []);
 
   /* ================= SUBMIT ================= */
 
@@ -123,11 +87,13 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
         },
       });
 
+      showSuccess("Opportunity created successfully");
+
       onCreated();
       onClose();
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.message || "Error creating opportunity");
+      showError(error.response?.data?.message || "Error creating opportunity");
     } finally {
       submittingRef.current = false;
       setCreating(false);

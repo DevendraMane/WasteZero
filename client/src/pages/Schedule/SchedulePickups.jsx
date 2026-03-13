@@ -1,9 +1,13 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
 import axios from "axios";
 import debounce from "lodash.debounce";
 import MapPicker from "../../components/MapPicker";
+import { devError } from "../../utils/logger";
+import { showError, showSuccess } from "../../utils/alert";
+
+const PICKUP_BATCH_SIZE = 6;
 
 const SchedulePickups = () => {
   const { API, authorizationToken, user } = useAuth();
@@ -14,6 +18,10 @@ const SchedulePickups = () => {
   const [showAgentModal, setShowAgentModal] = useState(false);
   const [selectedPickup, setSelectedPickup] = useState(null);
   const [editingPickup, setEditingPickup] = useState(null);
+  const [submittingPickup, setSubmittingPickup] = useState(false);
+  const [visiblePickupCount, setVisiblePickupCount] =
+    useState(PICKUP_BATCH_SIZE);
+  const loadMoreRef = useRef(null);
 
   const [formData, setFormData] = useState({
     date: "",
@@ -53,7 +61,7 @@ const SchedulePickups = () => {
 
       setSuggestions(res.data);
     } catch (err) {
-      console.log(err);
+      devError(err);
     }
   };
 
@@ -77,7 +85,7 @@ const SchedulePickups = () => {
 
       if (res.ok) setPickups(data);
     } catch (err) {
-      console.log(err);
+      devError(err);
     }
   };
 
@@ -86,6 +94,32 @@ const SchedulePickups = () => {
       fetchPickups();
     }
   }, [API, authorizationToken, user]);
+
+  useEffect(() => {
+    setVisiblePickupCount(PICKUP_BATCH_SIZE);
+  }, [pickups.length]);
+
+  const visiblePickups = pickups.slice(0, visiblePickupCount);
+  const hasMorePickups = visiblePickupCount < pickups.length;
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node || !hasMorePickups) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisiblePickupCount((prev) =>
+            Math.min(prev + PICKUP_BATCH_SIZE, pickups.length),
+          );
+        }
+      },
+      { rootMargin: "120px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMorePickups, pickups.length]);
 
   /* INPUT CHANGE */
 
@@ -124,12 +158,16 @@ const SchedulePickups = () => {
   /* CREATE / UPDATE PICKUP */
 
   const handleSubmitPickup = async () => {
+    if (submittingPickup) return;
+
     if (!formData.date || !formData.time || !formData.category) {
-      alert("Please fill all fields");
+      showError("Please fill all fields");
       return;
     }
 
     const scheduled_time = new Date(`${formData.date}T${formData.time}`);
+
+    setSubmittingPickup(true);
 
     try {
       const url = editingPickup
@@ -157,6 +195,7 @@ const SchedulePickups = () => {
         fetchPickups();
         setShowForm(false);
         setEditingPickup(null);
+        showSuccess(editingPickup ? "Pickup updated" : "Pickup scheduled");
 
         setFormData({
           date: "",
@@ -166,9 +205,14 @@ const SchedulePickups = () => {
         });
 
         setLocationQuery("");
+      } else {
+        showError("Failed to save pickup");
       }
     } catch (err) {
-      console.log(err);
+      devError(err);
+      showError("Failed to save pickup");
+    } finally {
+      setSubmittingPickup(false);
     }
   };
 
@@ -373,9 +417,19 @@ const SchedulePickups = () => {
           <div className="md:col-span-2 flex justify-end">
             <button
               onClick={handleSubmitPickup}
-              className="w-full sm:w-auto bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition"
+              disabled={submittingPickup}
+              className="w-full sm:w-auto bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {editingPickup ? "Update Pickup" : "Confirm Pickup"}
+              {submittingPickup ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : editingPickup ? (
+                "Update Pickup"
+              ) : (
+                "Confirm Pickup"
+              )}
             </button>
           </div>
         </div>
@@ -408,7 +462,7 @@ const SchedulePickups = () => {
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">
-            {pickups.map((pickup) => {
+            {visiblePickups.map((pickup) => {
               const dateObj = new Date(pickup.scheduled_time);
 
               return (
@@ -519,6 +573,16 @@ const SchedulePickups = () => {
                 </div>
               );
             })}
+
+            {hasMorePickups && (
+              <div ref={loadMoreRef} className="py-3 text-center">
+                <span
+                  className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+                >
+                  Loading more pickups...
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

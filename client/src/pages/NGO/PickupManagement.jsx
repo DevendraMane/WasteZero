@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
 import Loader from "../../components/Loader";
+import { devError } from "../../utils/logger";
+import { showError, showSuccess, showWarning } from "../../utils/alert";
+
+const PICKUP_BATCH_SIZE = 6;
 
 const PickupManagement = () => {
   const { API, authorizationToken } = useAuth();
@@ -39,6 +43,9 @@ const PickupManagement = () => {
 
   const [selectedAgent, setSelectedAgent] = useState({});
   const [loading, setLoading] = useState(true);
+  const [visiblePickupCount, setVisiblePickupCount] =
+    useState(PICKUP_BATCH_SIZE);
+  const loadMoreRef = useRef(null);
 
   const getStatusClasses = (status) => {
     if (status === "pending") {
@@ -76,7 +83,7 @@ const PickupManagement = () => {
 
       if (res.ok) setPickups(data);
     } catch (err) {
-      console.log(err);
+      devError(err);
     } finally {
       setLoading(false);
     }
@@ -86,13 +93,39 @@ const PickupManagement = () => {
     fetchPickups();
   }, []);
 
+  useEffect(() => {
+    setVisiblePickupCount(PICKUP_BATCH_SIZE);
+  }, [pickups.length]);
+
+  const visiblePickups = pickups.slice(0, visiblePickupCount);
+  const hasMorePickups = visiblePickupCount < pickups.length;
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node || !hasMorePickups) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisiblePickupCount((prev) =>
+            Math.min(prev + PICKUP_BATCH_SIZE, pickups.length),
+          );
+        }
+      },
+      { rootMargin: "120px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMorePickups, pickups.length]);
+
   /* ================= ASSIGN AGENT ================= */
 
   const assignAgent = async (pickupId) => {
     const agentId = selectedAgent[pickupId];
 
     if (!agentId) {
-      alert("Select an agent first");
+      showWarning("Select an agent first");
       return;
     }
 
@@ -109,7 +142,13 @@ const PickupManagement = () => {
       }),
     });
 
-    if (res.ok) fetchPickups();
+    if (res.ok) {
+      showSuccess("Agent assigned successfully");
+      fetchPickups();
+      return;
+    }
+
+    showError("Failed to assign agent");
   };
 
   /* ================= UPDATE STATUS ================= */
@@ -124,7 +163,13 @@ const PickupManagement = () => {
       body: JSON.stringify({ status }),
     });
 
-    if (res.ok) fetchPickups();
+    if (res.ok) {
+      showSuccess("Pickup status updated");
+      fetchPickups();
+      return;
+    }
+
+    showError("Failed to update pickup status");
   };
 
   if (loading) {
@@ -170,7 +215,7 @@ const PickupManagement = () => {
         </div>
       ) : (
         <div className="space-y-3 sm:space-y-4">
-          {pickups.map((pickup) => {
+          {visiblePickups.map((pickup) => {
             const dateObj = new Date(pickup.scheduled_time);
 
             return (
@@ -288,6 +333,16 @@ const PickupManagement = () => {
               </div>
             );
           })}
+
+          {hasMorePickups && (
+            <div ref={loadMoreRef} className="py-3 text-center">
+              <span
+                className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
+                Loading more pickup requests...
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>

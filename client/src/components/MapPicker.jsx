@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { useState } from "react";
 import axios from "axios";
+import { devError } from "../utils/logger";
 
 /* MAP CLICK HANDLER */
 const MapClickHandler = ({ setCoordinates, setLocation }) => {
@@ -27,7 +28,7 @@ const MapClickHandler = ({ setCoordinates, setLocation }) => {
 
         setLocation(res.data.display_name);
       } catch (err) {
-        console.log("Reverse geocode error", err);
+        devError("Reverse geocode error", err);
       }
     },
   });

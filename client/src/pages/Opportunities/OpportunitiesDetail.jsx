@@ -4,6 +4,9 @@ import axios from "axios";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
 import Loader from "../../components/Loader";
+import { transformCloudinaryImage } from "../../utils/image";
+import { devError } from "../../utils/logger";
+import { showError, showSuccess } from "../../utils/alert";
 
 const OpportunitiesDetail = () => {
   const { id } = useParams();
@@ -26,7 +29,7 @@ const OpportunitiesDetail = () => {
 
       setOpportunity(res.data);
     } catch (error) {
-      console.error("Error fetching opportunity:", error);
+      devError("Error fetching opportunity:", error);
     } finally {
       setLoading(false);
     }
@@ -48,7 +51,7 @@ const OpportunitiesDetail = () => {
         setApplicationStatus(null);
       }
     } catch (error) {
-      console.error(error);
+      devError(error);
     }
   };
 
@@ -70,8 +73,9 @@ const OpportunitiesDetail = () => {
       );
 
       setApplicationStatus("pending");
+      showSuccess("Application submitted successfully");
     } catch (error) {
-      alert(error.response?.data?.message || "Already applied");
+      showError(error.response?.data?.message || "Already applied");
     } finally {
       setApplying(false);
     }
@@ -88,9 +92,10 @@ const OpportunitiesDetail = () => {
         headers: { Authorization: authorizationToken },
       });
 
+      showSuccess("Opportunity deleted successfully");
       navigate("/opportunities");
-    } catch (error) {
-      alert("Delete failed");
+    } catch {
+      showError("Delete failed");
     }
   };
 
@@ -190,7 +195,10 @@ const OpportunitiesDetail = () => {
             <img
               src={
                 opportunity.image
-                  ? opportunity.image
+                  ? transformCloudinaryImage(opportunity.image, {
+                      width: 1200,
+                      height: 600,
+                    })
                   : "https://via.placeholder.com/800x400?text=Opportunity"
               }
               alt={opportunity.title}

@@ -40,6 +40,14 @@ opportunityRouter.get(
   opportunityController.getAllOpportunities,
 );
 
+/* ACTIVE OPPORTUNITIES STATS (MUST BE BEFORE :id) */
+
+opportunityRouter.get(
+  "/stats/active",
+  authMiddleware,
+  opportunityController.getActiveOpportunitiesStats,
+);
+
 /* GET SINGLE */
 
 opportunityRouter.get(

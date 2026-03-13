@@ -96,7 +96,7 @@ const Sidebar = ({ onLinkClick }) => {
       </div>
 
       {/* SCROLLABLE CONTENT */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6">
         {/* USER INFO */}
         <div
           className={`mb-8 border-b pb-6 transition duration-300 ${

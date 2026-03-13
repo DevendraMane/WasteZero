@@ -9,6 +9,7 @@ import {
   setupMessageListener,
   removeMessageListener,
 } from "../../utils/socket.js";
+import { showError, showSuccess } from "../../utils/alert";
 
 const UserMessages = ({ isDarkMode = false }) => {
   const { user, API, authorizationToken } = useAuth();
@@ -50,19 +51,19 @@ const UserMessages = ({ isDarkMode = false }) => {
   useEffect(() => {
     // Connect socket only if user is logged in
     if (!socket.connected && user && user._id) {
-      console.log("[Socket] Connecting socket for user:", user._id);
+      // console.log("[Socket] Connecting socket for user:", user._id);
       socket.connect();
       emitUserOnline(user._id);
-      console.log("[Socket] Emitted user_online event");
+      // console.log("[Socket] Emitted user_online event");
     }
 
     // Set up message listeners
     const handleSocketEvent = (eventData) => {
       if (eventData.type === "typing") {
-        console.log("[Socket] Typing indicator received");
+        // console.log("[Socket] Typing indicator received");
         setIsUserTyping(eventData.data.isTyping);
       } else if (eventData.type === "status_update") {
-        console.log("[Socket] Status update received:", eventData.data);
+        // console.log("[Socket] Status update received:", eventData.data);
         // Update conversation status
         setConversations((prev) =>
           prev.map((conv) =>
@@ -80,10 +81,10 @@ const UserMessages = ({ isDarkMode = false }) => {
         );
         // Update selected user status if applicable
         if (selectedUser === eventData.data.userId) {
-          console.log(
-            "[Socket] Updating selected user status:",
-            eventData.data,
-          );
+          // console.log(
+          //   "[Socket] Updating selected user status:",
+          //   eventData.data,
+          // );
           setSelectedUserStatus((prev) => ({
             isOnline: eventData.data.isOnline,
             lastSeen: eventData.data.lastSeen ?? prev.lastSeen,
@@ -92,7 +93,7 @@ const UserMessages = ({ isDarkMode = false }) => {
       } else {
         // New message
         const msg = eventData;
-        console.log("[Socket] Message received:", msg);
+        // console.log("[Socket] Message received:", msg);
         if (
           (msg.sender_id === user._id && msg.receiver_id === selectedUser) ||
           (msg.sender_id === selectedUser && msg.receiver_id === user._id)
@@ -127,7 +128,7 @@ const UserMessages = ({ isDarkMode = false }) => {
     });
 
     const data = await res.json();
-    console.log("Conversations API:", data);
+    // console.log("Conversations API:", data);
     if (Array.isArray(data)) {
       setConversations(data);
     } else {
@@ -228,11 +229,11 @@ const UserMessages = ({ isDarkMode = false }) => {
 
       if (!res.ok) {
         const error = await res.json();
-        alert(error.message);
+        showError(error.message);
         return;
       }
 
-      const data = await res.json();
+      await res.json();
 
       // Don't add message here - let socket.io listener handle it
       // to avoid duplicates when message comes through socket
@@ -315,17 +316,19 @@ const UserMessages = ({ isDarkMode = false }) => {
       });
 
       if (res.ok) {
-        alert("✓ User reported successfully. Admin team will review shortly.");
+        showSuccess(
+          "User reported successfully. Admin team will review shortly.",
+        );
         setFlagModalOpen(false);
         setFlagReason("abusive_language");
         setFlagDescription("");
       } else {
         const error = await res.json();
-        alert("✗ " + error.message);
+        showError(error.message);
       }
     } catch (error) {
       console.error("Report error:", error);
-      alert("Error reporting user");
+      showError("Error reporting user");
     } finally {
       setIsReporting(false);
     }
@@ -351,17 +354,17 @@ const UserMessages = ({ isDarkMode = false }) => {
 
       if (res.ok) {
         const data = await res.json();
-        alert("✓ " + data.message);
+        showSuccess(data.message);
         await fetchBlockedUsers();
         setSelectedUser(null);
         setMessages([]);
       } else {
         const error = await res.json();
-        alert("✗ " + error.message);
+        showError(error.message);
       }
     } catch (error) {
       console.error("Block error:", error);
-      alert("Error blocking user");
+      showError("Error blocking user");
     } finally {
       setIsBlockingUser(false);
     }
@@ -383,15 +386,15 @@ const UserMessages = ({ isDarkMode = false }) => {
       });
 
       if (res.ok) {
-        alert("✓ User unblocked successfully");
+        showSuccess("User unblocked successfully");
         await fetchBlockedUsers();
       } else {
         const error = await res.json();
-        alert("✗ " + error.message);
+        showError(error.message);
       }
     } catch (error) {
       console.error("Unblock error:", error);
-      alert("Error unblocking user");
+      showError("Error unblocking user");
     }
   };
 
@@ -446,14 +449,14 @@ const UserMessages = ({ isDarkMode = false }) => {
         setSelectedUser(null);
         setDeleteConfirmOpen(false);
 
-        alert("✓ Conversation deleted successfully");
+        showSuccess("Conversation deleted successfully");
       } else {
         const error = await res.json();
-        alert("✗ " + error.message);
+        showError(error.message);
       }
     } catch (error) {
       console.error("Delete conversation error:", error);
-      alert("Error deleting conversation");
+      showError("Error deleting conversation");
     } finally {
       setIsDeletingConversation(false);
     }
@@ -802,7 +805,7 @@ const UserMessages = ({ isDarkMode = false }) => {
 
       {/* REPORT MODAL */}
       {flagModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
           <div
             className={`rounded-lg shadow-lg p-6 max-w-md w-full mx-4 transition duration-300 ${
               isDarkMode ? "bg-gray-800" : "bg-white"

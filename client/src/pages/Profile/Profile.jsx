@@ -5,6 +5,9 @@ import axios from "axios";
 import debounce from "lodash.debounce";
 import MapPicker from "../../components/MapPicker";
 import { useDarkMode } from "../../store/DarkModeContext";
+import { transformCloudinaryImage } from "../../utils/image";
+import { devError } from "../../utils/logger";
+import { showError, showSuccess } from "../../utils/alert";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -84,7 +87,7 @@ const Profile = () => {
 
       setSuggestions(res.data);
     } catch (err) {
-      console.log(err);
+      devError(err);
     }
   };
 
@@ -131,7 +134,7 @@ const Profile = () => {
 
       fetchProfile();
     } catch {
-      alert("Image upload failed");
+      showError("Image upload failed");
     } finally {
       setUploading(false);
     }
@@ -163,12 +166,12 @@ const Profile = () => {
       );
 
       if (res.status === 200) {
-        alert("Profile Updated");
+        showSuccess("Profile updated");
         setEditMode(false);
         fetchProfile();
       }
     } catch {
-      alert("Update failed");
+      showError("Update failed");
     }
   };
 
@@ -184,7 +187,10 @@ const Profile = () => {
         <img
           src={
             formData.profileImage
-              ? formData.profileImage
+              ? transformCloudinaryImage(formData.profileImage, {
+                  width: 192,
+                  height: 192,
+                })
               : `https://ui-avatars.com/api/?name=${formData.name}`
           }
           referrerPolicy="no-referrer"

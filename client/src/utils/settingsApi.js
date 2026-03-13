@@ -4,8 +4,11 @@
  */
 export const fetchSettings = async () => {
   try {
-    const backendUrl =
-      import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    if (!backendUrl) {
+      console.error("VITE_BACKEND_URL is not defined");
+      return null;
+    }
     const res = await fetch(`${backendUrl}/api/settings`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -27,7 +30,11 @@ export const fetchSettings = async () => {
  */
 export const fetchSettingsWithAuth = async (token, backendUrl) => {
   try {
-    const API = backendUrl || "http://localhost:5000";
+    const API = import.meta.env.VITE_BACKEND_URL;
+    if (!API) {
+      console.error("VITE_BACKEND_URL is not defined");
+      return null;
+    }
     const res = await fetch(`${API}/api/settings`, {
       headers: { Authorization: token },
     });

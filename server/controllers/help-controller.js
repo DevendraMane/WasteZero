@@ -3,6 +3,7 @@ import {
   sendIssueReportEmail,
   sendUserReportEmail,
 } from "../utils/sendEmail.js";
+import logger from "../utils/logger.js";
 
 // ================= REPORT ISSUE =================
 export const reportIssue = async (req, res) => {
@@ -30,7 +31,7 @@ export const reportIssue = async (req, res) => {
     const admins = await User.find({ role: "admin" }).select("email");
 
     if (admins.length === 0) {
-      console.warn("[REPORT ISSUE] No admin users found in database");
+      logger.warn("[REPORT ISSUE] No admin users found in database");
       return res.status(500).json({
         message: "Admin contact not available. Please use support email.",
       });
@@ -52,7 +53,7 @@ export const reportIssue = async (req, res) => {
 
     await Promise.all(emailPromises);
 
-    console.log(
+    logger.log(
       `[REPORT ISSUE] Issue reported by ${user.email} (${user.role}) - Type: ${issueType}`,
     );
 
@@ -61,7 +62,7 @@ export const reportIssue = async (req, res) => {
         "Thank you for reporting this issue! Our admin team will review it shortly.",
     });
   } catch (error) {
-    console.error("[REPORT ISSUE ERROR]:", error);
+    logger.error("[REPORT ISSUE ERROR]:", error);
     res.status(500).json({
       message: "Failed to submit report. Please try again later.",
     });
@@ -111,7 +112,7 @@ export const reportUser = async (req, res) => {
     const admins = await User.find({ role: "admin" }).select("email");
 
     if (admins.length === 0) {
-      console.warn("[REPORT USER] No admin users found in database");
+      logger.warn("[REPORT USER] No admin users found in database");
       return res.status(500).json({
         message: "Admin contact not available. Please use support email.",
       });
@@ -135,7 +136,7 @@ export const reportUser = async (req, res) => {
 
     await Promise.all(emailPromises);
 
-    console.log(
+    logger.log(
       `[REPORT USER] User ${reportedUser.name} (${reportedUser.email}) reported by ${reporter.name} (${reporter.email}) - Reason: ${reportReason}`,
     );
 
@@ -144,7 +145,7 @@ export const reportUser = async (req, res) => {
         "Thank you for reporting this user! Our admin team will review it and take appropriate action shortly.",
     });
   } catch (error) {
-    console.error("[REPORT USER ERROR]:", error);
+    logger.error("[REPORT USER ERROR]:", error);
     res.status(500).json({
       message: "Failed to submit report. Please try again later.",
     });

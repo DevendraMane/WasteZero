@@ -25,20 +25,19 @@ const NgoDashboard = () => {
 
   const recentOpportunities = opportunities.slice(0, 5);
   /* ================= FETCH NGO OPPORTUNITIES ================= */
+  const fetchOpportunities = async () => {
+    try {
+      const res = await fetch(`${API}/api/opportunities/ngo/my`, {
+        headers: { Authorization: authorizationToken },
+      });
+
+      const data = await res.json();
+      if (res.ok) setOpportunities(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   useEffect(() => {
-    const fetchOpportunities = async () => {
-      try {
-        const res = await fetch(`${API}/api/opportunities/ngo/my`, {
-          headers: { Authorization: authorizationToken },
-        });
-
-        const data = await res.json();
-        if (res.ok) setOpportunities(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
     fetchOpportunities();
   }, [API, authorizationToken]);
 
@@ -165,9 +164,9 @@ const NgoDashboard = () => {
       {showForm && (
         <CreateOpportunity
           onClose={() => setShowForm(false)}
-          onCreated={() => {
+          onCreated={async () => {
             setShowForm(false);
-            window.location.reload(); // simple refresh
+            await fetchOpportunities();
           }}
         />
       )}

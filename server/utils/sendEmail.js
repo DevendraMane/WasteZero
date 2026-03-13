@@ -303,3 +303,87 @@ export const sendUserReportEmail = async (adminEmail, reportData) => {
 
   await transporter.sendMail(mailOptions);
 };
+
+// ================= ADMIN CODE MISMATCH ALERT EMAIL =================
+export const sendAdminCodeMismatchAlertEmail = async (
+  recipientEmail,
+  attemptData,
+) => {
+  const {
+    attemptedName,
+    attemptedEmail,
+    attemptedRole,
+    ipAddress,
+    userAgent,
+    attemptedAt,
+  } = attemptData;
+
+  const mailOptions = {
+    from: `"WasteZero Security Alert" <${process.env.EMAIL_USER}>`,
+    to: recipientEmail,
+    subject: "Security Alert: Invalid Admin Registration Code Attempt",
+    html: `
+      <div style="font-family: Arial; padding:20px; background:#f8fafc;">
+        <div style="background:white; padding:20px; border-radius:10px; max-width:650px; margin:0 auto; border-left:5px solid #dc2626;">
+          <h2 style="color:#b91c1c; margin:0 0 12px 0;">Security Alert: Invalid Admin Code Attempt</h2>
+          <p style="margin:0 0 16px 0; color:#374151;">
+            Someone attempted to create an account with <strong>admin</strong> role using an invalid secret code.
+          </p>
+
+          <div style="background:#fef2f2; padding:14px; border-radius:8px; margin-bottom:14px;">
+            <p style="margin:6px 0;"><strong>Name:</strong> ${attemptedName || "N/A"}</p>
+            <p style="margin:6px 0;"><strong>Email:</strong> ${attemptedEmail || "N/A"}</p>
+            <p style="margin:6px 0;"><strong>Requested Role:</strong> ${attemptedRole || "N/A"}</p>
+            <p style="margin:6px 0;"><strong>IP Address:</strong> ${ipAddress || "N/A"}</p>
+            <p style="margin:6px 0;"><strong>User Agent:</strong> ${userAgent || "N/A"}</p>
+            <p style="margin:6px 0;"><strong>Time:</strong> ${attemptedAt || new Date().toLocaleString()}</p>
+          </div>
+
+          <p style="margin:0; color:#4b5563; font-size:14px;">
+            Please review logs and monitor suspicious activity from this source.
+          </p>
+        </div>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+// ================= USER SUSPENSION STATUS EMAIL =================
+export const sendSuspensionStatusEmail = async (email, details) => {
+  const { name, isSuspended, reason } = details;
+
+  const subject = isSuspended
+    ? "WasteZero Account Suspension Notice"
+    : "WasteZero Account Reinstated";
+
+  const statusColor = isSuspended ? "#b91c1c" : "#166534";
+  const statusText = isSuspended ? "Account Suspended" : "Account Reinstated";
+
+  const mailOptions = {
+    from: `"WasteZero Support" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject,
+    html: `
+      <div style="font-family: Arial; padding:20px; background:#f8fafc;">
+        <div style="background:white; padding:22px; border-radius:10px; max-width:620px; margin:0 auto; border-left:5px solid ${statusColor};">
+          <h2 style="color:${statusColor}; margin:0 0 12px 0;">${statusText}</h2>
+          <p style="margin:0 0 10px 0; color:#374151;">Hello ${name || "User"},</p>
+
+          ${
+            isSuspended
+              ? `<p style="margin:0 0 10px 0; color:#374151;">Your WasteZero account has been suspended by the admin team.</p>
+                 <div style="background:#fef2f2; padding:12px; border-radius:8px; margin:12px 0;">
+                   <p style="margin:0; color:#7f1d1d;"><strong>Reason:</strong> ${reason || "No reason provided."}</p>
+                 </div>
+                 <p style="margin:0; color:#4b5563;">If you believe this was a mistake, please contact support.</p>`
+              : `<p style="margin:0 0 10px 0; color:#374151;">Your WasteZero account has been reactivated. You can now log in and continue using the platform.</p>`
+          }
+        </div>
+      </div>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};

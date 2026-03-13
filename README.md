@@ -1,129 +1,90 @@
-# ♻️ WasteZero – Smart Waste Pickup & Recycling Platform
+# WasteZero
 
-Welcome to the WasteZero project! This guide will help you:
+WasteZero is a full-stack waste pickup and volunteer coordination platform.
 
-- Set up the project locally
-- Configure environment variables
-- Install Git (if not installed)
-- Follow the correct branch workflow
-- Create Pull Requests (PR)
-- Collaborate without conflicts
+## Tech Stack
 
-Please read this carefully before contributing.
+- Frontend: React + Vite + Tailwind
+- Backend: Node.js + Express + MongoDB + Socket.IO
+- Auth: JWT + Google OAuth
+- Media: Cloudinary
 
----
-
-# 📦 Project Structure
+## Repository Structure
 
 ```
 WasteZero/
-│
-├── client/        → Frontend (React)
-├── server/        → Backend (Node.js + Express)
-├── .env.example   → Environment variables example
-└── README.md
+	client/
+	server/
+	README.md
 ```
 
----
+## Prerequisites
 
-# ⚙️ Prerequisites
+- Node.js 18+
+- npm 9+
+- MongoDB (Atlas or self-hosted)
 
-Make sure you have these installed:
+## Environment Variables
 
-## 1. Install Node.js
+### Server: `server/.env`
 
-Download and install:
+Use `server/.env.example` as a template.
 
-[https://nodejs.org](https://nodejs.org)
-
-Verify installation:
-
-```
-node -v
-npm -v
-```
-
----
-
-## 2. Install Git (IMPORTANT)
-
-Download Git:
-
-[https://git-scm.com/downloads](https://git-scm.com/downloads)
-
-Verify installation:
+Required keys:
 
 ```
-git --version
+MONGODB_URL=
+PORT=
+JWT_SECRET_KEY=
+CLIENT_URL=
+BACKEND_URL=
+
+EMAIL_USER=
+EMAIL_PASS=
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=
+
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+ADMIN_SECRET_CODE=
+LOG_LEVEL=
+NODE_ENV=
 ```
 
-If Git is not installed, you cannot contribute.
+Notes:
 
----
+- `CLIENT_URL` must be the deployed frontend origin.
+- `GOOGLE_CALLBACK_URL` must match your backend domain callback endpoint.
+- Admin registration is public, but requires a valid `ADMIN_SECRET_CODE`.
+- Never commit `.env` files.
 
-# 📥 Clone the Repository
+### Client: `client/.env`
 
-Run:
-
-```
-git clone https://github.com/YOUR_USERNAME/WasteZero.git
-cd WasteZero
-```
-
----
-
-# 🔐 Environment Setup (.env)
-
-Inside the server folder, create a file named:
+Use `client/.env.example` as a template.
 
 ```
-.env
+VITE_BACKEND_URL=
 ```
 
-Copy contents from:
+For separate-domain deployment, this should be your backend origin.
 
-```
-.env.example
-```
+## Local Development
 
-Example:
+Open two terminals.
 
-```
-PORT=5000
-MONGODB_URL=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-```
-
-IMPORTANT:
-
-- Never push .env file to GitHub
-- Only use .env.example for reference
-
----
-
-# ▶️ Running the Project
-
-Open TWO terminals.
-
----
-
-## Run Backend
+### Start backend
 
 ```
 cd server
 npm install
-npm run dev
+npm start
 ```
 
-Backend runs on:
-
-```
-http://localhost:5000
-```
-
----
-
-## Run Frontend
+### Start frontend
 
 ```
 cd client
@@ -131,214 +92,65 @@ npm install
 npm run dev
 ```
 
-Frontend runs on:
+## Build and Analyze Frontend Bundle
+
+### Production build
 
 ```
-http://localhost:5173
+cd client
+npm run build
 ```
 
----
-
-# 🌿 Branch Workflow (VERY IMPORTANT)
-
-We use this structure:
+### Bundle analysis report
 
 ```
-main
-frontend-dev
-backend-dev
+cd client
+npm run build:analyze
 ```
 
-Never work directly on main.
-
----
-
-# 👨‍💻 How to Start Working (For Developers)
-
-## Step 1: Go to dev branch
-
-Frontend developers:
+Then open:
 
 ```
-git checkout frontend-dev
-git pull origin frontend-dev
+client/dist/bundle-stats.html
 ```
 
-Backend developers:
+This project uses manual chunk splitting in `client/vite.config.js` for:
+
+- charts
+- maps
+- realtime/socket
+- router
+- HTTP client
+- UI utility libs
+- core vendor fallback
+
+## Hosting Notes (Separate Domains)
+
+- Deploy frontend and backend separately.
+- Set `CLIENT_URL` on backend to the frontend origin.
+- Set `VITE_BACKEND_URL` on frontend to backend origin.
+- Configure Google OAuth redirect URI to backend callback URL.
+- Ensure HTTPS on both domains in production.
+
+## Security and Operations Checklist
+
+- Set strong `JWT_SECRET_KEY` and `ADMIN_SECRET_CODE`.
+- Use production `LOG_LEVEL=warn` (or `error`).
+- Rotate compromised secrets immediately.
+- Run dependency audits before release:
 
 ```
-git checkout backend-dev
-git pull origin backend-dev
+cd server && npm audit
+cd client && npm audit
 ```
 
----
+## Contribution Workflow
 
-## Step 2: Create your feature branch
-
-Example:
+Recommended flow:
 
 ```
-git checkout -b feature-login
+feature branch -> dev branch -> main
 ```
 
----
-
-## Step 3: Do your work, then commit
-
-```
-git add .
-git commit -m "Added login feature"
-```
-
----
-
-## Step 4: Push your branch
-
-```
-git push origin feature-login
-```
-
----
-
-# 🔁 How to Create Pull Request (PR)
-
-Step 1: Go to GitHub repository
-
-Step 2: Click:
-
-```
-Pull requests → New pull request
-```
-
-Step 3: Select:
-
-Frontend:
-
-```
-base: frontend-dev
-compare: feature-login
-```
-
-Backend:
-
-```
-base: backend-dev
-compare: feature-name
-```
-
-Step 4: Click:
-
-```
-Create pull request
-```
-
-Done.
-
----
-
-# 👑 What Maintainer (Owner) Will Do
-
-Owner will:
-
-- Review PR
-- Merge PR into dev branch
-- Merge dev branch into main when stable
-
-Flow:
-
-```
-feature branch → dev branch → main branch
-```
-
----
-
-# 🔄 Update Your Branch Before Working
-
-Always run:
-
-```
-git pull origin frontend-dev
-```
-
-OR
-
-```
-git pull origin backend-dev
-```
-
-This prevents conflicts.
-
----
-
-# ❌ Important Rules
-
-Never do these:
-
-```
-❌ Do NOT push directly to main
-❌ Do NOT delete branches
-❌ Do NOT push .env file
-```
-
-Always do:
-
-```
-✅ Create feature branch
-✅ Create Pull Request
-✅ Pull latest changes before working
-```
-
----
-
-# 🛠️ Common Problems & Fix
-
-## Problem: branch is behind
-
-Fix:
-
-```
-git pull origin frontend-dev
-```
-
-OR
-
-```
-git pull origin backend-dev
-```
-
----
-
-## Problem: dependencies missing
-
-Run:
-
-```
-npm install
-```
-
----
-
-# ✅ Contribution Summary
-
-Steps:
-
-```
-1. git checkout dev branch
-2. git pull origin dev branch
-3. git checkout -b feature-name
-4. Do work
-5. git add .
-6. git commit -m "message"
-7. git push origin feature-name
-8. Create Pull Request
-```
-
----
-
-# 🎯 You're Ready to Contribute!
-
-If you face any issues, contact the repository owner.
-
-Happy coding! 🚀
-THESE ARE THE CHANGES FROM RUTHWIK
-this is for demo....
+- Do not push directly to `main`.
+- Open PRs with clear scope and test notes.

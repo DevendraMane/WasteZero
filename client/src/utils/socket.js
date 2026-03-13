@@ -23,7 +23,7 @@ export const setupMessageListener = (conversationHandler) => {
   });
 
   socket.on("user_status_update", (status) => {
-    console.log("[Socket Utils] user_status_update listener received:", status);
+    // console.log("[Socket Utils] user_status_update listener received:", status);
     if (conversationHandler) {
       conversationHandler({ type: "status_update", data: status });
     }
@@ -39,17 +39,17 @@ export const removeMessageListener = () => {
 // Helper to ensure socket is connected and emit user is online
 export const emitUserOnline = (userId) => {
   if (socket.connected) {
-    console.log(
-      "[Socket Utils] Socket already connected, emitting user_online",
-    );
+    // console.log(
+    //   "[Socket Utils] Socket already connected, emitting user_online",
+    // );
     socket.emit("user_online", userId);
   } else {
-    console.log(
-      "[Socket Utils] Socket not connected yet, waiting for connection before emitting user_online",
-    );
+    // console.log(
+    //   "[Socket Utils] Socket not connected yet, waiting for connection before emitting user_online",
+    // );
     // Listen for connection event and emit when ready
     socket.once("connect", () => {
-      console.log("[Socket Utils] Socket connected, now emitting user_online");
+      // console.log("[Socket Utils] Socket connected, now emitting user_online");
       socket.emit("user_online", userId);
     });
   }

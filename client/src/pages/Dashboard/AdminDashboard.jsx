@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
 import {
@@ -17,7 +16,6 @@ import {
 import Loader from "../../components/Loader";
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
   const { API, authorizationToken } = useAuth();
   const { isDarkMode } = useDarkMode();
 
@@ -84,40 +82,28 @@ const AdminDashboard = () => {
 
       {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
-        <div
-          onClick={() => navigate("/admin/users")}
-          className="cursor-pointer bg-linear-to-r from-indigo-500 to-purple-600 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition"
-        >
+        <div className="cursor-pointer bg-linear-to-r from-indigo-500 to-purple-600 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition">
           <p className="text-sm opacity-80">Total Users</p>
           <h2 className="text-2xl sm:text-3xl font-bold mt-2">
             {stats?.totalUsers ?? 0}
           </h2>
         </div>
 
-        <div
-          onClick={() => navigate("/admin/pickups")}
-          className="cursor-pointer bg-linear-to-r from-pink-500 to-purple-600 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition"
-        >
+        <div className="cursor-pointer bg-linear-to-r from-pink-500 to-purple-600 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition">
           <p className="text-sm opacity-80">Completed Pickups</p>
           <h2 className="text-2xl sm:text-3xl font-bold mt-2">
             {stats?.completedPickups?.toLocaleString() ?? 0}
           </h2>
         </div>
 
-        <div
-          onClick={() => navigate("/admin/pickups")}
-          className="cursor-pointer bg-linear-to-r from-orange-400 to-red-500 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition"
-        >
+        <div className="cursor-pointer bg-linear-to-r from-orange-400 to-red-500 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition">
           <p className="text-sm opacity-80">Pending Pickups</p>
           <h2 className="text-2xl sm:text-3xl font-bold mt-2">
             {stats?.pendingPickups?.toLocaleString() ?? 0}
           </h2>
         </div>
 
-        <div
-          onClick={() => navigate("/admin/opportunities")}
-          className="cursor-pointer bg-linear-to-r from-green-500 to-emerald-600 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition"
-        >
+        <div className="cursor-pointer bg-linear-to-r from-green-500 to-emerald-600 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition">
           <p className="text-sm opacity-80">Active Opportunities</p>
           <h2 className="text-2xl sm:text-3xl font-bold mt-2">
             {stats?.activeOpportunities ?? 0}
@@ -233,7 +219,6 @@ const AdminDashboard = () => {
             Users Overview
           </h2>
           <button
-            onClick={() => navigate("/admin/users")}
             className={`font-medium hover:underline ${isDarkMode ? "text-green-400" : "text-green-600"}`}
           >
             View All Users

@@ -4,43 +4,50 @@ import {
   RouterProvider,
   Navigate,
 } from "react-router-dom";
-
-import Auth from "./pages/Auth/Auth";
-import Login from "./pages/Auth/Login";
-import Register from "./pages/Auth/Register";
-import ForgotPassword from "./pages/Auth/ForgotPassword";
-import ResetPassword from "./pages/Auth/ResetPassword";
+import { lazy, Suspense } from "react";
 import Loader from "./components/Loader";
 import { useAuth } from "./store/AuthContext";
-import NGOPickupManagement from "./pages/NGO/PickupManagement";
-import Dashboard from "./pages/Dashboard/Dashboard";
-import Messages from "./pages/Messages/Messages";
-import Impact from "./pages/Impact/Impact";
-import Settings from "./pages/Settings/Settings";
-import Opportunities from "./pages/Opportunities/Opportunities";
-import OpportunitiesDetail from "./pages/Opportunities/OpportunitiesDetail";
-import EditOpportunity from "./pages/Opportunities/EditOpportunity";
+const Auth = lazy(() => import("./pages/Auth/Auth"));
+const Login = lazy(() => import("./pages/Auth/Login"));
+const Register = lazy(() => import("./pages/Auth/Register"));
+const ForgotPassword = lazy(() => import("./pages/Auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/Auth/ResetPassword"));
 
-import DashboardLayout from "./layouts/DashboardLayout";
-import Profile from "./pages/Profile/Profile";
-import ChangePassword from "./pages/Profile/ChangePassword";
-import HelpRouter from "./pages/Help/HelpRouter";
+const NGOPickupManagement = lazy(() => import("./pages/NGO/PickupManagement"));
+const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
+const Messages = lazy(() => import("./pages/Messages/Messages"));
+const Impact = lazy(() => import("./pages/Impact/Impact"));
+const Settings = lazy(() => import("./pages/Settings/Settings"));
+const Opportunities = lazy(() => import("./pages/Opportunities/Opportunities"));
+const OpportunitiesDetail = lazy(
+  () => import("./pages/Opportunities/OpportunitiesDetail"),
+);
+const EditOpportunity = lazy(
+  () => import("./pages/Opportunities/EditOpportunity"),
+);
+
+const DashboardLayout = lazy(() => import("./layouts/DashboardLayout"));
+const Profile = lazy(() => import("./pages/Profile/Profile"));
+const ChangePassword = lazy(() => import("./pages/Profile/ChangePassword"));
+const HelpRouter = lazy(() => import("./pages/Help/HelpRouter"));
 
 import PublicRoute from "./components/PublicRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 
-import UserManagement from "./pages/Admin/UserManagement";
-import Analytics from "./pages/Admin/Analytics";
-import PlatformSettings from "./pages/Admin/PlatformSettings";
-import PickupManagement from "./pages/Admin/PickupManagement";
-import OpportunityManagement from "./pages/Admin/OpportunityManagement";
-import Applications from "./pages/NGO/Applications";
-import TestLoader from "./pages/TestLoader";
-import OAuthSuccess from "./pages/Auth/OAuthSuccess";
-import OAuthFailed from "./pages/Auth/OAuthFailed";
-import SchedulePickups from "./pages/Schedule/SchedulePickups";
-import Notifications from "./pages/Notification/Notifications";
+const UserManagement = lazy(() => import("./pages/Admin/UserManagement"));
+const Analytics = lazy(() => import("./pages/Admin/Analytics"));
+const PlatformSettings = lazy(() => import("./pages/Admin/PlatformSettings"));
+const PickupManagement = lazy(() => import("./pages/Admin/PickupManagement"));
+const OpportunityManagement = lazy(
+  () => import("./pages/Admin/OpportunityManagement"),
+);
+const Applications = lazy(() => import("./pages/NGO/Applications"));
+const TestLoader = lazy(() => import("./pages/TestLoader"));
+const OAuthSuccess = lazy(() => import("./pages/Auth/OAuthSuccess"));
+const OAuthFailed = lazy(() => import("./pages/Auth/OAuthFailed"));
+const SchedulePickups = lazy(() => import("./pages/Schedule/SchedulePickups"));
+const Notifications = lazy(() => import("./pages/Notification/Notifications"));
 
 export const App = () => {
   const { isLoading, authReady } = useAuth();
@@ -178,10 +185,10 @@ export const App = () => {
   ]);
 
   return (
-    <>
+    <Suspense fallback={<Loader fullScreen />}>
       {isLoading && <Loader fullScreen />}
       <RouterProvider router={router} />
-    </>
+    </Suspense>
   );
 };
 

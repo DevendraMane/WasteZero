@@ -3,6 +3,7 @@ import User from "../models/user-model.js";
 import Notification from "../models/notification-model.js";
 import { io } from "../server.js";
 import { sendPickupNotificationEmail } from "../utils/sendEmail.js";
+import logger from "../utils/logger.js";
 /* ================= CREATE PICKUP ================= */
 
 const createPickup = async (req, res) => {
@@ -65,7 +66,7 @@ const createPickup = async (req, res) => {
           });
         }
       } catch (emailError) {
-        console.error(
+        logger.error(
           `[PICKUP EMAIL ERROR] Failed to send email to ${ngo.email}:`,
           emailError.message,
         );
@@ -80,7 +81,7 @@ const createPickup = async (req, res) => {
 
     res.status(201).json(populatedPickup);
   } catch (error) {
-    console.error("Create pickup error:", error);
+    logger.error("Create pickup error:", error);
     res.status(500).json({ message: error.message });
   }
 };

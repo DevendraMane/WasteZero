@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
-import Swal from "sweetalert2";
+import { showError, showSuccess } from "../../utils/alert";
 import loader from "../../assets/loader.png";
 import googleIcon from "../../assets/google.svg";
 
@@ -56,63 +56,39 @@ const Register = () => {
 
     // Frontend validation
     if (!formData.name.trim()) {
-      Swal.fire({
-        icon: "error",
-        title: "Validation Error",
-        text: "Please enter your full name",
-      });
+      showError("Please enter your full name");
       return;
     }
 
     if (!formData.email.trim()) {
-      Swal.fire({
-        icon: "error",
-        title: "Validation Error",
-        text: "Please enter your email",
-      });
+      showError("Please enter your email");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      Swal.fire({
-        icon: "error",
-        title: "Validation Error",
-        text: "Please enter a valid email address",
-      });
+      showError("Please enter a valid email address");
       return;
     }
 
     if (formData.password.length < 6) {
-      Swal.fire({
-        icon: "error",
-        title: "Validation Error",
-        text: "Password must be at least 6 characters",
-      });
+      showError("Password must be at least 6 characters");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      Swal.fire({
-        icon: "error",
-        title: "Password Error",
-        text: "Passwords do not match",
-      });
+      showError("Passwords do not match");
       return;
     }
 
     // NEW: Validate admin code if role is admin
     if (formData.role === "admin" && !formData.adminCode.trim()) {
-      Swal.fire({
-        icon: "error",
-        title: "Admin Code Required",
-        text: "Please enter the admin secret code",
-      });
+      showError("Please enter the admin secret code");
       return;
     }
 
     try {
-      const result = await registerUser({
+      await registerUser({
         name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -120,13 +96,9 @@ const Register = () => {
         adminCode: formData.adminCode, // NEW: send admin code if provided
       });
 
-      Swal.fire({
-        icon: "success",
-        title: "Registration Successful 🎉",
-        html: `<p>Welcome to WasteZero!</p><p style="margin-top: 10px;">A verification email has been sent to <strong>${formData.email}</strong></p><p style="margin-top: 10px; font-size: 14px; color: #666;">Please check your email and click the verification link to activate your account.</p>`,
-        confirmButtonColor: "#16a34a",
-        confirmButtonText: "Go to Login",
-      });
+      showSuccess(
+        `Registration successful. Verification email sent to ${formData.email}.`,
+      );
 
       // Clear form
       setFormData({
@@ -157,11 +129,7 @@ const Register = () => {
           "New registrations are currently disabled. Please contact the administrator.";
       }
 
-      Swal.fire({
-        icon: "error",
-        title: errorTitle,
-        text: errorText,
-      });
+      showError(`${errorTitle}: ${errorText}`);
     }
   };
 

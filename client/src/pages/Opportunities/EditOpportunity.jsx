@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
-import debounce from "lodash.debounce";
 import MapPicker from "../../components/MapPicker";
 import Loader from "../../components/Loader";
+import { showError, showSuccess } from "../../utils/alert";
 
 const EditOpportunity = () => {
   const { id } = useParams();
@@ -35,9 +35,6 @@ const EditOpportunity = () => {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  const [locationQuery, setLocationQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
-
   /* ================= FETCH OPPORTUNITY ================= */
 
   useEffect(() => {
@@ -58,7 +55,7 @@ const EditOpportunity = () => {
           ownerId &&
           currentUserId !== ownerId
         ) {
-          alert("You are not authorized to edit this opportunity");
+          showError("You are not authorized to edit this opportunity");
           navigate(`/opportunities/${id}`);
           return;
         }
@@ -71,8 +68,6 @@ const EditOpportunity = () => {
           required_skills: data.required_skills?.join(", "),
           date: data.date?.split("T")[0],
         });
-
-        setLocationQuery(data.location);
 
         setCoordinates({
           lat: data.latitude || null,
@@ -111,39 +106,6 @@ const EditOpportunity = () => {
     setPreview(URL.createObjectURL(file));
   };
 
-  /* ================= LOCATION SEARCH ================= */
-
-  const searchLocation = async (query) => {
-    if (!query || query.length < 3) {
-      setSuggestions([]);
-      return;
-    }
-
-    try {
-      const res = await axios.get(
-        "https://nominatim.openstreetmap.org/search",
-        {
-          params: {
-            q: query,
-            format: "json",
-            addressdetails: 1,
-            limit: 5,
-          },
-        },
-      );
-
-      setSuggestions(res.data);
-    } catch (err) {
-      console.error("Location search error:", err);
-    }
-  };
-
-  const debouncedSearch = useMemo(() => debounce(searchLocation, 500), []);
-
-  useEffect(() => {
-    return () => debouncedSearch.cancel();
-  }, []);
-
   /* ================= SUBMIT ================= */
 
   const handleSubmit = async (e) => {
@@ -180,10 +142,11 @@ const EditOpportunity = () => {
         },
       });
 
+      showSuccess("Opportunity updated successfully");
       navigate(`/opportunities/${id}`);
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.message || "Update failed");
+      showError(error.response?.data?.message || "Update failed");
     } finally {
       submittingRef.current = false;
       setSaving(false);

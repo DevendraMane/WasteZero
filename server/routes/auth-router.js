@@ -8,6 +8,7 @@ import authcontrollers, {
 import { authMiddleware } from "../middlewares/auth-middleware.js";
 import { checkFeatureToggle } from "../middlewares/settings-middleware.js";
 import passport from "passport";
+import logger from "../utils/logger.js";
 export const authRouter = express.Router();
 
 // ******  REGISTRATION ROUTE  ****** //
@@ -58,7 +59,7 @@ authRouter.get("/google/callback", (req, res, next) => {
   passport.authenticate("google", { session: false }, (err, user, info) => {
     try {
       if (err) {
-        console.error("[PASSPORT ERROR]:", err);
+        logger.error("[PASSPORT ERROR]", err);
         return res.redirect(
           `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
             err.message || "Authentication error",
@@ -68,7 +69,9 @@ authRouter.get("/google/callback", (req, res, next) => {
 
       // Passport returned false with info (authentication failed)
       if (!user) {
-        console.log("[PASSPORT] Authentication failed:", info?.message);
+        logger.warn("[PASSPORT] Authentication failed", {
+          message: info?.message || "No failure reason provided",
+        });
         const errorMessage = info?.message || "Google authentication failed";
         return res.redirect(
           `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
@@ -81,7 +84,7 @@ authRouter.get("/google/callback", (req, res, next) => {
       req.user = user;
       authcontrollers.googleCallback(req, res);
     } catch (error) {
-      console.error("[Google Callback Error]:", error);
+      logger.error("[Google Callback Error]", error);
       res.redirect(
         `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
           error.message || "An unexpected error occurred",

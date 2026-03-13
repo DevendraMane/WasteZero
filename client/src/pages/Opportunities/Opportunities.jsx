@@ -7,6 +7,9 @@ import { calculateDistance } from "../../utils/calculateDistance";
 import { useDarkMode } from "../../store/DarkModeContext";
 import Loader from "../../components/Loader";
 import DistanceFilter from "../../components/DistanceFilter";
+import { transformCloudinaryImage } from "../../utils/image";
+import { devError } from "../../utils/logger";
+import { showError, showSuccess } from "../../utils/alert";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -56,7 +59,7 @@ const Opportunities = () => {
       setOpportunities(res.data.data);
       setTotalPages(res.data.totalPages || 1);
     } catch (error) {
-      console.error(error);
+      devError(error);
     } finally {
       setLoading(false);
     }
@@ -78,7 +81,7 @@ const Opportunities = () => {
           );
           statusMap[opp._id] = res.data.applied ? res.data.status : null;
         } catch (err) {
-          console.error(err);
+          devError(err);
         }
       }
       setAppliedMap(statusMap);
@@ -95,8 +98,9 @@ const Opportunities = () => {
         { headers: { Authorization: authorizationToken } },
       );
       setAppliedMap((prev) => ({ ...prev, [id]: "pending" }));
+      showSuccess("Application submitted successfully");
     } catch (error) {
-      alert(error.response?.data?.message || "Already applied");
+      showError(error.response?.data?.message || "Already applied");
     } finally {
       setApplyingId(null);
     }
@@ -234,7 +238,10 @@ const Opportunities = () => {
                 <div className="relative h-36 sm:h-40 overflow-hidden">
                   <img
                     src={
-                      item.image ||
+                      transformCloudinaryImage(item.image, {
+                        width: 600,
+                        height: 360,
+                      }) ||
                       "https://via.placeholder.com/400x250?text=Opportunity"
                     }
                     alt={item.title}

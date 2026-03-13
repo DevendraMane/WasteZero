@@ -10,7 +10,7 @@ import {
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
 import Loader from "../../components/Loader";
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = `${import.meta.env.VITE_BACKEND_URL}`;
 
 const COLORS = {
   Plastic: "#3b82f6",

@@ -1,6 +1,7 @@
 import User from "../models/user-model.js";
 import Pickup from "../models/pickup-model.js";
 import Opportunity from "../models/opportunity-model.js";
+import { sendSuspensionStatusEmail } from "../utils/sendEmail.js";
 
 /*
 ---------------------------------------
@@ -175,8 +176,29 @@ const toggleSuspendUser = async (req, res) => {
       });
     }
 
-    user.isSuspended = !user.isSuspended;
+    const isSuspending = !user.isSuspended;
+    const reason = req.body?.reason?.trim() || "";
+
+    if (isSuspending && !reason) {
+      return res.status(400).json({
+        message: "Suspension reason is required",
+      });
+    }
+
+    user.isSuspended = isSuspending;
+    user.suspensionReason = isSuspending ? reason : "";
+    user.suspendedAt = isSuspending ? new Date() : null;
     await user.save();
+
+    try {
+      await sendSuspensionStatusEmail(user.email, {
+        name: user.name,
+        isSuspended: user.isSuspended,
+        reason: user.suspensionReason,
+      });
+    } catch (mailError) {
+      console.error("Failed to send suspension status email:", mailError);
+    }
 
     res.status(200).json({
       message: user.isSuspended

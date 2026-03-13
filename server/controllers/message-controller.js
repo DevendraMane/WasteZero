@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { io } from "../server.js";
 import Settings from "../models/settings-model.js";
 import { sendUserReportEmail } from "../utils/sendEmail.js";
+import logger from "../utils/logger.js";
 
 /* ================= FLAG/REPORT USER ================= */
 
@@ -76,13 +77,13 @@ const flagUser = async (req, res) => {
 
     const emailPromises = admins.map((admin) =>
       sendUserReportEmail(admin.email, reportData).catch((err) =>
-        console.error(`Failed to send email to ${admin.email}:`, err),
+        logger.error(`Failed to send email to ${admin.email}:`, err),
       ),
     );
 
     await Promise.all(emailPromises);
 
-    console.log(
+    logger.log(
       `[REPORT USER] User ${reportedUser.name} reported by NGO ${ngo.name} - Reason: ${reason}`,
     );
 
@@ -92,7 +93,7 @@ const flagUser = async (req, res) => {
       totalFlags,
     });
   } catch (error) {
-    console.error("Flag user error:", error);
+    logger.error("Flag user error:", error);
     res.status(500).json({ message: "Error reporting user" });
   }
 };
@@ -152,7 +153,7 @@ const unflagUser = async (req, res) => {
       totalFlags,
     });
   } catch (error) {
-    console.error("Unflag user error:", error);
+    logger.error("Unflag user error:", error);
     res.status(500).json({ message: "Error unflagging user" });
   }
 };
@@ -184,7 +185,7 @@ const getMessages = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get messages error:", error);
+    logger.error("Get messages error:", error);
     res.status(500).json({ message: "Error loading messages" });
   }
 };
@@ -281,7 +282,7 @@ const sendMessage = async (req, res) => {
 
     res.json(message);
   } catch (error) {
-    console.error("Send message error:", error);
+    logger.error("Send message error:", error);
     res.status(500).json({ message: "Error sending message" });
   }
 };
@@ -330,7 +331,7 @@ const getConversations = async (req, res) => {
 
     res.json(populated);
   } catch (error) {
-    console.error("Conversation error:", error);
+    logger.error("Conversation error:", error);
     res.status(500).json({ message: "Error loading conversations" });
   }
 };
@@ -358,13 +359,13 @@ const blockUser = async (req, res) => {
       $push: { blockedUsers: blockedUserId },
     });
 
-    console.log(`[BLOCK USER] User ${blockingUserId} blocked ${blockedUserId}`);
+    logger.log(`[BLOCK USER] User ${blockingUserId} blocked ${blockedUserId}`);
 
     res.status(200).json({
       message: "User blocked successfully. They cannot message you anymore.",
     });
   } catch (error) {
-    console.error("Block user error:", error);
+    logger.error("Block user error:", error);
     res.status(500).json({ message: "Error blocking user" });
   }
 };
@@ -381,7 +382,7 @@ const unblockUser = async (req, res) => {
       $pull: { blockedUsers: blockedUserId },
     });
 
-    console.log(
+    logger.log(
       `[UNBLOCK USER] User ${blockingUserId} unblocked ${blockedUserId}`,
     );
 
@@ -389,7 +390,7 @@ const unblockUser = async (req, res) => {
       message: "User unblocked successfully.",
     });
   } catch (error) {
-    console.error("Unblock user error:", error);
+    logger.error("Unblock user error:", error);
     res.status(500).json({ message: "Error unblocking user" });
   }
 };
@@ -407,7 +408,7 @@ const getBlockedUsers = async (req, res) => {
 
     res.status(200).json(user.blockedUsers || []);
   } catch (error) {
-    console.error("Get blocked users error:", error);
+    logger.error("Get blocked users error:", error);
     res.status(500).json({ message: "Error fetching blocked users" });
   }
 };
@@ -440,7 +441,7 @@ const deleteConversation = async (req, res) => {
     // Delete all messages in this conversation
     const result = await Message.deleteMany({ conversationId });
 
-    console.log(
+    logger.log(
       `[DELETE CONVERSATION] User ${userId} deleted conversation with ${otherUserId}. Deleted ${result.deletedCount} messages.`,
     );
 
@@ -449,7 +450,7 @@ const deleteConversation = async (req, res) => {
       deletedCount: result.deletedCount,
     });
   } catch (error) {
-    console.error("[DELETE CONVERSATION ERROR]:", error);
+    logger.error("[DELETE CONVERSATION ERROR]:", error);
     res.status(500).json({
       message: "Failed to delete conversation",
     });

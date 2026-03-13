@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import User from "../models/user-model.js";
 
-export const authMiddleware = (req, res, next) => {
+export const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -20,9 +21,28 @@ export const authMiddleware = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
+    const existingUser = await User.findById(decoded.userId).select(
+      "_id role isSuspended",
+    );
+
+    if (!existingUser) {
+      return res.status(401).json({
+        message: "Account no longer exists. Please login again.",
+      });
+    }
+
+    if (existingUser.isSuspended) {
+      return res.status(403).json({
+        message: "Account suspended by admin",
+      });
+    }
+
     // Store both userId and full decoded user info
     req.userId = decoded.userId;
-    req.user = decoded;
+    req.user = {
+      ...decoded,
+      role: existingUser.role,
+    };
 
     next();
   } catch (error) {

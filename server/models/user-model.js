@@ -41,6 +41,17 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
 
+    suspensionReason: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    suspendedAt: {
+      type: Date,
+      default: null,
+    },
+
     verificationToken: String,
 
     // ✅ Forgot Password Fields

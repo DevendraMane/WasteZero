@@ -6,6 +6,7 @@ import { io } from "../server.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 import { sendOpportunityNotificationEmail } from "../utils/sendEmail.js";
+import logger from "../utils/logger.js";
 
 const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
   const R = 6371;
@@ -119,7 +120,7 @@ const createOpportunity = async (req, res) => {
           });
         }
       } catch (emailError) {
-        console.error(
+        logger.error(
           `[OPPORTUNITY EMAIL ERROR] Failed to send email to ${volunteer.email}:`,
           emailError.message,
         );
@@ -196,6 +197,23 @@ const getAllOpportunities = async (req, res) => {
       total,
       page,
       totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/* ================= ACTIVE OPPORTUNITIES STATS ================= */
+
+const getActiveOpportunitiesStats = async (req, res) => {
+  try {
+    const now = new Date();
+    const activeCount = await Opportunity.countDocuments({
+      date: { $gte: now },
+    });
+
+    res.status(200).json({
+      activeOpportunities: activeCount,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -397,13 +415,14 @@ const searchOpportunitiesAndPickups = async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Search error:", error);
+    logger.error("Search error:", error);
     res.status(500).json({ message: "Search failed" });
   }
 };
 
 export default {
   getAllOpportunities,
+  getActiveOpportunitiesStats,
   createOpportunity,
   getSingleOpportunity,
   deleteOpportunity,

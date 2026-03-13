@@ -13,7 +13,6 @@ const Topbar = ({ onMenuClick }) => {
   const { isDarkMode } = useDarkMode();
 
   const [showMenu, setShowMenu] = useState(false);
-  const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const dropdownRef = useRef(null);
@@ -32,7 +31,6 @@ const Topbar = ({ onMenuClick }) => {
       });
 
       const data = await res.json();
-      setNotifications(data);
 
       const unread = data.filter((n) => !n.read).length;
       setUnreadCount(unread);
@@ -58,8 +56,7 @@ const Topbar = ({ onMenuClick }) => {
 
   useEffect(() => {
     socket.on("new_notification", (notification) => {
-      setNotifications((prev) => [notification, ...prev]);
-      setUnreadCount((prev) => prev + 1);
+      if (notification) setUnreadCount((prev) => prev + 1);
     });
 
     return () => socket.off("new_notification");
@@ -87,7 +84,7 @@ const Topbar = ({ onMenuClick }) => {
 
   return (
     <div
-      className={`flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 lg:px-8 py-3 sm:py-4 shadow-sm transition duration-300 ${
+      className={`flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 lg:px-8 py-5 shadow-sm transition duration-300 ${
         isDarkMode ? "bg-gray-800 border-b border-gray-700" : "bg-white"
       }`}
     >

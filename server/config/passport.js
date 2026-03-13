@@ -2,6 +2,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/user-model.js";
 import Settings from "../models/settings-model.js";
+import logger from "../utils/logger.js";
 
 passport.use(
   new GoogleStrategy(
@@ -13,13 +14,16 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         const email = profile.emails?.[0]?.value;
+        const safeEmail = logger.maskEmail(email);
 
         if (!email) {
-          console.error("[PASSPORT] No email in Google profile");
+          logger.error("[PASSPORT] No email in Google profile");
           return done(new Error("Google account has no email"), null);
         }
 
-        console.log(`[PASSPORT] Processing Google auth for email: ${email}`);
+        logger.info(
+          `[PASSPORT] Processing Google auth for email: ${safeEmail}`,
+        );
 
         /* GOOGLE PROFILE IMAGE */
         let googleImage = profile.photos?.[0]?.value || "";
@@ -35,8 +39,8 @@ passport.use(
            Email exists but registered via password
         */
         if (existingUser && !existingUser.googleId) {
-          console.log(
-            `[PASSPORT] User ${email} exists with password, rejecting Google auth`,
+          logger.warn(
+            `[PASSPORT] User ${safeEmail} exists with password, rejecting Google auth`,
           );
           return done(null, false, {
             message:
@@ -48,8 +52,8 @@ passport.use(
            Already registered via Google
         */
         if (existingUser && existingUser.googleId) {
-          console.log(
-            `[PASSPORT] User ${email} already registered via Google, updating profile`,
+          logger.info(
+            `[PASSPORT] User ${safeEmail} already registered via Google, updating profile`,
           );
           if (googleImage && existingUser.profileImage !== googleImage) {
             existingUser.profileImage = googleImage;
@@ -65,8 +69,8 @@ passport.use(
         */
         const settings = await Settings.getInstance();
         if (!settings.allowRegistrations) {
-          console.log(
-            `[PASSPORT] New user ${email} registration blocked: registrations disabled`,
+          logger.warn(
+            `[PASSPORT] New user ${safeEmail} registration blocked: registrations disabled`,
           );
           return done(null, false, {
             message:
@@ -74,7 +78,7 @@ passport.use(
           });
         }
 
-        console.log(`[PASSPORT] Creating new Google user: ${email}`);
+        logger.info(`[PASSPORT] Creating new Google user: ${safeEmail}`);
         const newUser = await User.create({
           name: profile.displayName,
           email,
@@ -86,10 +90,10 @@ passport.use(
           lastSeen: new Date(),
         });
 
-        console.log(`[PASSPORT] New user created: ${email}`);
+        logger.info(`[PASSPORT] New user created: ${safeEmail}`);
         return done(null, newUser);
       } catch (error) {
-        console.error("[PASSPORT STRATEGY ERROR]:", error);
+        logger.error("[PASSPORT STRATEGY ERROR]", error);
         return done(error, null);
       }
     },

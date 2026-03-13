@@ -27,3 +27,62 @@ input[type="password"]::-webkit-password-toggle-button {
   animation: bellRing 0.9s ease-in-out;
   transform-origin: top;
 }
+
+:root {
+  --scrollbar-size: 12px;
+  --scrollbar-track: linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+  --scrollbar-thumb: linear-gradient(180deg, #34d399 0%, #10b981 60%, #059669 100%);
+  --scrollbar-thumb-hover: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  --scrollbar-thumb-active: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+  --scrollbar-border: rgba(255, 255, 255, 0.82);
+  --scrollbar-shadow: rgba(5, 150, 105, 0.22);
+}
+
+html.dark {
+  --scrollbar-track: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+  --scrollbar-thumb: linear-gradient(180deg, #0ea5a4 0%, #14b8a6 40%, #10b981 100%);
+  --scrollbar-thumb-hover: linear-gradient(180deg, #2dd4bf 0%, #14b8a6 100%);
+  --scrollbar-thumb-active: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%);
+  --scrollbar-border: rgba(15, 23, 42, 0.9);
+  --scrollbar-shadow: rgba(45, 212, 191, 0.18);
+}
+
+html,
+body {
+  scrollbar-width: thin;
+  scrollbar-color: #10b981 #edf2f7;
+}
+
+html.dark,
+html.dark body {
+  scrollbar-color: #14b8a6 #0f172a;
+}
+
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 3px solid var(--scrollbar-border);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px var(--scrollbar-shadow);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}

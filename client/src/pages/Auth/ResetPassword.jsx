@@ -25,7 +25,7 @@ const ResetPassword = () => {
       setLoading(true);
 
       const res = await fetch(
-        `http://localhost:5000/api/auth/reset-password/${token}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/reset-password/${token}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

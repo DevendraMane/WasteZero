@@ -31,7 +31,7 @@ const OAuthSuccess = () => {
         storeToken(token, userData);
 
         navigate("/dashboard");
-      } catch (err) {
+      } catch {
         navigate("/login");
       }
     };

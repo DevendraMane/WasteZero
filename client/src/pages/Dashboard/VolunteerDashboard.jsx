@@ -13,6 +13,7 @@ const VolunteerDashboard = () => {
 
   const [loadingApps, setLoadingApps] = useState(true);
   const [loadingPickups, setLoadingPickups] = useState(true);
+  const [loadingActive, setLoadingActive] = useState(true);
 
   /* ================= FETCH APPLICATIONS ================= */
   useEffect(() => {
@@ -58,23 +59,19 @@ const VolunteerDashboard = () => {
   useEffect(() => {
     const fetchTotalActiveOpportunities = async () => {
       try {
-        // Large limit to compute accurate active count on the client.
-        const res = await fetch(`${API}/api/opportunities?page=1&limit=10000`, {
+        const res = await fetch(`${API}/api/opportunities/stats/active`, {
           headers: { Authorization: authorizationToken },
         });
 
         const data = await res.json();
 
         if (res.ok) {
-          const opportunities = data?.data || [];
-          const now = new Date();
-          const activeCount = opportunities.filter(
-            (opp) => opp?.date && new Date(opp.date) >= now,
-          ).length;
-          setTotalActiveOpportunities(activeCount);
+          setTotalActiveOpportunities(Number(data?.activeOpportunities || 0));
         }
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoadingActive(false);
       }
     };
 
@@ -91,7 +88,7 @@ const VolunteerDashboard = () => {
     (pickup) => pickup.status === "completed",
   );
 
-  if (loadingApps || loadingPickups) {
+  if (loadingApps || loadingPickups || loadingActive) {
     return <Loader />;
   }
 
@@ -124,7 +121,7 @@ const VolunteerDashboard = () => {
           title="Active Opportunities"
           value={totalActiveOpportunities}
           color="from-indigo-500 to-blue-600"
-          isLoading={loadingApps}
+          isLoading={loadingActive}
         />
 
         {/* Pickup Scheduled */}

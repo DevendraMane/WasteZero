@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
+import { showError, showSuccess, showWarning } from "../../utils/alert";
 
 const UserManagement = () => {
   const { authorizationToken, API } = useAuth();
@@ -13,6 +14,14 @@ const UserManagement = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedUser, setSelectedUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showSuspendModal, setShowSuspendModal] = useState(false);
+  const [suspendTargetUser, setSuspendTargetUser] = useState(null);
+  const [suspendReason, setSuspendReason] = useState("");
+  const [isSubmittingSuspend, setIsSubmittingSuspend] = useState(false);
+  const [confirmSuspend, setConfirmSuspend] = useState({
+    userId: null,
+    expiresAt: 0,
+  });
 
   const getRoleBadgeClasses = (role) => {
     if (role === "admin") {
@@ -56,21 +65,80 @@ const UserManagement = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const toggleSuspend = async (id) => {
-    const confirmAction = window.confirm(
-      "Are you sure you want to change this user's status?",
-    );
-    if (!confirmAction) return;
+  const toggleSuspend = async (id, reason = "") => {
+    const targetUser = users.find((u) => u._id === id);
+    if (!targetUser) return false;
+
+    const isSuspending = !targetUser.isSuspended;
+    const now = Date.now();
+
+    if (
+      !isSuspending &&
+      (confirmSuspend.userId !== id || now > confirmSuspend.expiresAt)
+    ) {
+      setConfirmSuspend({
+        userId: id,
+        expiresAt: now + 5000,
+      });
+
+      showWarning(
+        `Press ${targetUser?.isSuspended ? "Unsuspend" : "Suspend"} again within 5 seconds to confirm.`,
+      );
+      return false;
+    }
+
+    if (isSuspending && !reason.trim()) {
+      showError("Please provide a suspension reason");
+      return false;
+    }
 
     try {
       await axios.patch(
         `${API}/api/admin/users/${id}/suspend`,
-        {},
+        {
+          reason: reason.trim(),
+        },
         { headers: { Authorization: authorizationToken } },
       );
+      showSuccess(
+        targetUser?.isSuspended
+          ? "User unsuspended successfully"
+          : "User suspended successfully",
+      );
+      setConfirmSuspend({ userId: null, expiresAt: 0 });
       fetchUsers();
+      return true;
     } catch (error) {
       console.error("Error toggling suspend:", error.response?.data || error);
+      showError(
+        error.response?.data?.message || "Failed to update user status",
+      );
+      return false;
+    }
+  };
+
+  const openSuspendModal = (user) => {
+    if (user.isSuspended) {
+      toggleSuspend(user._id);
+      return;
+    }
+
+    setSuspendTargetUser(user);
+    setSuspendReason("");
+    setShowSuspendModal(true);
+  };
+
+  const submitSuspend = async () => {
+    if (!suspendTargetUser) return;
+
+    setIsSubmittingSuspend(true);
+    const success = await toggleSuspend(suspendTargetUser._id, suspendReason);
+    setIsSubmittingSuspend(false);
+
+    if (success) {
+      setShowSuspendModal(false);
+      setSuspendTargetUser(null);
+      setSuspendReason("");
     }
   };
 
@@ -235,7 +303,7 @@ const UserManagement = () => {
                 </button>
                 {user.role !== "admin" && (
                   <button
-                    onClick={() => toggleSuspend(user._id)}
+                    onClick={() => openSuspendModal(user)}
                     className={`w-full px-4 py-2 rounded-lg text-sm transition duration-300 ${
                       user.isSuspended
                         ? isDarkMode
@@ -392,7 +460,7 @@ const UserManagement = () => {
                       </button>
                       {user.role !== "admin" && (
                         <button
-                          onClick={() => toggleSuspend(user._id)}
+                          onClick={() => openSuspendModal(user)}
                           className={`px-4 py-1 rounded-lg text-sm transition duration-300 ${
                             user.isSuspended
                               ? isDarkMode
@@ -417,7 +485,7 @@ const UserManagement = () => {
 
       {/* User Details Modal */}
       {showModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
           <div
             className={`rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 max-w-2xl w-full mx-3 md:mx-4 max-h-[82vh] overflow-y-auto transition duration-300 ${
               isDarkMode ? "bg-gray-800" : "bg-white"
@@ -733,7 +801,7 @@ const UserManagement = () => {
               {selectedUser.role !== "admin" && (
                 <button
                   onClick={() => {
-                    toggleSuspend(selectedUser._id);
+                    openSuspendModal(selectedUser);
                     setShowModal(false);
                     setSelectedUser(null);
                   }}
@@ -750,6 +818,70 @@ const UserManagement = () => {
                   {selectedUser.isSuspended ? "Unsuspend" : "Suspend"}
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Suspend Reason Modal */}
+      {showSuspendModal && suspendTargetUser && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div
+            className={`w-full max-w-lg rounded-2xl shadow-xl p-6 transition duration-300 ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h3
+              className={`text-xl font-semibold mb-2 ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Suspend User
+            </h3>
+            <p
+              className={`text-sm mb-4 ${
+                isDarkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              Add a reason for suspending {suspendTargetUser.name}. This reason
+              will be sent to the user by email.
+            </p>
+
+            <textarea
+              value={suspendReason}
+              onChange={(e) => setSuspendReason(e.target.value)}
+              rows="4"
+              className={`w-full rounded-lg p-3 text-sm border transition duration-300 ${
+                isDarkMode
+                  ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                  : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+              }`}
+              placeholder="Enter suspension reason..."
+            />
+
+            <div className="mt-5 flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowSuspendModal(false);
+                  setSuspendTargetUser(null);
+                  setSuspendReason("");
+                }}
+                disabled={isSubmittingSuspend}
+                className={`px-4 py-2 rounded-lg transition disabled:opacity-60 ${
+                  isDarkMode
+                    ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitSuspend}
+                disabled={isSubmittingSuspend}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-60"
+              >
+                {isSubmittingSuspend ? "Suspending..." : "Suspend User"}
+              </button>
             </div>
           </div>
         </div>

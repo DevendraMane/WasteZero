@@ -1,9 +1,11 @@
 import User from "../models/user-model.js";
 import crypto from "crypto";
 import {
+  sendAdminCodeMismatchAlertEmail,
   sendResetPasswordEmail,
   sendVerificationEmail,
 } from "../utils/sendEmail.js";
+import logger from "../utils/logger.js";
 
 // ================= REGISTER =================
 const register = async (req, res) => {
@@ -22,9 +24,54 @@ const register = async (req, res) => {
     const allowedRoles = ["volunteer", "ngo"];
 
     if (role === "admin") {
-      const secretAdminCode =
-        process.env.ADMIN_SECRET_CODE || "WASTEZERO_ADMIN_2024";
+      const secretAdminCode = process.env.ADMIN_SECRET_CODE;
+
+      if (!secretAdminCode) {
+        logger.error("[REGISTER] ADMIN_SECRET_CODE is not configured");
+        return res.status(500).json({
+          message: "Server misconfigured. Admin registration unavailable.",
+        });
+      }
+
       if (!adminCode || adminCode !== secretAdminCode) {
+        try {
+          const admins = await User.find({ role: "admin" }).select("email");
+          const adminEmails = admins
+            .map((admin) => admin.email)
+            .filter(Boolean);
+
+          // Fallback to EMAIL_USER if no admin exists yet.
+          const recipients =
+            adminEmails.length > 0
+              ? adminEmails
+              : [process.env.EMAIL_USER].filter(Boolean);
+
+          const forwardedIp = req.headers["x-forwarded-for"];
+          const clientIp = Array.isArray(forwardedIp)
+            ? forwardedIp[0]
+            : forwardedIp?.split(",")[0]?.trim() || req.ip;
+
+          const attemptData = {
+            attemptedName: name,
+            attemptedEmail: email,
+            attemptedRole: role,
+            ipAddress: clientIp,
+            userAgent: req.get("user-agent"),
+            attemptedAt: new Date().toLocaleString(),
+          };
+
+          await Promise.all(
+            recipients.map((recipient) =>
+              sendAdminCodeMismatchAlertEmail(recipient, attemptData),
+            ),
+          );
+        } catch (mailError) {
+          logger.error(
+            "[REGISTER] Failed to send invalid admin code alert email",
+            mailError,
+          );
+        }
+
         return res.status(403).json({
           message: "Invalid admin code. Cannot create admin user.",
         });
@@ -75,15 +122,15 @@ const register = async (req, res) => {
     });
 
     await newUser.save();
-    console.log(`[REGISTER] New user created: ${email} (${finalRole})`);
+    logger.log(`[REGISTER] New user created: ${email} (${finalRole})`);
 
     // Send verification email only for non-admin users
     if (finalRole !== "admin") {
       try {
         await sendVerificationEmail(email, verificationToken);
-        console.log(`[REGISTER] Verification email sent to: ${email}`);
+        logger.log(`[REGISTER] Verification email sent to: ${email}`);
       } catch (emailError) {
-        console.error(
+        logger.error(
           `[REGISTER] Email sending failed for ${email}:`,
           emailError.message,
         );
@@ -106,7 +153,7 @@ const register = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("[REGISTER ERROR]:", error);
+    logger.error("[REGISTER ERROR]:", error);
     res.status(500).json({
       message: error.message || "Registration failed. Please try again.",
     });
@@ -269,7 +316,7 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res.status(500).json({
       message: "Server error",
     });
@@ -315,7 +362,7 @@ export const forgotPassword = async (req, res) => {
       message: "If this email exists, a reset link has been sent",
     });
   } catch (error) {
-    console.error("FORGOT PASSWORD ERROR:", error);
+    logger.error("FORGOT PASSWORD ERROR:", error);
     res.status(500).json({
       message: "Server error",
     });
@@ -360,12 +407,12 @@ export const resetPassword = async (req, res) => {
 export const getUserPreferences = async (req, res) => {
   try {
     const userId = req.user.userId;
-    console.log("[GET PREFERENCES] userId:", userId);
+    logger.log("[GET PREFERENCES] userId:", userId);
 
     const user = await User.findById(userId).select("notifications darkMode");
 
     if (!user) {
-      console.error("[GET PREFERENCES] User not found:", userId);
+      logger.error("[GET PREFERENCES] User not found:", userId);
       return res.status(404).json({
         message: "User not found",
       });
@@ -376,10 +423,10 @@ export const getUserPreferences = async (req, res) => {
       darkMode: user.darkMode || false,
     };
 
-    console.log("[GET PREFERENCES] Returning:", response);
+    logger.log("[GET PREFERENCES] Returning:", response);
     res.status(200).json(response);
   } catch (error) {
-    console.error("[GET PREFERENCES ERROR]:", error);
+    logger.error("[GET PREFERENCES ERROR]:", error);
     res.status(500).json({
       message: "Server error",
     });
@@ -392,7 +439,7 @@ export const updateUserPreferences = async (req, res) => {
     const userId = req.user.userId;
     const { notifications, darkMode } = req.body;
 
-    console.log("[UPDATE PREFERENCES] userId:", userId, "body:", {
+    logger.log("[UPDATE PREFERENCES] userId:", userId, "body:", {
       notifications,
       darkMode,
     });
@@ -407,14 +454,14 @@ export const updateUserPreferences = async (req, res) => {
       updateData.darkMode = darkMode;
     }
 
-    console.log("[UPDATE PREFERENCES] updateData:", updateData);
+    logger.log("[UPDATE PREFERENCES] updateData:", updateData);
 
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
       new: true,
     }).select("notifications darkMode");
 
     if (!updatedUser) {
-      console.error("[UPDATE PREFERENCES] User not found:", userId);
+      logger.error("[UPDATE PREFERENCES] User not found:", userId);
       return res.status(404).json({
         message: "User not found",
       });
@@ -426,10 +473,10 @@ export const updateUserPreferences = async (req, res) => {
       darkMode: updatedUser.darkMode,
     };
 
-    console.log("[UPDATE PREFERENCES] Success:", response);
+    logger.log("[UPDATE PREFERENCES] Success:", response);
     res.status(200).json(response);
   } catch (error) {
-    console.error("[UPDATE PREFERENCES ERROR]:", error);
+    logger.error("[UPDATE PREFERENCES ERROR]:", error);
     res.status(500).json({
       message: "Server error: " + error.message,
     });
@@ -440,12 +487,12 @@ export const updateUserPreferences = async (req, res) => {
 export const deleteAccount = async (req, res) => {
   try {
     const userId = req.user.userId;
-    console.log("[DELETE ACCOUNT] Attempting to delete user:", userId);
+    logger.log("[DELETE ACCOUNT] Attempting to delete user:", userId);
 
     const user = await User.findById(userId);
 
     if (!user) {
-      console.error("[DELETE ACCOUNT] User not found:", userId);
+      logger.error("[DELETE ACCOUNT] User not found:", userId);
       return res.status(404).json({
         message: "User not found",
       });
@@ -461,13 +508,13 @@ export const deleteAccount = async (req, res) => {
     // Delete user account
     await User.findByIdAndDelete(userId);
 
-    console.log(`[DELETE ACCOUNT] User account deleted: ${user.email}`);
+    logger.log(`[DELETE ACCOUNT] User account deleted: ${user.email}`);
 
     res.status(200).json({
       message: "Account deleted successfully",
     });
   } catch (error) {
-    console.error("[DELETE ACCOUNT ERROR]:", error);
+    logger.error("[DELETE ACCOUNT ERROR]:", error);
     res.status(500).json({
       message: "Server error: " + error.message,
     });
@@ -514,7 +561,7 @@ const googleCallback = async (req, res) => {
 
     res.redirect(`${process.env.CLIENT_URL}/oauth-success?token=${token}`);
   } catch (error) {
-    console.error("[GOOGLE CALLBACK ERROR]:", error);
+    logger.error("[GOOGLE CALLBACK ERROR]:", error);
     res.redirect(
       `${process.env.CLIENT_URL}/oauth-failed?message=${encodeURIComponent(
         error.message || "Google authentication failed",

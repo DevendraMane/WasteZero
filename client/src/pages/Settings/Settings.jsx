@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
-import { useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
+import { showError, showSuccess, showWarning } from "../../utils/alert";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
-  const { user, API, token } = useAuth();
-  const navigate = useNavigate();
+  const { user, API, token, logoutUser } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState({
     email: true,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [deleteArmedUntil, setDeleteArmedUntil] = useState(0);
 
   // Fetch user preferences on component mount
   useEffect(() => {
@@ -107,42 +109,43 @@ const Settings = () => {
   };
 
   const handleDeleteAccount = async () => {
-    const confirm = window.confirm(
-      "Are you sure you want to delete your account? This action cannot be undone.",
-    );
+    const now = Date.now();
 
-    if (confirm) {
-      const finalConfirm = window.confirm(
-        "This will permanently delete all your data. Continue?",
+    if (now > deleteArmedUntil) {
+      setDeleteArmedUntil(now + 5000);
+      showWarning(
+        "Press Delete Account again within 5 seconds to confirm permanent deletion.",
       );
+      return;
+    }
 
-      if (finalConfirm) {
-        setSaving(true);
-        try {
-          const res = await fetch(`${API}/api/auth/user/delete-account`, {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          });
+    setSaving(true);
+    try {
+      const res = await fetch(`${API}/api/auth/user/delete-account`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-          if (res.ok) {
-            setMessage("✓ Account deleted successfully");
-            // Clear all storage
-            window.location.href = "/login";
-            return;
-          } else {
-            const data = await res.json();
-            setMessage(`✗ ${data.message || "Failed to delete account"}`);
-          }
-        } catch (error) {
-          console.error("Error deleting account:", error);
-          setMessage("✗ Error deleting account");
-        } finally {
-          setSaving(false);
-        }
+      if (res.ok) {
+        showSuccess("Account deleted successfully");
+
+        // Clear token/user from context and tab storage before redirecting.
+        logoutUser();
+        navigate("/login", { replace: true });
+        return;
       }
+
+      const data = await res.json();
+      showError(data.message || "Failed to delete account");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      showError("Error deleting account");
+    } finally {
+      setSaving(false);
+      setDeleteArmedUntil(0);
     }
   };
 
