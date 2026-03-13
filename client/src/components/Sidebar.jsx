@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
 import { useDarkMode } from "../store/DarkModeContext";
@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import loader from "../assets/loader.png";
 
-const Sidebar = () => {
+const Sidebar = ({ onLinkClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logoutUser } = useAuth();
@@ -54,7 +54,13 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     logoutUser();
+    if (onLinkClick) onLinkClick();
     navigate("/login");
+  };
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    if (onLinkClick) onLinkClick();
   };
 
   return (
@@ -165,7 +171,7 @@ const Sidebar = () => {
             return (
               <button
                 key={item.name}
-                onClick={() => navigate(item.path)}
+                onClick={() => handleNavigate(item.path)}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${
                   isActive
                     ? isDarkMode
@@ -194,7 +200,7 @@ const Sidebar = () => {
 
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => navigate("/profile")}
+            onClick={() => handleNavigate("/profile")}
             className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition ${
               location.pathname === "/profile"
                 ? isDarkMode
@@ -220,7 +226,7 @@ const Sidebar = () => {
           </button>
 
           <button
-            onClick={() => navigate("/settings")}
+            onClick={() => handleNavigate("/settings")}
             className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition ${
               location.pathname === "/settings"
                 ? isDarkMode
@@ -237,7 +243,7 @@ const Sidebar = () => {
 
           {user?.role !== "admin" && (
             <button
-              onClick={() => navigate("/help")}
+              onClick={() => handleNavigate("/help")}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition ${
                 location.pathname === "/help"
                   ? isDarkMode

@@ -5,8 +5,9 @@ import { useDarkMode } from "../store/DarkModeContext";
 import { socket } from "../utils/socket";
 import { motion } from "framer-motion";
 import SearchBar from "./SearchBar";
+import { Menu } from "lucide-react";
 
-const Topbar = () => {
+const Topbar = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const { user, logoutUser, API, authorizationToken } = useAuth();
   const { isDarkMode } = useDarkMode();
@@ -86,17 +87,35 @@ const Topbar = () => {
 
   return (
     <div
-      className={`flex items-center justify-between px-8 py-4 shadow-sm transition duration-300 ${
+      className={`flex items-center justify-between gap-3 px-3 sm:px-4 lg:px-8 py-3 sm:py-4 shadow-sm transition duration-300 ${
         isDarkMode ? "bg-gray-800 border-b border-gray-700" : "bg-white"
       }`}
     >
-      {/* SEARCH BAR */}
+      <button
+        type="button"
+        onClick={onMenuClick}
+        className={`lg:hidden w-10 h-10 flex items-center justify-center rounded-full transition ${
+          isDarkMode ? "bg-gray-700 text-gray-200" : "bg-gray-100 text-gray-700"
+        }`}
+        aria-label="Open menu"
+      >
+        <Menu size={18} />
+      </button>
 
-      <SearchBar />
+      {/* SEARCH BAR */}
+      <div className="hidden md:block flex-1">
+        <SearchBar />
+      </div>
+
+      <div className="md:hidden flex-1">
+        <p className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+          Dashboard
+        </p>
+      </div>
 
       {/* RIGHT SECTION */}
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2 sm:gap-4 lg:gap-6">
         {/* ================= BELL ================= */}
 
         <button
@@ -179,7 +198,7 @@ const Topbar = () => {
             </div>
 
             <span
-              className={`font-medium text-sm ${
+              className={`hidden sm:inline font-medium text-sm ${
                 isDarkMode ? "text-gray-100" : "text-gray-900"
               }`}
             >

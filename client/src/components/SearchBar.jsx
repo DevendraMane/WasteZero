@@ -106,7 +106,7 @@ const SearchBar = () => {
     suggestions.opportunities.length + suggestions.pickups.length;
 
   return (
-    <div className="relative w-1/2" ref={dropdownRef}>
+    <div className="relative w-full max-w-2xl" ref={dropdownRef}>
       <input
         type="text"
         placeholder="Search opportunities, pickups..."

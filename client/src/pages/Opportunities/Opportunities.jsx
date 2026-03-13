@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { calculateDistance } from "../../utils/calculateDistance";
 import { useDarkMode } from "../../store/DarkModeContext";
 import Loader from "../../components/Loader";
+import DistanceFilter from "../../components/DistanceFilter";
 
 const ITEMS_PER_PAGE = 6;
 

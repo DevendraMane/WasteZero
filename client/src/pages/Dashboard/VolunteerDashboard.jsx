@@ -63,11 +63,11 @@ const VolunteerDashboard = () => {
   );
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-10">
       {/* ================= HEADER ================= */}
       <div>
         <h1
-          className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+          className={`text-2xl sm:text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
         >
           Volunteer Dashboard
         </h1>
@@ -77,7 +77,7 @@ const VolunteerDashboard = () => {
       </div>
 
       {/* ================= STATS ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
         {/* Opportunities Joined */}
         <StatCard
           title="Opportunities Joined"
@@ -142,7 +142,7 @@ const VolunteerDashboard = () => {
               return (
                 <div
                   key={app._id}
-                  className={`p-4 rounded-xl flex justify-between items-center transition duration-300 ${
+                  className={`p-4 rounded-xl flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 transition duration-300 ${
                     isDarkMode
                       ? "bg-gray-700 border border-gray-600"
                       : "bg-white border border-gray-200"
@@ -201,10 +201,10 @@ const VolunteerDashboard = () => {
 
 const StatCard = ({ title, value, color }) => (
   <div
-    className={`bg-gradient-to-r ${color} text-white p-6 rounded-2xl shadow-lg`}
+    className={`bg-linear-to-r ${color} text-white p-5 sm:p-6 rounded-2xl shadow-lg`}
   >
     <p className="text-sm opacity-80">{title}</p>
-    <h2 className="text-3xl font-bold mt-2">{value}</h2>
+    <h2 className="text-2xl sm:text-3xl font-bold mt-2">{value}</h2>
   </div>
 );
 

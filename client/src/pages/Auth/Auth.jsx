@@ -51,11 +51,11 @@ const Auth = () => {
     settings?.maintenanceMode && user?.role === "admin";
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-green-700 via-emerald-600 to-green-500 relative overflow-hidden">
+    <div className="min-h-dvh flex bg-linear-to-br from-green-700 via-emerald-600 to-green-500 relative overflow-x-hidden overflow-y-auto">
       <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" />
 
       {isAdminDuringMaintenance && (
-        <div className="fixed top-0 left-0 right-0 z-20 bg-blue-600 text-white py-3 px-4 text-center font-semibold">
+        <div className="fixed top-0 left-0 right-0 z-20 bg-blue-600 text-white py-3 px-4 text-center font-semibold text-sm md:text-base">
           ⚠️ Maintenance Mode is Active - Only admins can access the platform
         </div>
       )}
@@ -63,7 +63,7 @@ const Auth = () => {
       {/* LEFT SIDE */}
       <div
         className={`hidden md:flex flex-col justify-center px-24 text-white w-1/2 py-20 relative z-10 ${
-          isAdminDuringMaintenance ? "pt-24" : ""
+          isAdminDuringMaintenance ? "pt-16 md:pt-24" : ""
         }`}
       >
         <div className="flex items-center gap-4 mb-16">
@@ -89,21 +89,40 @@ const Auth = () => {
 
       {/* RIGHT SIDE */}
       <div
-        className={`flex justify-center items-center w-full md:w-1/2 px-6 py-12 relative z-10 ${
-          isAdminDuringMaintenance ? "pt-24" : ""
+        className={`flex justify-center items-center w-full md:w-1/2 px-4 sm:px-6 py-8 sm:py-12 relative z-10 ${
+          isAdminDuringMaintenance ? "pt-16 md:pt-24" : ""
         }`}
       >
+        <div className="w-full max-w-4xl">
+          <div className="md:hidden mb-5 text-white relative z-10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md shadow-lg">
+                <img
+                  src={loader}
+                  alt="WasteZero Logo"
+                  className="w-8 h-8 object-contain"
+                />
+              </div>
+              <span className="text-2xl font-bold tracking-wide">WasteZero</span>
+            </div>
+            <p className="text-sm text-green-100 leading-relaxed">
+              Join volunteers and NGOs to create real environmental impact.
+            </p>
+          </div>
+
         <div
           className={`
-            bg-white 
-            p-10 
-            rounded-3xl 
+            bg-white
+            p-5 sm:p-8 md:p-10
+            rounded-2xl sm:rounded-3xl
             shadow-2xl 
             w-full
+            md:max-h-[90vh]
+            overflow-y-auto
             ${getWidth()}
             transition-all 
             duration-600 
-            ease-[cubic-bezier(0.4,0,0.2,1)]
+            ease-in-out
           `}
         >
           <Outlet />
@@ -119,6 +138,7 @@ const Auth = () => {
               )}
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

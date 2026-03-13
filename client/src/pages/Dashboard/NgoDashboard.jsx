@@ -70,11 +70,11 @@ const NgoDashboard = () => {
   );
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-10">
       {/* HEADER */}
       <div>
         <h1
-          className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+          className={`text-2xl sm:text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
         >
           NGO Dashboard
         </h1>
@@ -84,7 +84,7 @@ const NgoDashboard = () => {
       </div>
 
       {/* ===================== STATS ===================== */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           title="Total Opportunities"
           value={opportunities.length}
@@ -112,7 +112,7 @@ const NgoDashboard = () => {
 
       {/* QUICK ACTIONS */}
       <div
-        className={`p-8 rounded-2xl shadow-md transition duration-300 ${
+        className={`p-5 sm:p-8 rounded-2xl shadow-md transition duration-300 ${
           isDarkMode ? "bg-gray-800" : "bg-white"
         }`}
       >
@@ -122,7 +122,7 @@ const NgoDashboard = () => {
           Quick Actions
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           <button
             onClick={() => setShowForm(true)}
             className={`transition p-5 rounded-xl font-medium ${
@@ -169,7 +169,7 @@ const NgoDashboard = () => {
       )}
 
       <div
-        className={`p-8 rounded-2xl shadow-md transition duration-300 ${
+        className={`p-5 sm:p-8 rounded-2xl shadow-md transition duration-300 ${
           isDarkMode ? "bg-gray-800" : "bg-white"
         }`}
       >
@@ -300,10 +300,10 @@ const NgoDashboard = () => {
 
 const StatCard = ({ title, value, color }) => (
   <div
-    className={`bg-gradient-to-r ${color} text-white p-6 rounded-2xl shadow-lg`}
+    className={`bg-linear-to-r ${color} text-white p-5 sm:p-6 rounded-2xl shadow-lg`}
   >
     <p className="text-sm opacity-80">{title}</p>
-    <h2 className="text-3xl font-bold mt-2">{value}</h2>
+    <h2 className="text-2xl sm:text-3xl font-bold mt-2">{value}</h2>
   </div>
 );
 

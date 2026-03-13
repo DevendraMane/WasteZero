@@ -76,11 +76,11 @@ const AdminDashboard = () => {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* HEADER */}
       <div>
         <h1
-          className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
+          className={`text-2xl sm:text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-800"}`}
         >
           Admin Dashboard
         </h1>
@@ -90,48 +90,48 @@ const AdminDashboard = () => {
       </div>
 
       {/* STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
         <div
           onClick={() => navigate("/admin/users")}
-          className="cursor-pointer bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition"
+          className="cursor-pointer bg-linear-to-r from-indigo-500 to-purple-600 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition"
         >
           <p className="text-sm opacity-80">Total Users</p>
-          <h2 className="text-3xl font-bold mt-2">{stats?.totalUsers ?? 0}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mt-2">{stats?.totalUsers ?? 0}</h2>
         </div>
 
         <div
           onClick={() => navigate("/admin/pickups")}
-          className="cursor-pointer bg-gradient-to-r from-pink-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition"
+          className="cursor-pointer bg-linear-to-r from-pink-500 to-purple-600 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition"
         >
           <p className="text-sm opacity-80">Completed Pickups</p>
-          <h2 className="text-3xl font-bold mt-2">
+          <h2 className="text-2xl sm:text-3xl font-bold mt-2">
             {stats?.completedPickups?.toLocaleString() ?? 0}
           </h2>
         </div>
 
         <div
           onClick={() => navigate("/admin/pickups")}
-          className="cursor-pointer bg-gradient-to-r from-orange-400 to-red-500 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition"
+          className="cursor-pointer bg-linear-to-r from-orange-400 to-red-500 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition"
         >
           <p className="text-sm opacity-80">Pending Pickups</p>
-          <h2 className="text-3xl font-bold mt-2">
+          <h2 className="text-2xl sm:text-3xl font-bold mt-2">
             {stats?.pendingPickups?.toLocaleString() ?? 0}
           </h2>
         </div>
 
         <div
           onClick={() => navigate("/admin/opportunities")}
-          className="cursor-pointer bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-2xl shadow-lg hover:scale-105 transition"
+          className="cursor-pointer bg-linear-to-r from-green-500 to-emerald-600 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition"
         >
           <p className="text-sm opacity-80">Active Opportunities</p>
-          <h2 className="text-3xl font-bold mt-2">
+          <h2 className="text-2xl sm:text-3xl font-bold mt-2">
             {stats?.activeOpportunities ?? 0}
           </h2>
         </div>
       </div>
 
       {/* CHART SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
         <div
           className={`p-6 rounded-2xl shadow-md transition duration-300 ${
             isDarkMode ? "bg-gray-800" : "bg-white"
@@ -231,7 +231,7 @@ const AdminDashboard = () => {
           isDarkMode ? "bg-gray-800" : "bg-white"
         }`}
       >
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <h2
             className={`text-xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
           >
