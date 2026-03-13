@@ -7,6 +7,23 @@ import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 import { sendOpportunityNotificationEmail } from "../utils/sendEmail.js";
 
+const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+};
+
 /* ================= CREATE OPPORTUNITY ================= */
 
 const createOpportunity = async (req, res) => {
@@ -122,8 +139,49 @@ const getAllOpportunities = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 6;
+    const latitude = Number(req.query.latitude);
+    const longitude = Number(req.query.longitude);
+    const maxDistance = Number(req.query.maxDistance);
 
     const skip = (page - 1) * limit;
+
+    const hasDistanceFilter =
+      Number.isFinite(latitude) &&
+      Number.isFinite(longitude) &&
+      Number.isFinite(maxDistance);
+
+    if (hasDistanceFilter) {
+      const allOpportunities = await Opportunity.find()
+        .populate("ngo_id", "name")
+        .sort({ createdAt: -1 });
+
+      const filteredByDistance = allOpportunities.filter((opp) => {
+        const oppLat = Number(opp.latitude);
+        const oppLng = Number(opp.longitude);
+
+        // If coordinates are missing for an opportunity, it cannot be distance-filtered.
+        if (!Number.isFinite(oppLat) || !Number.isFinite(oppLng)) return false;
+
+        const distance = calculateDistanceKm(
+          latitude,
+          longitude,
+          oppLat,
+          oppLng,
+        );
+
+        return distance <= maxDistance;
+      });
+
+      const total = filteredByDistance.length;
+      const opportunities = filteredByDistance.slice(skip, skip + limit);
+
+      return res.json({
+        data: opportunities,
+        total,
+        page,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      });
+    }
 
     const total = await Opportunity.countDocuments();
 
@@ -167,13 +225,19 @@ const getSingleOpportunity = async (req, res) => {
 
 const deleteOpportunity = async (req, res) => {
   try {
+    if (req.user?.role !== "ngo") {
+      return res.status(403).json({ message: "Only NGOs can delete opportunities" });
+    }
+
     const opportunity = await Opportunity.findById(req.params.id);
 
     if (!opportunity) {
       return res.status(404).json({ message: "Opportunity not found" });
     }
 
-    if (opportunity.ngo_id.toString() !== req.user.userId) {
+    const requesterId = String(req.userId || req.user?.userId || "");
+
+    if (!requesterId || opportunity.ngo_id.toString() !== requesterId) {
       return res.status(403).json({ message: "Not authorized to delete" });
     }
 
@@ -193,6 +257,10 @@ const deleteOpportunity = async (req, res) => {
 
 const updateOpportunity = async (req, res) => {
   try {
+    if (req.user?.role !== "ngo") {
+      return res.status(403).json({ message: "Only NGOs can edit opportunities" });
+    }
+
     const { title, description, duration, location, required_skills, date } =
       req.body;
 
@@ -202,7 +270,9 @@ const updateOpportunity = async (req, res) => {
       return res.status(404).json({ message: "Opportunity not found" });
     }
 
-    if (opportunity.ngo_id.toString() !== req.user.userId) {
+    const requesterId = String(req.userId || req.user?.userId || "");
+
+    if (!requesterId || opportunity.ngo_id.toString() !== requesterId) {
       return res.status(403).json({ message: "Not authorized to edit" });
     }
 

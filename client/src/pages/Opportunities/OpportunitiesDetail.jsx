@@ -114,6 +114,13 @@ const OpportunitiesDetail = () => {
   }
 
   const isClosed = new Date(opportunity.date) < new Date();
+  const currentUserId = String(user?._id || user?.id || "");
+  const opportunityOwnerId = String(opportunity?.ngo_id?._id || "");
+  const canManageOpportunity =
+    user?.role === "ngo" &&
+    currentUserId &&
+    opportunityOwnerId &&
+    currentUserId === opportunityOwnerId;
 
   const formattedDate = opportunity.date
     ? new Date(opportunity.date).toLocaleDateString("en-IN", {
@@ -267,7 +274,7 @@ const OpportunitiesDetail = () => {
 
           {/* NGO ACTIONS */}
 
-          {user?.role === "ngo" && (
+          {canManageOpportunity && (
             <div className="flex gap-3 pt-4">
               <button
                 onClick={() => navigate(`/opportunities/edit/${id}`)}

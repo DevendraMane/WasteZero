@@ -108,7 +108,9 @@ const Topbar = ({ onMenuClick }) => {
       </div>
 
       <div className="md:hidden flex-1">
-        <p className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>
+        <p
+          className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+        >
           Dashboard
         </p>
       </div>

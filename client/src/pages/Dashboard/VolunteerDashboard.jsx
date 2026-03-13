@@ -8,6 +8,7 @@ const VolunteerDashboard = () => {
 
   const [applications, setApplications] = useState([]);
   const [pickups, setPickups] = useState([]);
+  const [totalActiveOpportunities, setTotalActiveOpportunities] = useState(0);
 
   const [loadingApps, setLoadingApps] = useState(true);
   const [loadingPickups, setLoadingPickups] = useState(true);
@@ -52,7 +53,34 @@ const VolunteerDashboard = () => {
     fetchPickups();
   }, [API, authorizationToken]);
 
-  const activeOpportunities = applications.filter(
+  /* ================= FETCH TOTAL ACTIVE OPPORTUNITIES ================= */
+  useEffect(() => {
+    const fetchTotalActiveOpportunities = async () => {
+      try {
+        // Large limit to compute accurate active count on the client.
+        const res = await fetch(`${API}/api/opportunities?page=1&limit=10000`, {
+          headers: { Authorization: authorizationToken },
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          const opportunities = data?.data || [];
+          const now = new Date();
+          const activeCount = opportunities.filter(
+            (opp) => opp?.date && new Date(opp.date) >= now,
+          ).length;
+          setTotalActiveOpportunities(activeCount);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchTotalActiveOpportunities();
+  }, [API, authorizationToken]);
+
+  const myActiveOpportunities = applications.filter(
     (app) =>
       app.status === "accepted" &&
       new Date(app.opportunity_id?.date) >= new Date(),
@@ -88,7 +116,7 @@ const VolunteerDashboard = () => {
         {/* Active Opportunities */}
         <StatCard
           title="Active Opportunities"
-          value={activeOpportunities.length}
+          value={totalActiveOpportunities}
           color="from-indigo-500 to-blue-600"
         />
 
@@ -106,6 +134,10 @@ const VolunteerDashboard = () => {
           color="from-orange-400 to-red-500"
         />
       </div>
+
+      <p className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+        My active opportunities: {myActiveOpportunities.length}
+      </p>
 
       {/* ================= OPPORTUNITIES LIST ================= */}
       <div

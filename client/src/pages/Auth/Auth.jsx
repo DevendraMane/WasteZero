@@ -103,15 +103,17 @@ const Auth = () => {
                   className="w-8 h-8 object-contain"
                 />
               </div>
-              <span className="text-2xl font-bold tracking-wide">WasteZero</span>
+              <span className="text-2xl font-bold tracking-wide">
+                WasteZero
+              </span>
             </div>
             <p className="text-sm text-green-100 leading-relaxed">
               Join volunteers and NGOs to create real environmental impact.
             </p>
           </div>
 
-        <div
-          className={`
+          <div
+            className={`
             bg-white
             p-5 sm:p-8 md:p-10
             rounded-2xl sm:rounded-3xl
@@ -124,21 +126,21 @@ const Auth = () => {
             duration-600 
             ease-in-out
           `}
-        >
-          <Outlet />
-          {/* Google login note & Admin info */}
-          {(path.includes("login") || path.includes("register")) && (
-            <div className="mt-6 text-sm text-gray-500 text-center leading-relaxed space-y-2">
-              <p>Google login: Volunteers only. NGOs require verification.</p>
-              {path.includes("register") && (
-                <p className="text-xs text-gray-400">
-                  💡 Pro tip: Select "Admin" during registration and enter the
-                  admin code to create an admin account
-                </p>
-              )}
-            </div>
-          )}
-        </div>
+          >
+            <Outlet />
+            {/* Google login note & Admin info */}
+            {(path.includes("login") || path.includes("register")) && (
+              <div className="mt-6 text-sm text-gray-500 text-center leading-relaxed space-y-2">
+                <p>Google login: Volunteers only. NGOs require verification.</p>
+                {path.includes("register") && (
+                  <p className="text-xs text-gray-400">
+                    💡 Pro tip: Select "Admin" during registration and enter the
+                    admin code to create an admin account
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

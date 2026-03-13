@@ -24,18 +24,37 @@ const Opportunities = () => {
 
   const navigate = useNavigate();
 
+  const canUseDistanceFilter = ["volunteer", "ngo"].includes(user?.role);
+
+  const hasUserCoords =
+    canUseDistanceFilter &&
+    Number.isFinite(Number(user?.latitude)) &&
+    Number.isFinite(Number(user?.longitude));
+
   const fetchOpportunities = async () => {
     try {
       setLoading(true);
+
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        limit: String(ITEMS_PER_PAGE),
+      });
+
+      if (hasUserCoords) {
+        params.append("latitude", String(Number(user.latitude)));
+        params.append("longitude", String(Number(user.longitude)));
+        params.append("maxDistance", String(maxDistance));
+      }
+
       const res = await axios.get(
-        `${API}/api/opportunities?page=${currentPage}&limit=${ITEMS_PER_PAGE}`,
+        `${API}/api/opportunities?${params.toString()}`,
         {
           headers: { Authorization: authorizationToken },
         },
       );
 
       setOpportunities(res.data.data);
-      setTotalPages(res.data.totalPages);
+      setTotalPages(res.data.totalPages || 1);
     } catch (error) {
       console.error(error);
     } finally {
@@ -45,7 +64,7 @@ const Opportunities = () => {
 
   useEffect(() => {
     fetchOpportunities();
-  }, [currentPage]);
+  }, [currentPage, maxDistance, user?.role, user?.latitude, user?.longitude]);
 
   useEffect(() => {
     const fetchAppliedStatus = async () => {
@@ -85,14 +104,20 @@ const Opportunities = () => {
 
   /* ================= DISTANCE FILTER ================= */
   const filteredOpportunities = opportunities.filter((opp) => {
-    if (!user?.latitude || !user?.longitude) return true;
-    if (!opp.latitude || !opp.longitude) return true;
+    if (!hasUserCoords) return true;
+
+    const oppLat = Number(opp.latitude);
+    const oppLng = Number(opp.longitude);
+
+    if (!Number.isFinite(oppLat) || !Number.isFinite(oppLng)) return false;
+
     const distance = calculateDistance(
-      user.latitude,
-      user.longitude,
-      opp.latitude,
-      opp.longitude,
+      Number(user.latitude),
+      Number(user.longitude),
+      oppLat,
+      oppLng,
     );
+
     return distance <= maxDistance;
   });
 
@@ -145,7 +170,7 @@ const Opportunities = () => {
       )}
 
       {/* DISTANCE FILTER */}
-      {user?.role === "volunteer" && (
+      {canUseDistanceFilter && (
         <DistanceFilter
           distance={maxDistance}
           setDistance={(value) => setMaxDistance(Number(value))}
@@ -187,16 +212,15 @@ const Opportunities = () => {
           paginatedOpportunities.map((item) => {
             let distance = null;
             if (
-              user?.latitude &&
-              user?.longitude &&
-              item.latitude &&
-              item.longitude
+              hasUserCoords &&
+              Number.isFinite(Number(item.latitude)) &&
+              Number.isFinite(Number(item.longitude))
             ) {
               distance = calculateDistance(
-                user.latitude,
-                user.longitude,
-                item.latitude,
-                item.longitude,
+                Number(user.latitude),
+                Number(user.longitude),
+                Number(item.latitude),
+                Number(item.longitude),
               ).toFixed(1);
             }
 

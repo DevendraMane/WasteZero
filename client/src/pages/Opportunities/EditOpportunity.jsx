@@ -9,7 +9,7 @@ import MapPicker from "../../components/MapPicker";
 const EditOpportunity = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { authorizationToken, API } = useAuth();
+  const { authorizationToken, API, user } = useAuth();
   const { isDarkMode } = useDarkMode();
 
   const submittingRef = useRef(false);
@@ -48,6 +48,20 @@ const EditOpportunity = () => {
 
         const data = res.data;
 
+        const currentUserId = String(user?._id || user?.id || "");
+        const ownerId = String(data?.ngo_id?._id || data?.ngo_id || "");
+
+        if (
+          user?.role === "ngo" &&
+          currentUserId &&
+          ownerId &&
+          currentUserId !== ownerId
+        ) {
+          alert("You are not authorized to edit this opportunity");
+          navigate(`/opportunities/${id}`);
+          return;
+        }
+
         setForm({
           title: data.title,
           description: data.description,
@@ -73,7 +87,7 @@ const EditOpportunity = () => {
     };
 
     fetchOpportunity();
-  }, [id]);
+  }, [id, API, authorizationToken, user?._id, user?.id, user?.role, navigate]);
 
   /* ================= INPUT HANDLER ================= */
 

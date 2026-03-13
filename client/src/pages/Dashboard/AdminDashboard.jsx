@@ -96,7 +96,9 @@ const AdminDashboard = () => {
           className="cursor-pointer bg-linear-to-r from-indigo-500 to-purple-600 text-white p-5 sm:p-6 rounded-2xl shadow-lg hover:scale-105 transition"
         >
           <p className="text-sm opacity-80">Total Users</p>
-          <h2 className="text-2xl sm:text-3xl font-bold mt-2">{stats?.totalUsers ?? 0}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mt-2">
+            {stats?.totalUsers ?? 0}
+          </h2>
         </div>
 
         <div
