@@ -1,0 +1,70 @@
+import User from "../models/user-model.js";
+import { sendIssueReportEmail } from "../utils/sendEmail.js";
+
+// ================= REPORT ISSUE =================
+export const reportIssue = async (req, res) => {
+  try {
+    const { issueType, subject, description } = req.body;
+    const userId = req.user.userId;
+
+    // Validate required fields
+    if (!issueType || !subject || !description) {
+      return res.status(400).json({
+        message: "Issue type, subject, and description are required",
+      });
+    }
+
+    // Get user info
+    const user = await User.findById(userId).select("name email role");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // Get admin email(s)
+    const admins = await User.find({ role: "admin" }).select("email");
+
+    if (admins.length === 0) {
+      console.warn("[REPORT ISSUE] No admin users found in database");
+      return res.status(500).json({
+        message: "Admin contact not available. Please use support email.",
+      });
+    }
+
+    // Send email to each admin
+    const reportData = {
+      issueType,
+      subject,
+      description,
+      userEmail: user.email,
+      userName: user.name,
+      userRole: user.role,
+    };
+
+    const emailPromises = admins.map((admin) =>
+      sendIssueReportEmail(admin.email, reportData),
+    );
+
+    await Promise.all(emailPromises);
+
+    console.log(
+      `[REPORT ISSUE] Issue reported by ${user.email} (${user.role}) - Type: ${issueType}`,
+    );
+
+    res.status(200).json({
+      message:
+        "Thank you for reporting this issue! Our admin team will review it shortly.",
+    });
+  } catch (error) {
+    console.error("[REPORT ISSUE ERROR]:", error);
+    res.status(500).json({
+      message: "Failed to submit report. Please try again later.",
+    });
+  }
+};
+
+export default {
+  reportIssue,
+};

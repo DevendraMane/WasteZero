@@ -14,6 +14,7 @@ import pickupRouter from "./routes/pickup-router.js";
 import imageRouter from "./routes/image-router.js";
 import messageRouter from "./routes/message-router.js";
 import settingsRouter from "./routes/settings-router.js";
+import helpRouter from "./routes/help-router.js";
 import passport from "passport";
 import "./config/passport.js";
 import {
@@ -57,6 +58,7 @@ app.use("/api/image", imageRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/messages", messageRouter);
 app.use("/api/settings", settingsRouter);
+app.use("/api/help", helpRouter);
 /* ================= CREATE SERVER ================= */
 
 const server = http.createServer(app);

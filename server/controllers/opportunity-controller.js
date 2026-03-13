@@ -4,6 +4,7 @@ import User from "../models/user-model.js";
 import { io } from "../server.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
+import { sendOpportunityNotificationEmail } from "../utils/sendEmail.js";
 
 /* ================= CREATE OPPORTUNITY ================= */
 
@@ -62,7 +63,7 @@ const createOpportunity = async (req, res) => {
     /* ================= SEND NOTIFICATION TO VOLUNTEERS ================= */
 
     const ngo = await User.findById(req.user.userId).select(
-      "name profileImage",
+      "name profileImage email",
     );
 
     const volunteers = await User.find({
@@ -88,6 +89,24 @@ const createOpportunity = async (req, res) => {
       });
 
       io.to(volunteer._id.toString()).emit("new_notification", notification);
+
+      // ✅ Send email notification to volunteer if they have email notifications enabled
+      try {
+        if (volunteer.notifications?.email) {
+          await sendOpportunityNotificationEmail(volunteer.email, {
+            title,
+            description,
+            location,
+            ngoName: ngo.name,
+          });
+        }
+      } catch (emailError) {
+        console.error(
+          `[OPPORTUNITY EMAIL ERROR] Failed to send email to ${volunteer.email}:`,
+          emailError.message,
+        );
+        // Don't block the response if email fails
+      }
     }
 
     res.status(201).json(opportunity);

@@ -257,6 +257,36 @@ const Analytics = () => {
           )}
         </div>
 
+        {/* OPPORTUNITY TREND */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-lg font-medium text-gray-800 mb-6">
+            Opportunity Trend Analysis
+          </h3>
+
+          {monthlyPickupData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={monthlyPickupData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Bar
+                  dataKey="opportunities"
+                  fill="#3b82f6"
+                  radius={[6, 6, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-gray-400 text-center py-20">
+              No opportunity data yet
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* SECOND CHART ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* USER GROWTH */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <h3 className="text-lg font-medium text-gray-800 mb-6">
@@ -283,37 +313,37 @@ const Analytics = () => {
             <p className="text-gray-400 text-center py-20">No user data yet</p>
           )}
         </div>
-      </div>
 
-      {/* ROLE DISTRIBUTION */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-medium text-gray-800 mb-6">
-          User Role Distribution
-        </h3>
+        {/* ROLE DISTRIBUTION */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-lg font-medium text-gray-800 mb-6">
+            User Role Distribution
+          </h3>
 
-        {userDistribution.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={userDistribution}
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                dataKey="value"
-                label
-              >
-                {userDistribution.map((entry, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <p className="text-gray-400 text-center py-20">
-            No distribution data yet
-          </p>
-        )}
+          {userDistribution.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={userDistribution}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  dataKey="value"
+                  label
+                >
+                  {userDistribution.map((entry, index) => (
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-gray-400 text-center py-20">
+              No distribution data yet
+            </p>
+          )}
+        </div>
       </div>
 
       {/* EXPORT SECTION */}

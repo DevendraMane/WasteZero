@@ -356,6 +356,124 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+// ================= GET USER PREFERENCES =================
+export const getUserPreferences = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    console.log("[GET PREFERENCES] userId:", userId);
+
+    const user = await User.findById(userId).select("notifications darkMode");
+
+    if (!user) {
+      console.error("[GET PREFERENCES] User not found:", userId);
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    const response = {
+      notifications: user.notifications || { email: true },
+      darkMode: user.darkMode || false,
+    };
+
+    console.log("[GET PREFERENCES] Returning:", response);
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("[GET PREFERENCES ERROR]:", error);
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+// ================= UPDATE USER PREFERENCES =================
+export const updateUserPreferences = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { notifications, darkMode } = req.body;
+
+    console.log("[UPDATE PREFERENCES] userId:", userId, "body:", {
+      notifications,
+      darkMode,
+    });
+
+    const updateData = {};
+
+    if (notifications) {
+      updateData.notifications = notifications;
+    }
+
+    if (darkMode !== undefined) {
+      updateData.darkMode = darkMode;
+    }
+
+    console.log("[UPDATE PREFERENCES] updateData:", updateData);
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    }).select("notifications darkMode");
+
+    if (!updatedUser) {
+      console.error("[UPDATE PREFERENCES] User not found:", userId);
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    const response = {
+      message: "Preferences updated successfully",
+      notifications: updatedUser.notifications,
+      darkMode: updatedUser.darkMode,
+    };
+
+    console.log("[UPDATE PREFERENCES] Success:", response);
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("[UPDATE PREFERENCES ERROR]:", error);
+    res.status(500).json({
+      message: "Server error: " + error.message,
+    });
+  }
+};
+
+// ================= DELETE ACCOUNT =================
+export const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    console.log("[DELETE ACCOUNT] Attempting to delete user:", userId);
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      console.error("[DELETE ACCOUNT] User not found:", userId);
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // Admin users cannot delete their own account via this endpoint
+    if (user.role === "admin") {
+      return res.status(403).json({
+        message: "Admin accounts cannot be deleted through this endpoint",
+      });
+    }
+
+    // Delete user account
+    await User.findByIdAndDelete(userId);
+
+    console.log(`[DELETE ACCOUNT] User account deleted: ${user.email}`);
+
+    res.status(200).json({
+      message: "Account deleted successfully",
+    });
+  } catch (error) {
+    console.error("[DELETE ACCOUNT ERROR]:", error);
+    res.status(500).json({
+      message: "Server error: " + error.message,
+    });
+  }
+};
+
 const googleCallback = async (req, res) => {
   try {
     const user = req.user;
@@ -415,4 +533,7 @@ export default {
   forgotPassword,
   resetPassword,
   googleCallback,
+  getUserPreferences,
+  updateUserPreferences,
+  deleteAccount,
 };

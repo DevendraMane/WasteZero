@@ -141,32 +141,54 @@ const AdminDashboard = () => {
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-md">
-          <h3 className="text-lg font-semibold mb-4">User Distribution</h3>
-          {pieData.length > 0 ? (
+          <h3 className="text-lg font-semibold mb-4">Monthly Opportunities</h3>
+          {barData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  dataKey="value"
-                  label
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Legend />
-              </PieChart>
+              <BarChart data={barData}>
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Bar
+                  dataKey="opportunities"
+                  fill="#3b82f6"
+                  radius={[8, 8, 0, 0]}
+                />
+              </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-gray-400 text-center py-20">No user data yet</p>
+            <p className="text-gray-400 text-center py-20">
+              No opportunity data yet
+            </p>
           )}
         </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-2xl shadow-md">
+        <h3 className="text-lg font-semibold mb-4">User Distribution</h3>
+        {pieData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                dataKey="value"
+                label
+              >
+                {pieData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-gray-400 text-center py-20">No user data yet</p>
+        )}
       </div>
 
       {/* USERS OVERVIEW SECTION */}

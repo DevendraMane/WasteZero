@@ -2,6 +2,7 @@ import Pickup from "../models/pickup-model.js";
 import User from "../models/user-model.js";
 import Notification from "../models/notification-model.js";
 import { io } from "../server.js";
+import { sendPickupNotificationEmail } from "../utils/sendEmail.js";
 /* ================= CREATE PICKUP ================= */
 
 const createPickup = async (req, res) => {
@@ -28,10 +29,14 @@ const createPickup = async (req, res) => {
     await pickup.save();
 
     /* GET VOLUNTEER INFO */
-    const volunteer = await User.findById(req.user.userId).select("name");
+    const volunteer = await User.findById(req.user.userId).select(
+      "name phone email notifications",
+    );
 
     /* GET ALL NGOs */
-    const ngos = await User.find({ role: "ngo" }).select("_id");
+    const ngos = await User.find({ role: "ngo" }).select(
+      "_id name email notifications",
+    );
 
     /* SEND NOTIFICATIONS */
     for (let ngo of ngos) {
@@ -46,6 +51,26 @@ const createPickup = async (req, res) => {
       });
 
       io.to(ngo._id.toString()).emit("new_notification", notification);
+
+      // ✅ Send email notification to NGO if they have email notifications enabled
+      try {
+        if (ngo.notifications?.email) {
+          await sendPickupNotificationEmail(ngo.email, {
+            location,
+            itemType: category,
+            quantity: "1", // If you track quantity, update this
+            scheduledDate: scheduled_time,
+            volunteerName: volunteer.name,
+            volunteerPhone: volunteer.phone || "N/A",
+          });
+        }
+      } catch (emailError) {
+        console.error(
+          `[PICKUP EMAIL ERROR] Failed to send email to ${ngo.email}:`,
+          emailError.message,
+        );
+        // Don't block the response if email fails
+      }
     }
 
     const populatedPickup = await Pickup.findById(pickup._id).populate(

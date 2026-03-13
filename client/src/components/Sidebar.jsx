@@ -188,17 +188,19 @@ const Sidebar = () => {
             Settings
           </button>
 
-          <button
-            onClick={() => navigate("/help")}
-            className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition ${
-              location.pathname === "/help"
-                ? "bg-gray-100 text-gray-900 font-medium"
-                : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            <HelpCircle size={18} />
-            Help & Support
-          </button>
+          {user?.role !== "admin" && (
+            <button
+              onClick={() => navigate("/help")}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition ${
+                location.pathname === "/help"
+                  ? "bg-gray-100 text-gray-900 font-medium"
+                  : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <HelpCircle size={18} />
+              Help & Support
+            </button>
+          )}
         </div>
       </div>
 

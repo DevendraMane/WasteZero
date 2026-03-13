@@ -1,6 +1,9 @@
 import express from "express";
 import authcontrollers, {
   updateProfile,
+  getUserPreferences,
+  updateUserPreferences,
+  deleteAccount,
 } from "../controllers/auth-controller.js";
 import { authMiddleware } from "../middlewares/auth-middleware.js";
 import { checkFeatureToggle } from "../middlewares/settings-middleware.js";
@@ -34,6 +37,13 @@ authRouter.post("/forgot-password", authcontrollers.forgotPassword);
 authRouter.put("/reset-password/:token", authcontrollers.resetPassword);
 
 authRouter.get("/profile", authMiddleware, authcontrollers.getProfile);
+
+authRouter
+  .route("/user/preferences")
+  .get(authMiddleware, getUserPreferences)
+  .put(authMiddleware, updateUserPreferences);
+
+authRouter.delete("/user/delete-account", authMiddleware, deleteAccount);
 
 // ================= GOOGLE AUTH =================
 

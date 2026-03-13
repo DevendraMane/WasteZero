@@ -98,6 +98,19 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    // ✅ User Preferences
+    notifications: {
+      email: {
+        type: Boolean,
+        default: true,
+      },
+    },
+
+    darkMode: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true },
 );

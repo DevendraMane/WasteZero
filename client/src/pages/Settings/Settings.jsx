@@ -1,28 +1,155 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../store/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
+  const { user, API, token } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState({
     email: true,
-    sms: false,
-    push: true,
   });
 
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("darkMode") === "true",
+  );
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const handleToggle = (key) => {
-    setNotifications((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+  // Fetch user preferences on component mount
+  useEffect(() => {
+    const fetchUserPreferences = async () => {
+      try {
+        if (!token || !user) {
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch(`${API}/api/auth/user/preferences`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.notifications) {
+            setNotifications(data.notifications);
+          }
+          if (data.darkMode !== undefined) {
+            setDarkMode(data.darkMode);
+            localStorage.setItem("darkMode", data.darkMode);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching preferences:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserPreferences();
+  }, [API, token, user]);
+
+  const handleToggle = async (key) => {
+    const updatedNotifications = {
+      ...notifications,
+      [key]: !notifications[key],
+    };
+    setNotifications(updatedNotifications);
+
+    // Save to backend
+    setSaving(true);
+    try {
+      const res = await fetch(`${API}/api/auth/user/preferences`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          notifications: updatedNotifications,
+        }),
+      });
+
+      if (res.ok) {
+        setMessage("✓ Notification preferences updated");
+        setTimeout(() => setMessage(""), 3000);
+      } else {
+        const errorData = await res.json();
+        console.error("[PREFERENCES ERROR]", res.status, errorData);
+        setMessage("✗ Failed to update preferences");
+        // Revert the change
+        setNotifications(notifications);
+      }
+    } catch (error) {
+      console.error("Error saving preferences:", error);
+      setMessage("✗ Error saving preferences: " + error.message);
+      setNotifications(notifications);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDeleteAccount = () => {
+  const handleDarkMode = async () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem("darkMode", newDarkMode);
+
+    // Save to backend
+    try {
+      await fetch(`${API}/api/auth/user/preferences`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          darkMode: newDarkMode,
+        }),
+      });
+    } catch (error) {
+      console.error("Error saving dark mode preference:", error);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
     const confirm = window.confirm(
-      "Are you sure you want to delete your account?",
+      "Are you sure you want to delete your account? This action cannot be undone.",
     );
 
     if (confirm) {
-      alert("Account deletion logic goes here");
+      const finalConfirm = window.confirm(
+        "This will permanently delete all your data. Continue?",
+      );
+
+      if (finalConfirm) {
+        setSaving(true);
+        try {
+          const res = await fetch(`${API}/api/auth/user/delete-account`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (res.ok) {
+            setMessage("✓ Account deleted successfully");
+            // Clear all storage
+            window.location.href = "/login";
+            return;
+          } else {
+            const data = await res.json();
+            setMessage(`✗ ${data.message || "Failed to delete account"}`);
+          }
+        } catch (error) {
+          console.error("Error deleting account:", error);
+          setMessage("✗ Error deleting account");
+        } finally {
+          setSaving(false);
+        }
+      }
     }
   };
 
@@ -36,81 +163,109 @@ const Settings = () => {
         </p>
       </div>
 
-      {/* NOTIFICATIONS */}
-      <div className="bg-white p-8 rounded-2xl shadow-md space-y-6">
-        <h2 className="text-xl font-semibold">Notifications</h2>
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-500 text-lg">Loading preferences...</p>
+        </div>
+      ) : (
+        <>
+          {/* NOTIFICATIONS */}
+          <div className="bg-white p-8 rounded-2xl shadow-md space-y-6">
+            <h2 className="text-xl font-semibold">Notifications</h2>
 
-        {["email", "sms", "push"].map((type) => (
-          <div
-            key={type}
-            className="flex justify-between items-center border-b pb-4"
-          >
-            <div>
-              <p className="font-medium capitalize">{type} Notifications</p>
-              <p className="text-sm text-gray-500">
-                Receive updates via {type}
-              </p>
+            {["email"].map((type) => (
+              <div
+                key={type}
+                className="flex justify-between items-center border-b pb-4"
+              >
+                <div>
+                  <p className="font-medium capitalize">{type} Notifications</p>
+                  <p className="text-sm text-gray-500">
+                    Receive updates via {type}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => handleToggle(type)}
+                  disabled={saving}
+                  className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
+                    notifications[type]
+                      ? "bg-green-500 justify-end"
+                      : "bg-gray-300 justify-start"
+                  } ${saving ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  <div className="w-4 h-4 bg-white rounded-full shadow"></div>
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* APPEARANCE */}
+          <div className="bg-white p-8 rounded-2xl shadow-md space-y-6">
+            <h2 className="text-xl font-semibold">Appearance</h2>
+
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-medium">Dark Mode</p>
+                <p className="text-sm text-gray-500">Toggle dark theme</p>
+              </div>
+
+              <button
+                onClick={handleDarkMode}
+                disabled={saving}
+                className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
+                  darkMode
+                    ? "bg-green-500 justify-end"
+                    : "bg-gray-300 justify-start"
+                } ${saving ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <div className="w-4 h-4 bg-white rounded-full shadow"></div>
+              </button>
             </div>
+          </div>
 
-            <button
-              onClick={() => handleToggle(type)}
-              className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
-                notifications[type]
-                  ? "bg-green-500 justify-end"
-                  : "bg-gray-300 justify-start"
+          {/* STATUS MESSAGE */}
+          {message && (
+            <div
+              className={`p-4 rounded-lg ${
+                message.startsWith("✓")
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
               }`}
             >
-              <div className="w-4 h-4 bg-white rounded-full shadow"></div>
-            </button>
-          </div>
-        ))}
-      </div>
+              {message}
+            </div>
+          )}
 
-      {/* APPEARANCE */}
-      <div className="bg-white p-8 rounded-2xl shadow-md space-y-6">
-        <h2 className="text-xl font-semibold">Appearance</h2>
+          {/* DANGER ZONE */}
+          {user && user.role !== "admin" && (
+            <div className="bg-white p-8 rounded-2xl shadow-md space-y-6 border border-red-200">
+              <h2 className="text-xl font-semibold text-red-600">
+                Danger Zone
+              </h2>
 
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="font-medium">Dark Mode</p>
-            <p className="text-sm text-gray-500">
-              Toggle dark theme (UI only demo)
-            </p>
-          </div>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium">Delete Account</p>
+                  <p className="text-sm text-gray-500">
+                    Permanently remove your account and data
+                  </p>
+                </div>
 
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className={`w-12 h-6 flex items-center rounded-full p-1 transition ${
-              darkMode
-                ? "bg-green-500 justify-end"
-                : "bg-gray-300 justify-start"
-            }`}
-          >
-            <div className="w-4 h-4 bg-white rounded-full shadow"></div>
-          </button>
-        </div>
-      </div>
-
-      {/* DANGER ZONE */}
-      <div className="bg-white p-8 rounded-2xl shadow-md space-y-6 border border-red-200">
-        <h2 className="text-xl font-semibold text-red-600">Danger Zone</h2>
-
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="font-medium">Delete Account</p>
-            <p className="text-sm text-gray-500">
-              Permanently remove your account and data
-            </p>
-          </div>
-
-          <button
-            onClick={handleDeleteAccount}
-            className="bg-red-100 text-red-600 px-6 py-2 rounded-lg hover:bg-red-200"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={saving}
+                  className={`bg-red-100 text-red-600 px-6 py-2 rounded-lg hover:bg-red-200 ${
+                    saving ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  {saving ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
