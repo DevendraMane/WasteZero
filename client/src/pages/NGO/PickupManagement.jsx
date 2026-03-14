@@ -12,6 +12,9 @@ const PickupManagement = () => {
   const { isDarkMode } = useDarkMode();
 
   const [pickups, setPickups] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   /* SAMPLE AGENTS */
   const [agents] = useState([
@@ -43,9 +46,6 @@ const PickupManagement = () => {
 
   const [selectedAgent, setSelectedAgent] = useState({});
   const [loading, setLoading] = useState(true);
-  const [visiblePickupCount, setVisiblePickupCount] =
-    useState(PICKUP_BATCH_SIZE);
-  const loadMoreRef = useRef(null);
 
   const getStatusClasses = (status) => {
     if (status === "pending") {
@@ -75,13 +75,19 @@ const PickupManagement = () => {
 
   const fetchPickups = async () => {
     try {
-      const res = await fetch(`${API}/api/pickups/ngo`, {
-        headers: { Authorization: authorizationToken },
-      });
+      const res = await fetch(
+        `${API}/api/pickups/ngo?page=${currentPage}&limit=${PICKUP_BATCH_SIZE}&status=${statusFilter}`,
+        {
+          headers: { Authorization: authorizationToken },
+        },
+      );
 
       const data = await res.json();
 
-      if (res.ok) setPickups(data);
+      if (res.ok) {
+        setPickups(data.data);
+        setTotalPages(data.totalPages || 1);
+      }
     } catch (err) {
       devError(err);
     } finally {
@@ -91,33 +97,23 @@ const PickupManagement = () => {
 
   useEffect(() => {
     fetchPickups();
-  }, []);
+  }, [currentPage, statusFilter]);
 
-  useEffect(() => {
-    setVisiblePickupCount(PICKUP_BATCH_SIZE);
-  }, [pickups.length]);
-
-  const visiblePickups = pickups.slice(0, visiblePickupCount);
-  const hasMorePickups = visiblePickupCount < pickups.length;
-
-  useEffect(() => {
-    const node = loadMoreRef.current;
-    if (!node || !hasMorePickups) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisiblePickupCount((prev) =>
-            Math.min(prev + PICKUP_BATCH_SIZE, pickups.length),
-          );
-        }
-      },
-      { rootMargin: "120px" },
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [hasMorePickups, pickups.length]);
+  // Smart pagination - show first, neighbors of current, and last page
+  const getPaginationPages = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    pages.push(1);
+    const startPage = Math.max(2, currentPage - 1);
+    const endPage = Math.min(totalPages - 1, currentPage + 1);
+    if (startPage > 2) pages.push("...");
+    for (let i = startPage; i <= endPage; i++) pages.push(i);
+    if (endPage < totalPages - 1) pages.push("...");
+    pages.push(totalPages);
+    return pages;
+  };
 
   /* ================= ASSIGN AGENT ================= */
 
@@ -199,8 +195,32 @@ const PickupManagement = () => {
               : "bg-gray-100 text-gray-700"
           }`}
         >
-          {pickups.length} requests
+          Page {currentPage} of {totalPages}
         </span>
+      </div>
+
+      {/* STATUS FILTER */}
+      <div className="flex flex-wrap gap-2">
+        {["all", "pending", "assigned", "in-progress", "completed"].map(
+          (status) => (
+            <button
+              key={status}
+              onClick={() => {
+                setStatusFilter(status);
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition duration-300 capitalize ${
+                statusFilter === status
+                  ? "bg-green-600 text-white shadow-md"
+                  : isDarkMode
+                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {status}
+            </button>
+          ),
+        )}
       </div>
 
       {pickups.length === 0 ? (
@@ -215,7 +235,7 @@ const PickupManagement = () => {
         </div>
       ) : (
         <div className="space-y-3 sm:space-y-4">
-          {visiblePickups.map((pickup) => {
+          {pickups.map((pickup) => {
             const dateObj = new Date(pickup.scheduled_time);
 
             return (
@@ -334,13 +354,97 @@ const PickupManagement = () => {
             );
           })}
 
-          {hasMorePickups && (
-            <div ref={loadMoreRef} className="py-3 text-center">
-              <span
-                className={`text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+          {/* PAGINATION */}
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-6 border-t transition duration-300 border-gray-200 dark:border-gray-700">
+              {/* Results Info */}
+              <div
+                className={`text-sm font-medium transition duration-300 ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
               >
-                Loading more pickup requests...
-              </span>
+                <span className="font-semibold">
+                  Page {currentPage} of {totalPages}
+                </span>
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-end gap-1 sm:gap-2">
+                {/* Prev button */}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                  title="Previous page"
+                  className={`px-3 sm:px-4 py-2 rounded-lg border text-sm font-medium transition duration-300 ${
+                    currentPage === 1
+                      ? isDarkMode
+                        ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-50"
+                        : "border-gray-200 text-gray-400 cursor-not-allowed opacity-50"
+                      : isDarkMode
+                        ? "border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-600"
+                        : "border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300"
+                  }`}
+                >
+                  <span className="hidden sm:inline">← Prev</span>
+                  <span className="sm:hidden">←</span>
+                </button>
+
+                {/* Page numbers */}
+                <div className="flex items-center gap-1">
+                  {getPaginationPages().map((page, index) => {
+                    if (page === "...") {
+                      return (
+                        <span
+                          key={`ellipsis-${index}`}
+                          className={`px-2 py-2 text-sm font-medium ${
+                            isDarkMode ? "text-gray-400" : "text-gray-400"
+                          }`}
+                        >
+                          …
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        title={`Go to page ${page}`}
+                        className={`w-9 h-9 rounded-lg text-sm font-semibold transition duration-300 ${
+                          currentPage === page
+                            ? "bg-green-600 text-white shadow-md shadow-green-600/50"
+                            : isDarkMode
+                              ? "border border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-green-600 hover:text-green-400"
+                              : "border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-green-400 hover:text-green-600"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Next button */}
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(p + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  title="Next page"
+                  className={`px-3 sm:px-4 py-2 rounded-lg border text-sm font-medium transition duration-300 ${
+                    currentPage === totalPages
+                      ? isDarkMode
+                        ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-50"
+                        : "border-gray-200 text-gray-400 cursor-not-allowed opacity-50"
+                      : isDarkMode
+                        ? "border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-600"
+                        : "border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300"
+                  }`}
+                >
+                  <span className="hidden sm:inline">Next →</span>
+                  <span className="sm:hidden">→</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

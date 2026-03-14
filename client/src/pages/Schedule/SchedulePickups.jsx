@@ -192,7 +192,16 @@ const SchedulePickups = () => {
       });
 
       if (res.ok) {
-        fetchPickups();
+        const newPickup = await res.json();
+
+        if (editingPickup) {
+          // For updates, refetch to ensure we have the latest data
+          fetchPickups();
+        } else {
+          // For new pickups, optimistically add to list without refetching
+          setPickups((prev) => [newPickup, ...prev]);
+        }
+
         setShowForm(false);
         setEditingPickup(null);
         showSuccess(editingPickup ? "Pickup updated" : "Pickup scheduled");

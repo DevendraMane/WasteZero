@@ -103,28 +103,29 @@ const AdminMessages = ({ isDarkMode = false }) => {
 
   return (
     <div
-      className={`flex flex-col h-[85vh] rounded-xl shadow-sm border overflow-hidden transition duration-300 ${
+      className={`flex flex-col lg:flex-row h-full lg:h-full rounded-none lg:rounded-xl shadow-none lg:shadow-sm border-none lg:border overflow-hidden transition duration-300 ${
         isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-100"
       }`}
     >
       {/* HEADER + FILTER */}
+      {/* HEADER + FILTER */}
       <div
-        className={`p-6 border-b space-y-4 transition duration-300 ${
+        className={`p-3 sm:p-4 md:p-6 border-b space-y-3 md:space-y-4 transition duration-300 ${
           isDarkMode ? "border-gray-700" : "border-gray-200"
         }`}
       >
         <h1
-          className={`text-2xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+          className={`text-xl sm:text-2xl font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
         >
-          Admin Message Monitoring
+          Admin Monitoring
         </h1>
 
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex gap-2 md:gap-3 flex-wrap">
           {["all", "flagged", "under_review", "system"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg text-sm transition duration-300 ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm transition duration-300 ${
                 activeTab === tab
                   ? "bg-green-600 text-white"
                   : isDarkMode
@@ -139,10 +140,10 @@ const AdminMessages = ({ isDarkMode = false }) => {
 
         <input
           type="text"
-          placeholder="Search conversations..."
+          placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className={`w-full rounded-lg px-4 py-2 border transition duration-300 ${
+          className={`w-full rounded-lg px-3 sm:px-4 py-2 border text-sm transition duration-300 ${
             isDarkMode
               ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
               : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
@@ -150,10 +151,11 @@ const AdminMessages = ({ isDarkMode = false }) => {
         />
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1">
+        {/* LEFT PANEL */}
         {/* LEFT PANEL */}
         <div
-          className={`w-1/3 border-r overflow-y-auto transition duration-300 ${
+          className={`w-full lg:w-1/3 border-r overflow-y-auto transition duration-300 ${
             isDarkMode
               ? "bg-gray-800 border-gray-700"
               : "bg-gray-50 border-gray-200"
@@ -162,7 +164,7 @@ const AdminMessages = ({ isDarkMode = false }) => {
           {filteredConversations.map((conv, index) => (
             <div
               key={conv.id}
-              className={`p-4 border-b cursor-pointer transition duration-300 ${
+              className={`p-4 border-b cursor-pointer transition duration-300 flex-shrink-0 ${
                 isDarkMode
                   ? `border-gray-700 ${
                       selected === index ? "bg-gray-700" : "hover:bg-gray-700"
@@ -275,14 +277,14 @@ const AdminMessages = ({ isDarkMode = false }) => {
 
               {/* CHAT VIEW */}
               <div
-                className={`flex-1 p-6 overflow-y-auto space-y-3 transition duration-300 ${
+                className={`flex-1 p-2 overflow-y-auto space-y-2 transition duration-300 ${
                   isDarkMode ? "bg-gray-900" : "bg-gray-50"
                 }`}
               >
                 {current.messages.map((msg, i) => (
                   <div
                     key={i}
-                    className={`p-3 rounded-lg shadow-sm transition duration-300 ${
+                    className={`p-3 rounded-xl shadow-sm transition ${
                       isDarkMode ? "bg-gray-800" : "bg-white"
                     }`}
                   >
@@ -302,7 +304,7 @@ const AdminMessages = ({ isDarkMode = false }) => {
 
               {/* INSIGHTS + NOTES */}
               <div
-                className={`p-4 border-t space-y-4 transition duration-300 ${
+                className={`p-2 border-t space-y-2 transition duration-300 ${
                   isDarkMode
                     ? "bg-gray-800 border-gray-700"
                     : "bg-white border-gray-200"

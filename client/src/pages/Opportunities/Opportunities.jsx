@@ -133,6 +133,33 @@ const Opportunities = () => {
     setCurrentPage(1);
   }, [maxDistance]);
 
+  // Smart pagination - show first, neighbors of current, and last page
+  const getPaginationPages = () => {
+    const pages = [];
+    const showPages = 3; // Show current and 1 neighbor on each side
+
+    if (totalPages <= 7) {
+      // Show all pages if 7 or fewer
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    // Always show first page
+    pages.push(1);
+
+    // Calculate start of page range around current
+    const startPage = Math.max(2, currentPage - 1);
+    const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+    if (startPage > 2) pages.push("...");
+    for (let i = startPage; i <= endPage; i++) pages.push(i);
+    if (endPage < totalPages - 1) pages.push("...");
+
+    // Always show last page
+    pages.push(totalPages);
+
+    return pages;
+  };
+
   if (loading) return <Loader />;
 
   return (
@@ -169,7 +196,15 @@ const Opportunities = () => {
       {showForm && (
         <CreateOpportunity
           onClose={() => setShowForm(false)}
-          onCreated={fetchOpportunities}
+          onCreated={(newOpportunity) => {
+            if (newOpportunity) {
+              // Optimistically add the new opportunity to the list
+              setOpportunities((prev) => [newOpportunity, ...prev]);
+            } else {
+              // Fallback to refetch if no opportunity data returned
+              fetchOpportunities();
+            }
+          }}
         />
       )}
 
@@ -407,49 +442,98 @@ const Opportunities = () => {
 
       {/* PAGINATION */}
       {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
-          {/* Prev button */}
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 rounded-lg border text-sm font-medium transition duration-300 ${
-              isDarkMode
-                ? "border-gray-700 text-gray-300 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
-                : "border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-6 border-t transition duration-300 border-gray-200 dark:border-gray-700">
+          {/* Results Info */}
+          <div
+            className={`text-sm font-medium transition duration-300 ${
+              isDarkMode ? "text-gray-400" : "text-gray-600"
             }`}
           >
-            ← Prev
-          </button>
+            <span className="font-semibold">
+              Page {currentPage} of {totalPages}
+            </span>
+            {filteredOpportunities.length > 0 && (
+              <span className="ml-2">
+                ({filteredOpportunities.length} total opportunities)
+              </span>
+            )}
+          </div>
 
-          {/* Page numbers */}
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          {/* Pagination Controls */}
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-1 sm:gap-2">
+            {/* Prev button */}
             <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`w-9 h-9 rounded-lg text-sm font-semibold transition duration-300 ${
-                currentPage === page
-                  ? "bg-green-600 text-white shadow-sm"
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              title="Previous page"
+              className={`px-3 sm:px-4 py-2 rounded-lg border text-sm font-medium transition duration-300 ${
+                currentPage === 1
+                  ? isDarkMode
+                    ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-50"
+                    : "border-gray-200 text-gray-400 cursor-not-allowed opacity-50"
                   : isDarkMode
-                    ? "border border-gray-700 text-gray-300 hover:bg-gray-700"
-                    : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                    ? "border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-600"
+                    : "border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300"
               }`}
             >
-              {page}
+              <span className="hidden sm:inline">← Prev</span>
+              <span className="sm:hidden">←</span>
             </button>
-          ))}
 
-          {/* Next button */}
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 rounded-lg border text-sm font-medium transition duration-300 ${
-              isDarkMode
-                ? "border-gray-700 text-gray-300 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
-                : "border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-            }`}
-          >
-            Next →
-          </button>
+            {/* Page numbers */}
+            <div className="flex items-center gap-1">
+              {getPaginationPages().map((page, index) => {
+                if (page === "...") {
+                  return (
+                    <span
+                      key={`ellipsis-${index}`}
+                      className={`px-2 py-2 text-sm font-medium ${
+                        isDarkMode ? "text-gray-400" : "text-gray-400"
+                      }`}
+                    >
+                      …
+                    </span>
+                  );
+                }
+
+                return (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    title={`Go to page ${page}`}
+                    className={`w-9 h-9 rounded-lg text-sm font-semibold transition duration-300 ${
+                      currentPage === page
+                        ? "bg-green-600 text-white shadow-md shadow-green-600/50"
+                        : isDarkMode
+                          ? "border border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-green-600 hover:text-green-400"
+                          : "border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-green-400 hover:text-green-600"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Next button */}
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              title="Next page"
+              className={`px-3 sm:px-4 py-2 rounded-lg border text-sm font-medium transition duration-300 ${
+                currentPage === totalPages
+                  ? isDarkMode
+                    ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-50"
+                    : "border-gray-200 text-gray-400 cursor-not-allowed opacity-50"
+                  : isDarkMode
+                    ? "border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-600"
+                    : "border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300"
+              }`}
+            >
+              <span className="hidden sm:inline">Next →</span>
+              <span className="sm:hidden">→</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
