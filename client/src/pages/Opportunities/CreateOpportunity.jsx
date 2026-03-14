@@ -80,7 +80,7 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
         formData.append("image", image);
       }
 
-      await axios.post(`${API}/api/opportunities`, formData, {
+      const { data } = await axios.post(`${API}/api/opportunities`, formData, {
         headers: {
           Authorization: authorizationToken,
           "Content-Type": "multipart/form-data",
@@ -89,7 +89,9 @@ const CreateOpportunity = ({ onClose, onCreated }) => {
 
       showSuccess("Opportunity created successfully");
 
-      onCreated();
+      // Pass the newly created opportunity to the parent callback
+      // This avoids unnecessary full refetch
+      onCreated(data);
       onClose();
     } catch (error) {
       console.error(error);

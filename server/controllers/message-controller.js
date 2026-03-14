@@ -167,7 +167,7 @@ const getMessages = async (req, res) => {
 
     // Get user info with online status
     const otherUser = await User.findById(otherId).select(
-      "isOnline lastSeen name profileImage",
+      "isOnline lastSeen name profileImage role",
     );
 
     const conversationId =
@@ -179,6 +179,12 @@ const getMessages = async (req, res) => {
 
     res.json({
       messages,
+      user: {
+        _id: otherUser._id,
+        name: otherUser.name,
+        profileImage: otherUser.profileImage,
+        role: otherUser.role,
+      },
       userStatus: {
         isOnline: otherUser.isOnline,
         lastSeen: otherUser.lastSeen,

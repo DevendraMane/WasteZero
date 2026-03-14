@@ -7,11 +7,15 @@ const Messages = () => {
   const { user } = useAuth();
   const { isDarkMode } = useDarkMode();
 
-  if (user?.role === "admin") {
-    return <AdminMessages isDarkMode={isDarkMode} />;
-  }
-
-  return <UserMessages isDarkMode={isDarkMode} />;
+  return (
+    <div className="h-[calc(100dvh-70px)] overflow-hidden">
+      {user?.role === "admin" ? (
+        <AdminMessages isDarkMode={isDarkMode} />
+      ) : (
+        <UserMessages isDarkMode={isDarkMode} />
+      )}
+    </div>
+  );
 };
 
 export default Messages;

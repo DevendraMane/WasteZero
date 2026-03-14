@@ -60,6 +60,10 @@ export const App = () => {
       element: <TestLoader />,
     },
     {
+      path: "/index.html",
+      element: <OAuthSuccess />,
+    },
+    {
       path: "/oauth-success",
       element: <OAuthSuccess />,
     },

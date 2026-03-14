@@ -42,9 +42,25 @@ const UserMessages = ({ isDarkMode = false }) => {
   const [blockedUsers, setBlockedUsers] = useState([]);
   const [isBlockingUser, setIsBlockingUser] = useState(false);
 
+  // Store selected user info for display (especially when conversation doesn't exist yet)
+  const [selectedUserInfo, setSelectedUserInfo] = useState(null);
+
   // Delete conversation states
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [isDeletingConversation, setIsDeletingConversation] = useState(false);
+
+  // Auto-scroll ref
+  const messagesEndRef = React.useRef(null);
+  const messageInputRef = React.useRef(null);
+
+  // Auto scroll to bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   /* ================= SETUP SOCKET.IO ================= */
 
@@ -151,6 +167,24 @@ const UserMessages = ({ isDarkMode = false }) => {
     }
   };
 
+  /* ================= FETCH USER DETAILS ================= */
+
+  const fetchUserDetailsFromConversations = (userId) => {
+    const conversation = conversations.find((c) => c.user?._id === userId);
+    if (conversation?.user) {
+      setSelectedUserInfo(conversation.user);
+      return true;
+    }
+    return false;
+  };
+
+  // When conversations load, check if selectedUser is in the list and set their info
+  useEffect(() => {
+    if (selectedUser && conversations.length > 0) {
+      fetchUserDetailsFromConversations(selectedUser);
+    }
+  }, [conversations, selectedUser]);
+
   useEffect(() => {
     fetchConversations();
     fetchBlockedUsers();
@@ -184,6 +218,10 @@ const UserMessages = ({ isDarkMode = false }) => {
     } else {
       setMessages(data.messages);
       setSelectedUserStatus(data.userStatus);
+      // Set user info from response immediately
+      if (data.user) {
+        setSelectedUserInfo(data.user);
+      }
     }
   };
 
@@ -206,6 +244,7 @@ const UserMessages = ({ isDarkMode = false }) => {
   useEffect(() => {
     if (selectedUser) {
       refreshUserStatus(selectedUser);
+      // User info should already be set from loadMessages response
     }
   }, [selectedUser]);
 
@@ -244,6 +283,14 @@ const UserMessages = ({ isDarkMode = false }) => {
       // Stop typing
       emitTypingStop(user._id, selectedUser);
       setIsUserTyping(false);
+
+      // Close keyboard on mobile
+      setTimeout(() => {
+        if (messageInputRef.current) {
+          messageInputRef.current.blur();
+        }
+        document.activeElement?.blur();
+      }, 100);
 
       fetchConversations(); // refresh left panel
     } catch (error) {
@@ -447,6 +494,7 @@ const UserMessages = ({ isDarkMode = false }) => {
         // Clear messages and selected user
         setMessages([]);
         setSelectedUser(null);
+        setSelectedUserInfo(null);
         setDeleteConfirmOpen(false);
 
         showSuccess("Conversation deleted successfully");
@@ -464,17 +512,16 @@ const UserMessages = ({ isDarkMode = false }) => {
 
   return (
     <div
-      className={`flex h-[80vh] rounded-2xl shadow overflow-hidden transition duration-300 ${
+      className={`flex flex-col lg:flex-row h-full lg:h-full rounded-none lg:rounded-2xl shadow-none lg:shadow overflow-hidden transition duration-300 ${
         isDarkMode ? "bg-gray-800" : "bg-white"
       }`}
     >
-      {/* LEFT PANEL */}
-
+      {/* LEFT PANEL - CONVERSATIONS */}
       <div
-        className={`${selectedUser ? "hidden md:flex" : "flex"} w-full md:w-1/3 flex-col transition duration-300 ${
+        className={`${selectedUser ? "hidden lg:flex" : "flex"} w-full lg:w-1/3 flex-col border-b lg:border-b-0 lg:border-r transition duration-300 ${
           isDarkMode
-            ? "border-gray-700 bg-gray-900 border-r"
-            : "border-r border-gray-200 bg-gray-50"
+            ? "border-gray-700 bg-gray-900"
+            : "border-gray-200 bg-gray-50"
         }`}
       >
         <div
@@ -545,14 +592,17 @@ const UserMessages = ({ isDarkMode = false }) => {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-hidden">
           {filteredChats.map((conv) => {
             const otherUser = conv.user?._id;
 
             return (
               <div
                 key={conv._id}
-                onClick={() => loadMessages(otherUser)}
+                onClick={() => {
+                  loadMessages(otherUser);
+                  setSelectedUserInfo(conv.user);
+                }}
                 className={`p-4 cursor-pointer border-b transition duration-300 ${
                   isDarkMode
                     ? `border-gray-700 ${
@@ -607,126 +657,149 @@ const UserMessages = ({ isDarkMode = false }) => {
         </div>
       </div>
 
-      {/* RIGHT PANEL */}
-
+      {/* RIGHT PANEL - CHAT */}
       <div
-        className={`${selectedUser ? "flex" : "hidden md:flex"} flex-1 flex-col`}
+        className={`${selectedUser ? "flex" : "hidden lg:flex"} flex-1 flex-col overflow-hidden`}
       >
         {selectedUser ? (
           <>
-            {/* CHAT HEADER */}
+            {/* CHAT HEADER - MOBILE RESPONSIVE */}
             <div
-              className={`p-3 sm:p-4 border-b flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 transition duration-300 ${
+              className={`relative lg:sticky lg:top-0 lg:z-10 p-2 sm:p-2 md:p-3 border-b flex items-center gap-2 sm:gap-3 transition duration-300 shrink-0 ${
                 isDarkMode
                   ? "bg-gray-800 border-gray-700"
                   : "bg-white border-gray-200"
               }`}
             >
-              <div className="w-full sm:w-auto flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedUser(null);
-                    setMessages([]);
-                    setIsUserTyping(false);
-                  }}
-                  className={`md:hidden inline-flex items-center justify-center h-8 w-8 rounded-full transition duration-300 ${
-                    isDarkMode
-                      ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                  aria-label="Back to chats"
+              {/* Back button for mobile */}
+              <button
+                onClick={() => {
+                  setSelectedUser(null);
+                  setMessages([]);
+                  setSelectedUserInfo(null);
+                  setIsUserTyping(false);
+                }}
+                className={`lg:hidden inline-flex items-center justify-center h-8 w-8 rounded-full transition duration-300 ${
+                  isDarkMode
+                    ? "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+                aria-label="Back to chats"
+              >
+                ←
+              </button>
+
+              {/* User info */}
+              <div className="flex-1 min-w-0">
+                <h3
+                  className={`font-semibold text-sm sm:text-base truncate ${isDarkMode ? "text-white" : "text-gray-900"}`}
                 >
-                  ←
-                </button>
+                  {selectedConversation?.user?.name ||
+                    selectedUserInfo?.name ||
+                    "Unknown User"}
+                </h3>
 
-                <div className="flex-1">
-                  <h3
-                    className={`font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+                <div className="flex items-center gap-1">
+                  <div
+                    className={`w-2 h-2 rounded-full shrink-0 ${
+                      selectedUserStatus.isOnline
+                        ? "bg-green-500 animate-pulse"
+                        : "bg-gray-400"
+                    }`}
+                    title={selectedUserStatus.isOnline ? "Online" : "Offline"}
+                  ></div>
+                  <p
+                    className={`text-xs truncate ${
+                      isDarkMode ? "text-gray-400" : "text-gray-500"
+                    }`}
                   >
-                    {selectedConversation?.user?.name || "Unknown User"}
-                  </h3>
-
-                  <div className="flex items-center gap-1">
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        selectedUserStatus.isOnline
-                          ? "bg-green-500"
-                          : "bg-gray-400"
-                      }`}
-                    ></div>
-                    <p
-                      className={`text-xs ${
-                        isDarkMode ? "text-gray-400" : "text-gray-500"
-                      }`}
-                    >
-                      {selectedUserStatus.isOnline
-                        ? "Online"
-                        : `Last seen ${formatLastSeen(
-                            selectedUserStatus.lastSeen,
-                          )}`}
-                    </p>
-                  </div>
+                    {selectedUserStatus.isOnline
+                      ? "Online"
+                      : `Last seen ${formatLastSeen(
+                          selectedUserStatus.lastSeen,
+                        )}`}
+                  </p>
                 </div>
               </div>
 
               {/* Report button (only for NGOs) */}
-              <div className="w-full sm:w-auto flex flex-wrap gap-2 sm:justify-end">
+              <div className="flex items-center gap-1 sm:gap-2">
                 {user?.role === "ngo" && (
                   <>
                     <button
                       onClick={() => setFlagModalOpen(true)}
-                      className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition duration-300"
+                      title="Report user"
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition duration-300"
                     >
-                      Report
+                      🚩
                     </button>
                     <button
                       onClick={handleBlockUser}
                       disabled={isBlockingUser}
-                      className={`px-3 py-1 text-white text-sm rounded transition duration-300 ${
+                      title="Block user"
+                      className={`p-2 rounded-lg transition duration-300 ${
                         isBlockingUser
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-orange-600 hover:bg-orange-700"
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-orange-600 hover:bg-orange-50"
                       }`}
                     >
-                      Block
+                      🚫
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirmOpen(true)}
+                      title="Delete conversation"
+                      className="p-2 text-red-800 hover:bg-red-50 rounded-lg transition duration-300"
+                    >
+                      🗑️
                     </button>
                   </>
                 )}
-
-                <button
-                  onClick={() => setDeleteConfirmOpen(true)}
-                  className="px-3 py-1 bg-red-800 text-white text-sm rounded hover:bg-red-900 transition duration-300"
-                >
-                  Delete
-                </button>
               </div>
             </div>
 
-            {/* CHAT BODY */}
-
+            {/* CHAT BODY - MESSAGES */}
             <div
-              className={`flex-1 p-3 sm:p-6 overflow-y-auto space-y-3 sm:space-y-4 transition duration-300 ${
+              className={`flex-1 p-1 sm:p-2 md:p-4 overflow-y-auto space-y-2 transition duration-300 flex flex-col ${
                 isDarkMode ? "bg-gray-900" : "bg-gray-50"
               }`}
             >
+              {messages.length === 0 && (
+                <div
+                  className={`flex items-center justify-center h-full text-sm ${
+                    isDarkMode ? "text-gray-500" : "text-gray-400"
+                  }`}
+                >
+                  <p>No messages yet. Start a conversation!</p>
+                </div>
+              )}
+
               {messages.map((msg, i) => {
                 const isMe = msg.sender_id?.toString() === user._id;
 
                 return (
                   <div
                     key={i}
-                    className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+                    className={`flex ${isMe ? "justify-end" : "justify-start"} animate-fadeIn`}
                   >
                     <div
-                      className={`px-4 py-2 rounded-xl max-w-xs text-sm transition duration-300 ${
+                      className={`px-3 py-2 rounded-xl max-w-xs sm:max-w-md text-sm shadow ${
                         isMe
                           ? "bg-green-600 text-white"
                           : isDarkMode
-                            ? "bg-gray-700 text-gray-200 shadow"
-                            : "bg-white text-gray-900 shadow"
+                            ? "bg-gray-700 text-gray-200"
+                            : "bg-white text-gray-900"
                       }`}
                     >
-                      {msg.content}
+                      <p>{msg.content}</p>
+
+                      {msg.createdAt && (
+                        <p className="text-[10px] opacity-70 mt-1 text-right">
+                          {new Date(msg.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
@@ -736,46 +809,64 @@ const UserMessages = ({ isDarkMode = false }) => {
               {isUserTyping && (
                 <div className="flex justify-start">
                   <div
-                    className={`px-4 py-2 rounded-xl text-sm transition duration-300 ${
+                    className={`px-2 sm:px-3 py-2 rounded-lg sm:rounded-xl text-sm transition duration-300 ${
                       isDarkMode
                         ? "bg-gray-700 text-gray-300 shadow"
                         : "bg-white text-gray-600 shadow"
                     }`}
                   >
-                    <div className="flex gap-1">
-                      <div
-                        className={`w-2 h-2 rounded-full animate-bounce ${isDarkMode ? "bg-gray-400" : "bg-gray-600"}`}
-                      ></div>
-                      <div
-                        className={`w-2 h-2 rounded-full animate-bounce ${isDarkMode ? "bg-gray-400" : "bg-gray-600"}`}
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className={`w-2 h-2 rounded-full animate-bounce ${isDarkMode ? "bg-gray-400" : "bg-gray-600"}`}
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
+                    <div className="flex gap-1 items-center">
+                      <span className="text-xs">typing</span>
+                      <div className="flex gap-1">
+                        <div
+                          className={`w-2 h-2 rounded-full animate-bounce ${
+                            isDarkMode ? "bg-gray-400" : "bg-gray-600"
+                          }`}
+                        ></div>
+                        <div
+                          className={`w-2 h-2 rounded-full animate-bounce ${
+                            isDarkMode ? "bg-gray-400" : "bg-gray-600"
+                          }`}
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className={`w-2 h-2 rounded-full animate-bounce ${
+                            isDarkMode ? "bg-gray-400" : "bg-gray-600"
+                          }`}
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
+
+              {/* Scroll anchor */}
+              <div ref={messagesEndRef} />
             </div>
 
-            {/* INPUT */}
-
+            {/* INPUT - MOBILE RESPONSIVE */}
             <div
-              className={`p-3 sm:p-4 border-t flex gap-2 transition duration-300 ${
+              className={`p-1 sm:p-2 md:p-3 border-t flex gap-2 transition duration-300 shrink-0 ${
                 isDarkMode
                   ? "bg-gray-800 border-gray-700"
                   : "bg-white border-gray-200"
               }`}
             >
               <input
+                ref={messageInputRef}
                 type="text"
-                placeholder="Type your message..."
+                placeholder="Message..."
                 value={newMessage}
                 onChange={handleMessageChange}
-                onKeyPress={(e) => e.key === "Enter" && handleSend()}
-                className={`flex-1 rounded-full px-4 py-2 border transition duration-300 ${
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                autoComplete="off"
+                className={`flex-1 rounded-full px-3 sm:px-4 py-2 border text-sm transition duration-300 ${
                   isDarkMode
                     ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                     : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
@@ -784,15 +875,15 @@ const UserMessages = ({ isDarkMode = false }) => {
 
               <button
                 onClick={handleSend}
-                className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition"
+                className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition text-sm font-medium shrink-0"
               >
-                Send
+                ➤
               </button>
             </div>
           </>
         ) : (
           <div
-            className={`flex-1 flex items-center justify-center transition duration-300 ${
+            className={`hidden lg:flex flex-1 items-center justify-center transition duration-300 ${
               isDarkMode
                 ? "bg-gray-900 text-gray-400"
                 : "bg-white text-gray-400"

@@ -90,43 +90,53 @@ const createOpportunity = async (req, res) => {
       _id: { $ne: req.user.userId }, // safety check
     });
 
-    for (let volunteer of volunteers) {
-      const notification = await Notification.create({
-        userId: volunteer._id,
-        type: "opportunity",
+    // Batch create all notifications at once instead of one-by-one
+    const notificationDocs = volunteers.map((volunteer) => ({
+      userId: volunteer._id,
+      type: "opportunity",
+      message: `${ngo.name} posted a new opportunity: ${title}`,
+      link: `/opportunities/${opportunity._id}`,
+      meta: {
+        opportunityId: opportunity._id,
+        opportunityTitle: title,
+        ngoName: ngo.name,
+        ngoImage: ngo.profileImage,
+      },
+    }));
 
-        message: `${ngo.name} posted a new opportunity: ${title}`,
+    const createdNotifications =
+      notificationDocs.length > 0
+        ? await Notification.insertMany(notificationDocs)
+        : [];
 
-        link: `/opportunities/${opportunity._id}`,
+    // Emit socket notifications in parallel
+    const socketPromises = createdNotifications.map((notification, index) => {
+      io.to(volunteers[index]._id.toString()).emit(
+        "new_notification",
+        notification,
+      );
+      return Promise.resolve();
+    });
 
-        meta: {
-          opportunityId: opportunity._id,
-          opportunityTitle: title,
+    await Promise.all(socketPromises);
+
+    // Send emails asynchronously WITHOUT awaiting (fire-and-forget)
+    // This prevents email sending from blocking the response
+    volunteers.forEach((volunteer, index) => {
+      if (volunteer.notifications?.email) {
+        sendOpportunityNotificationEmail(volunteer.email, {
+          title,
+          description,
+          location,
           ngoName: ngo.name,
-          ngoImage: ngo.profileImage,
-        },
-      });
-
-      io.to(volunteer._id.toString()).emit("new_notification", notification);
-
-      // ✅ Send email notification to volunteer if they have email notifications enabled
-      try {
-        if (volunteer.notifications?.email) {
-          await sendOpportunityNotificationEmail(volunteer.email, {
-            title,
-            description,
-            location,
-            ngoName: ngo.name,
-          });
-        }
-      } catch (emailError) {
-        logger.error(
-          `[OPPORTUNITY EMAIL ERROR] Failed to send email to ${volunteer.email}:`,
-          emailError.message,
-        );
-        // Don't block the response if email fails
+        }).catch((emailError) => {
+          logger.error(
+            `[OPPORTUNITY EMAIL ERROR] Failed to send email to ${volunteer.email}:`,
+            emailError.message,
+          );
+        });
       }
-    }
+    });
 
     res.status(201).json(opportunity);
   } catch (error) {

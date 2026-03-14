@@ -39,40 +39,49 @@ const createPickup = async (req, res) => {
       "_id name email notifications",
     );
 
-    /* SEND NOTIFICATIONS */
-    for (let ngo of ngos) {
-      const notification = await Notification.create({
-        userId: ngo._id,
-        type: "pickup",
-        message: `New pickup request from ${volunteer.name}`,
-        link: "/ngo/pickups",
-        sender: {
-          name: volunteer.name,
-        },
-      });
+    // Batch create all notifications at once instead of one-by-one
+    const notificationDocs = ngos.map((ngo) => ({
+      userId: ngo._id,
+      type: "pickup",
+      message: `New pickup request from ${volunteer.name}`,
+      link: "/ngo/pickups",
+      sender: {
+        name: volunteer.name,
+      },
+    }));
 
-      io.to(ngo._id.toString()).emit("new_notification", notification);
+    const createdNotifications =
+      notificationDocs.length > 0
+        ? await Notification.insertMany(notificationDocs)
+        : [];
 
-      // ✅ Send email notification to NGO if they have email notifications enabled
-      try {
-        if (ngo.notifications?.email) {
-          await sendPickupNotificationEmail(ngo.email, {
-            location,
-            itemType: category,
-            quantity: "1", // If you track quantity, update this
-            scheduledDate: scheduled_time,
-            volunteerName: volunteer.name,
-            volunteerPhone: volunteer.phone || "N/A",
-          });
-        }
-      } catch (emailError) {
-        logger.error(
-          `[PICKUP EMAIL ERROR] Failed to send email to ${ngo.email}:`,
-          emailError.message,
-        );
-        // Don't block the response if email fails
+    // Emit socket notifications in parallel
+    const socketPromises = createdNotifications.map((notification, index) => {
+      io.to(ngos[index]._id.toString()).emit("new_notification", notification);
+      return Promise.resolve();
+    });
+
+    await Promise.all(socketPromises);
+
+    // Send emails asynchronously WITHOUT awaiting (fire-and-forget)
+    // This prevents email sending from blocking the response
+    ngos.forEach((ngo) => {
+      if (ngo.notifications?.email) {
+        sendPickupNotificationEmail(ngo.email, {
+          location,
+          itemType: category,
+          quantity: "1",
+          scheduledDate: scheduled_time,
+          volunteerName: volunteer.name,
+          volunteerPhone: volunteer.phone || "N/A",
+        }).catch((emailError) => {
+          logger.error(
+            `[PICKUP EMAIL ERROR] Failed to send email to ${ngo.email}:`,
+            emailError.message,
+          );
+        });
       }
-    }
+    });
 
     const populatedPickup = await Pickup.findById(pickup._id).populate(
       "user_id",
@@ -110,12 +119,32 @@ const getNGOPickups = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    const pickups = await Pickup.find()
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const status = req.query.status;
+
+    const skip = (page - 1) * limit;
+
+    // Build query filter
+    const query = {};
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    const total = await Pickup.countDocuments(query);
+    const pickups = await Pickup.find(query)
       .populate("user_id", "name location")
       .populate("agent_id", "name phone vehicle")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    res.status(200).json(pickups);
+    res.status(200).json({
+      data: pickups,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
