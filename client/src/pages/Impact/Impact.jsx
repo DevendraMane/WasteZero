@@ -26,8 +26,8 @@ const Impact = () => {
   const [loading, setLoading] = useState(true);
   const { API, authorizationToken } = useAuth();
   const { isDarkMode } = useDarkMode();
-  console.log("Applications State:", applications);
-  console.log("Pickups State:", pickups);
+  // console.log("Applications State:", applications);
+  // console.log("Pickups State:", pickups);
   /* FETCH DATA */
 
   useEffect(() => {
@@ -49,8 +49,8 @@ const Impact = () => {
         const appData = await appRes.json();
         const pickupData = await pickupRes.json();
 
-        console.log("Applications API:", appData);
-        console.log("Pickups API:", pickupData);
+        // console.log("Applications API:", appData);
+        // console.log("Pickups API:", pickupData);
 
         setApplications(Array.isArray(appData) ? appData : []);
         setPickups(Array.isArray(pickupData) ? pickupData : []);

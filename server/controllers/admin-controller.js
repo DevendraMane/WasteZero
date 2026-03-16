@@ -190,15 +190,14 @@ const toggleSuspendUser = async (req, res) => {
     user.suspendedAt = isSuspending ? new Date() : null;
     await user.save();
 
-    try {
-      await sendSuspensionStatusEmail(user.email, {
-        name: user.name,
-        isSuspended: user.isSuspended,
-        reason: user.suspensionReason,
-      });
-    } catch (mailError) {
+    // Send suspension status email asynchronously (fire-and-forget)
+    sendSuspensionStatusEmail(user.email, {
+      name: user.name,
+      isSuspended: user.isSuspended,
+      reason: user.suspensionReason,
+    }).catch((mailError) => {
       console.error("Failed to send suspension status email:", mailError);
-    }
+    });
 
     res.status(200).json({
       message: user.isSuspended

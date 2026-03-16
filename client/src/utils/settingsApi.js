@@ -28,7 +28,7 @@ export const fetchSettings = async () => {
 /**
  * Fetch settings with authentication token
  */
-export const fetchSettingsWithAuth = async (token, backendUrl) => {
+export const fetchSettingsWithAuth = async (token) => {
   try {
     const API = import.meta.env.VITE_BACKEND_URL;
     if (!API) {

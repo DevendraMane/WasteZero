@@ -47,11 +47,15 @@ export const reportIssue = async (req, res) => {
       userRole: user.role,
     };
 
-    const emailPromises = admins.map((admin) =>
-      sendIssueReportEmail(admin.email, reportData),
-    );
-
-    await Promise.all(emailPromises);
+    // Send emails asynchronously WITHOUT awaiting (fire-and-forget)
+    admins.forEach((admin) => {
+      sendIssueReportEmail(admin.email, reportData).catch((emailError) => {
+        logger.error(
+          `[REPORT ISSUE EMAIL ERROR] Failed to send to ${admin.email}:`,
+          emailError.message,
+        );
+      });
+    });
 
     logger.log(
       `[REPORT ISSUE] Issue reported by ${user.email} (${user.role}) - Type: ${issueType}`,
@@ -130,11 +134,15 @@ export const reportUser = async (req, res) => {
       reporterRole: reporter.role,
     };
 
-    const emailPromises = admins.map((admin) =>
-      sendUserReportEmail(admin.email, reportData),
-    );
-
-    await Promise.all(emailPromises);
+    // Send emails asynchronously WITHOUT awaiting (fire-and-forget)
+    admins.forEach((admin) => {
+      sendUserReportEmail(admin.email, reportData).catch((emailError) => {
+        logger.error(
+          `[REPORT USER EMAIL ERROR] Failed to send to ${admin.email}:`,
+          emailError.message,
+        );
+      });
+    });
 
     logger.log(
       `[REPORT USER] User ${reportedUser.name} (${reportedUser.email}) reported by ${reporter.name} (${reporter.email}) - Reason: ${reportReason}`,

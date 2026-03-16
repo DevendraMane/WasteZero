@@ -124,18 +124,15 @@ const register = async (req, res) => {
     await newUser.save();
     logger.log(`[REGISTER] New user created: ${email} (${finalRole})`);
 
-    // Send verification email only for non-admin users
+    // Send verification email only for non-admin users (fire-and-forget, don't block response)
     if (finalRole !== "admin") {
-      try {
-        await sendVerificationEmail(email, verificationToken);
-        logger.log(`[REGISTER] Verification email sent to: ${email}`);
-      } catch (emailError) {
+      // Send email asynchronously WITHOUT awaiting - prevents email from blocking response
+      sendVerificationEmail(email, verificationToken).catch((emailError) => {
         logger.error(
           `[REGISTER] Email sending failed for ${email}:`,
           emailError.message,
         );
-        // Don't block registration if email fails - user can request resend
-      }
+      });
 
       res.status(201).json({
         message:
@@ -354,9 +351,13 @@ export const forgotPassword = async (req, res) => {
     // Create reset URL
     const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
-    // Send Email (reuse your email util)
-
-    await sendResetPasswordEmail(email, resetUrl);
+    // Send Email asynchronously WITHOUT awaiting (fire-and-forget)
+    sendResetPasswordEmail(email, resetUrl).catch((emailError) => {
+      logger.error(
+        `[FORGOT PASSWORD] Email sending failed for ${email}:`,
+        emailError.message,
+      );
+    });
 
     res.status(200).json({
       message: "If this email exists, a reset link has been sent",
