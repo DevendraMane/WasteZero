@@ -1,6 +1,14 @@
 import nodemailer from "nodemailer";
+import logger from "./logger.js";
 
 // ================= CREATE TRANSPORTER =================
+// Check if email credentials exist
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  logger.error(
+    "[EMAIL CONFIG] Missing EMAIL_USER or EMAIL_PASS in environment variables!",
+  );
+}
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -9,35 +17,56 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Verify transporter connection at startup
+transporter.verify((error, success) => {
+  if (error) {
+    logger.error("[EMAIL TRANSPORTER] Connection failed:", error.message);
+  } else {
+    logger.log("[EMAIL TRANSPORTER] Connected successfully. Ready to send emails.");
+  }
+});
+
 // ================= EMAIL VERIFICATION =================
 export const sendVerificationEmail = async (email, token) => {
-  const verifyURL = `${process.env.BACKEND_URL}/api/auth/verify/${token}`;
+  try {
+    const verifyURL = `${process.env.BACKEND_URL}/api/auth/verify/${token}`;
 
-  const mailOptions = {
-    from: `"WasteZero ♻" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Verify your WasteZero account",
-    html: `
-      <div style="font-family: Arial; padding:20px;">
-        <h2>Welcome to WasteZero ♻</h2>
-        <p>Click below to verify your email:</p>
+    const mailOptions = {
+      from: `"WasteZero ♻" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Verify your WasteZero account",
+      html: `
+        <div style="font-family: Arial; padding:20px;">
+          <h2>Welcome to WasteZero ♻</h2>
+          <p>Click below to verify your email:</p>
 
-        <a href="${verifyURL}"
-          style="
-            background:#1976d2;
-            color:white;
-            padding:10px 20px;
-            text-decoration:none;
-            border-radius:5px;
-            display:inline-block;
-          ">
-          Verify Email
-        </a>
-      </div>
-    `,
-  };
+          <a href="${verifyURL}"
+            style="
+              background:#1976d2;
+              color:white;
+              padding:10px 20px;
+              text-decoration:none;
+              border-radius:5px;
+              display:inline-block;
+            ">
+            Verify Email
+          </a>
+        </div>
+      `,
+    };
 
-  await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    logger.log(
+      `[EMAIL VERIFICATION] Email sent successfully to ${email}. Message ID: ${info.messageId}`,
+    );
+    return info;
+  } catch (error) {
+    logger.error(
+      `[EMAIL VERIFICATION ERROR] Failed to send verification email to ${email}:`,
+      error.message,
+    );
+    throw error;
+  }
 };
 
 // ================= FORGOT PASSWORD EMAIL =================
