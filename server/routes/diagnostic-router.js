@@ -42,9 +42,7 @@ diagnosticRouter.post("/test-email", async (req, res) => {
     logger.log(`[DIAGNOSTIC] Testing email send to: ${email}`);
 
     // Import here to use current .env
-    const { sendVerificationEmail } = await import(
-      "../utils/sendEmail.js"
-    );
+    const { sendVerificationEmail } = await import("../utils/sendEmail.js");
 
     const testToken = "test_token_" + Date.now();
     await sendVerificationEmail(email, testToken);
