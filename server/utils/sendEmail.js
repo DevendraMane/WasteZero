@@ -23,16 +23,35 @@ const sendEmailViaSendGrid = async (to, subject, html) => {
       html,
     };
 
-    const info = await sgMail.send(msg);
     logger.log(
-      `[EMAIL SUCCESS] ${subject} sent to ${to}. Message ID: ${info[0].headers["x-message-id"]}`,
+      `[EMAIL ATTEMPT] Sending to ${to} via SendGrid. Subject: "${subject}"`,
     );
+
+    const info = await sgMail.send(msg);
+
+    logger.log(
+      `[EMAIL SUCCESS] Email sent to ${to}. Message ID: ${info[0].headers["x-message-id"]}`,
+    );
+    logger.log(
+      `[EMAIL RESPONSE] SendGrid full response:`,
+      JSON.stringify(info[0], null, 2),
+    );
+
     return info;
   } catch (error) {
     logger.error(
       `[EMAIL ERROR] Failed to send "${subject}" to ${to}:`,
       error.message,
     );
+    logger.error(`[EMAIL ERROR] Full error details:`, error);
+
+    if (error.response) {
+      logger.error(
+        `[EMAIL ERROR] SendGrid API Response:`,
+        error.response.body || error.response,
+      );
+    }
+
     throw error;
   }
 };
