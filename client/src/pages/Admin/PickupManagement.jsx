@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import toast from "react-hot-toast";
 
 const PickupManagement = () => {
   const [filter, setFilter] = useState("all");
@@ -62,11 +63,7 @@ const PickupManagement = () => {
   };
 
   const updateStatus = (id, newStatus) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to mark this pickup as ${newStatus}?`,
-    );
-    if (!confirmed) return;
-
+    toast.success(`Marked as ${newStatus}`);
     setPickups((prev) =>
       prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)),
     );

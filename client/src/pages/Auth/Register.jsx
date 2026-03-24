@@ -97,7 +97,7 @@ const Register = () => {
       });
 
       showSuccess(
-        `Registration successful. Verification email sent to ${formData.email}.`,
+        `Registration successful! Verification email sent to ${formData.email}. Please check your inbox (or spam folder) and click the verification link.`,
       );
 
       // Clear form

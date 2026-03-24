@@ -42,6 +42,10 @@ const PickupManagement = lazy(() => import("./pages/Admin/PickupManagement"));
 const OpportunityManagement = lazy(
   () => import("./pages/Admin/OpportunityManagement"),
 );
+const ReportedOpportunitiesManagement = lazy(
+  () => import("./pages/Admin/ReportedOpportunitiesManagement"),
+);
+const AdminActivityLogs = lazy(() => import("./pages/Admin/AdminActivityLogs"));
 const Applications = lazy(() => import("./pages/NGO/Applications"));
 const TestLoader = lazy(() => import("./pages/TestLoader"));
 const OAuthSuccess = lazy(() => import("./pages/Auth/OAuthSuccess"));
@@ -181,6 +185,22 @@ export const App = () => {
           element: (
             <RoleProtectedRoute allowedRoles={["admin"]}>
               <OpportunityManagement />
+            </RoleProtectedRoute>
+          ),
+        },
+        {
+          path: "reported-opportunities",
+          element: (
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <ReportedOpportunitiesManagement />
+            </RoleProtectedRoute>
+          ),
+        },
+        {
+          path: "admin-logs",
+          element: (
+            <RoleProtectedRoute allowedRoles={["admin"]}>
+              <AdminActivityLogs />
             </RoleProtectedRoute>
           ),
         },
