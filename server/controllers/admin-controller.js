@@ -1,6 +1,7 @@
 import User from "../models/user-model.js";
 import Pickup from "../models/pickup-model.js";
 import Opportunity from "../models/opportunity-model.js";
+import Report from "../models/report-model.js";
 import { sendSuspensionStatusEmail } from "../utils/sendEmail.js";
 
 /*
@@ -752,6 +753,101 @@ const exportFullReport = async (req, res) => {
   }
 };
 
+/*
+---------------------------------------
+GET ALL OPPORTUNITY REPORTS (Admin Only)
+---------------------------------------
+*/
+const getOpportunityReports = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const { status = "pending" } = req.query;
+
+    const filter = status ? { status } : {};
+
+    const reports = await Report.find(filter)
+      .populate("opportunity_id", "title description location date ngo_id")
+      .populate("reported_by", "name email")
+      .populate("opportunity_id.ngo_id", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(reports);
+  } catch (error) {
+    console.error("Get reports error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/*
+---------------------------------------
+DELETE REPORTED OPPORTUNITY (Admin Only)
+---------------------------------------
+*/
+const deleteReportedOpportunity = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const { reportId } = req.params;
+
+    const report = await Report.findById(reportId);
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    const opportunityId = report.opportunity_id;
+
+    // Delete the opportunity
+    await Opportunity.findByIdAndDelete(opportunityId);
+
+    // Update report status
+    report.status = "reviewed";
+    report.reviewed_by = req.user._id;
+    report.reviewed_at = new Date();
+    await report.save();
+
+    res.status(200).json({ message: "Opportunity deleted successfully" });
+  } catch (error) {
+    console.error("Delete reported opportunity error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/*
+---------------------------------------
+DISMISS OPPORTUNITY REPORT (Admin Only)
+---------------------------------------
+*/
+const dismissOpportunityReport = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const { reportId } = req.params;
+
+    const report = await Report.findById(reportId);
+    if (!report) {
+      return res.status(404).json({ message: "Report not found" });
+    }
+
+    // Update report status
+    report.status = "dismissed";
+    report.reviewed_by = req.user._id;
+    report.reviewed_at = new Date();
+    await report.save();
+
+    res.status(200).json({ message: "Report dismissed successfully" });
+  } catch (error) {
+    console.error("Dismiss report error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export default {
   getDashboardStats,
   getAnalytics,
@@ -760,4 +856,7 @@ export default {
   exportUsersCSV,
   exportPickupsCSV,
   exportFullReport,
+  getOpportunityReports,
+  deleteReportedOpportunity,
+  dismissOpportunityReport,
 };

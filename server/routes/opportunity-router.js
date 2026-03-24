@@ -73,4 +73,12 @@ opportunityRouter.put(
   opportunityController.updateOpportunity,
 );
 
+/* REPORT */
+
+opportunityRouter.post(
+  "/:id/report",
+  authMiddleware,
+  opportunityController.reportOpportunity,
+);
+
 export default opportunityRouter;

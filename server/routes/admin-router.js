@@ -30,4 +30,22 @@ router.get(
   adminController.exportFullReport,
 );
 
+router.get(
+  "/opportunities/reports",
+  authMiddleware,
+  adminController.getOpportunityReports,
+);
+
+router.delete(
+  "/opportunities/reports/:reportId/delete",
+  authMiddleware,
+  adminController.deleteReportedOpportunity,
+);
+
+router.patch(
+  "/opportunities/reports/:reportId/dismiss",
+  authMiddleware,
+  adminController.dismissOpportunityReport,
+);
+
 export default router;

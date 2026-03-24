@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import toast from "react-hot-toast";
 
 const OpportunityManagement = () => {
   const [filter, setFilter] = useState("all");
@@ -64,9 +65,7 @@ const OpportunityManagement = () => {
   };
 
   const changeStatus = (id, status) => {
-    const confirm = window.confirm(`Change status to ${status}?`);
-    if (!confirm) return;
-
+    toast.success(`Status changed to ${status}`);
     setOpportunities((prev) =>
       prev.map((o) => (o.id === id ? { ...o, status } : o)),
     );

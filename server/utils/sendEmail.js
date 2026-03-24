@@ -395,3 +395,56 @@ export const sendSuspensionStatusEmail = async (email, details) => {
 
   return sendEmailViaSendGrid(email, subject, html);
 };
+
+// ================= OPPORTUNITY REPORT EMAIL (To Admin) =================
+export const sendOpportunityReportEmail = async (adminEmail, reportData) => {
+  const {
+    opportunityTitle,
+    opportunityId,
+    reportReason,
+    reportDescription,
+    reporterName,
+    reporterEmail,
+  } = reportData;
+
+  const html = `
+    <div style="font-family: Arial; padding:20px; background:#f8fafc;">
+      <div style="background:white; padding:22px; border-radius:10px; max-width:650px; margin:0 auto; border-left:5px solid #d32f2f;">
+        <h2 style="color:#d32f2f; margin:0 0 12px 0;">🚨 Opportunity Report Submitted</h2>
+        
+        <p style="margin:0 0 16px 0; color:#374151;">
+          A volunteer has reported an opportunity. Please review and take appropriate action.
+        </p>
+
+        <div style="background:#ffebee; padding:15px; border-left:4px solid #d32f2f; margin:15px 0; border-radius:5px;">
+          <h3 style="color:#c62828; margin:0 0 10px 0;">Reported Opportunity Details</h3>
+          <p style="margin:8px 0;"><strong>Title:</strong> ${opportunityTitle}</p>
+          <p style="margin:8px 0;"><strong>Opportunity ID:</strong> ${opportunityId}</p>
+        </div>
+
+        <div style="background:#fff3e0; padding:15px; border-left:4px solid #f57c00; margin:15px 0; border-radius:5px;">
+          <h3 style="color:#e65100; margin:0 0 10px 0;">Report Details</h3>
+          <p style="margin:8px 0;"><strong>Reason:</strong> ${reportReason}</p>
+          <p style="margin:8px 0;"><strong>Description:</strong></p>
+          <p style="margin:8px 0; background:#f5f5f5; padding:10px; border-radius:5px; white-space:pre-wrap;">${reportDescription}</p>
+        </div>
+
+        <div style="background:#e3f2fd; padding:15px; border-left:4px solid #1976d2; margin:15px 0; border-radius:5px;">
+          <h3 style="color:#0d47a1; margin:0 0 10px 0;">Reporter Information</h3>
+          <p style="margin:8px 0;"><strong>Name:</strong> ${reporterName}</p>
+          <p style="margin:8px 0;"><strong>Email:</strong> ${reporterEmail}</p>
+        </div>
+
+        <p style="margin:20px 0 0 0; padding-top:15px; border-top:1px solid #ddd; color:#4b5563; font-size:13px;">
+          Please visit the admin dashboard to review and manage this report.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return sendEmailViaSendGrid(
+    adminEmail,
+    `🚨 Opportunity Report: ${opportunityTitle}`,
+    html,
+  );
+};

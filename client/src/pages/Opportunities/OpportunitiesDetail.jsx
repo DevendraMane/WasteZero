@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
 import { useAuth } from "../../store/AuthContext";
 import { useDarkMode } from "../../store/DarkModeContext";
 import Loader from "../../components/Loader";
@@ -18,6 +19,12 @@ const OpportunitiesDetail = () => {
   const [loading, setLoading] = useState(true);
   const [applicationStatus, setApplicationStatus] = useState(null);
   const [applying, setApplying] = useState(false);
+  const [reportingOpen, setReportingOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   /* ================= FETCH OPPORTUNITY ================= */
 
@@ -75,7 +82,11 @@ const OpportunitiesDetail = () => {
       setApplicationStatus("pending");
       showSuccess("Application submitted successfully");
     } catch (error) {
-      showError(error.response?.data?.message || "Already applied");
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Already applied");
+      }
     } finally {
       setApplying(false);
     }
@@ -84,18 +95,54 @@ const OpportunitiesDetail = () => {
   /* ================= DELETE ================= */
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this opportunity?"))
-      return;
-
     try {
+      setIsDeleting(true);
       await axios.delete(`${API}/api/opportunities/${id}`, {
         headers: { Authorization: authorizationToken },
       });
 
-      showSuccess("Opportunity deleted successfully");
+      toast.success("Opportunity deleted successfully");
+      setShowDeleteConfirm(false);
       navigate("/opportunities");
     } catch {
-      showError("Delete failed");
+      toast.error("Delete failed");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  /* ================= REPORT ================= */
+
+  const handleReport = async () => {
+    if (!reportReason) {
+      toast.error("Please select a reason");
+      return;
+    }
+
+    try {
+      setReportSubmitting(true);
+
+      await axios.post(
+        `${API}/api/opportunities/${id}/report`,
+        {
+          reason: reportReason,
+          description: reportDescription,
+        },
+        { headers: { Authorization: authorizationToken } },
+      );
+
+      toast.success(
+        "Opportunity reported successfully. Admin has been notified.",
+      );
+      setReportingOpen(false);
+      setReportReason("");
+      setReportDescription("");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to report opportunity",
+      );
+    } finally {
+      setReportSubmitting(false);
     }
   };
 
@@ -291,7 +338,7 @@ const OpportunitiesDetail = () => {
               </button>
 
               <button
-                onClick={handleDelete}
+                onClick={() => setShowDeleteConfirm(true)}
                 className="flex-1 bg-red-500 text-white hover:bg-red-600 py-2 rounded-lg transition"
               >
                 Delete
@@ -302,7 +349,7 @@ const OpportunitiesDetail = () => {
           {/* VOLUNTEER APPLY */}
 
           {user?.role === "volunteer" && (
-            <div className="pt-4">
+            <div className="pt-4 space-y-3">
               {applicationStatus === "accepted" ? (
                 <div className="space-y-3">
                   <button
@@ -364,10 +411,168 @@ const OpportunitiesDetail = () => {
                   {applying ? "Applying..." : "Apply Now"}
                 </button>
               )}
+
+              {/* REPORT BUTTON */}
+              <button
+                onClick={() => setReportingOpen(true)}
+                className={`w-full py-2 rounded-lg transition ${
+                  isDarkMode
+                    ? "bg-gray-700 hover:bg-gray-600 text-red-400 border border-red-600"
+                    : "bg-gray-100 hover:bg-gray-200 text-red-600 border border-red-400"
+                }`}
+              >
+                🚨 Report Opportunity
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* REPORT MODAL */}
+
+      {reportingOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div
+            className={`rounded-2xl max-w-md w-full p-6 shadow-lg transition ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h2
+              className={`text-xl font-semibold mb-4 ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Report Opportunity
+            </h2>
+
+            <div className="space-y-4">
+              {/* REASON SELECT */}
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-2 ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Reason for Report
+                </label>
+                <select
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className={`w-full p-2 rounded-lg border transition ${
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-white"
+                      : "bg-white border-gray-300 text-gray-900"
+                  }`}
+                >
+                  <option value="">Select a reason</option>
+                  <option value="inappropriate-content">
+                    Inappropriate Content
+                  </option>
+                  <option value="fake-opportunity">Fake Opportunity</option>
+                  <option value="spam">Spam</option>
+                  <option value="dangerous-activity">Dangerous Activity</option>
+                  <option value="misleading-information">
+                    Misleading Information
+                  </option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              {/* DESCRIPTION TEXTAREA */}
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-2 ${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={reportDescription}
+                  onChange={(e) => setReportDescription(e.target.value)}
+                  placeholder="Provide details about why you're reporting this opportunity..."
+                  className={`w-full p-2 rounded-lg border resize-none h-24 transition ${
+                    isDarkMode
+                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      : "bg-white border-gray-300 text-gray-900 placeholder-gray-400"
+                  }`}
+                />
+              </div>
+
+              {/* BUTTONS */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => {
+                    setReportingOpen(false);
+                    setReportReason("");
+                    setReportDescription("");
+                  }}
+                  disabled={reportSubmitting}
+                  className={`flex-1 py-2 rounded-lg transition ${
+                    isDarkMode
+                      ? "bg-gray-700 hover:bg-gray-600 text-gray-100"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReport}
+                  disabled={reportSubmitting}
+                  className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 disabled:bg-red-400 transition"
+                >
+                  {reportSubmitting ? "Reporting..." : "Report"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div
+            className={`rounded-2xl max-w-sm w-full p-6 shadow-lg transition ${
+              isDarkMode ? "bg-gray-800" : "bg-white"
+            }`}
+          >
+            <h2
+              className={`text-xl font-bold mb-4 ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Delete Opportunity?
+            </h2>
+            <p
+              className={`mb-6 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+            >
+              Are you sure you want to delete this opportunity? This action
+              cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className={`flex-1 py-2 rounded-lg transition font-medium ${
+                  isDarkMode
+                    ? "bg-gray-700 hover:bg-gray-600 text-gray-100"
+                    : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 disabled:bg-red-400 transition font-medium"
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

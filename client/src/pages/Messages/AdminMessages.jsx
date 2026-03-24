@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import toast from "react-hot-toast";
 
 const AdminMessages = ({ isDarkMode = false }) => {
   const [selected, setSelected] = useState(null);
@@ -56,13 +57,11 @@ const AdminMessages = ({ isDarkMode = false }) => {
 
   const confirmAction = (action) => {
     if (!current) return;
-    const confirmed = window.confirm(`Are you sure you want to ${action}?`);
-    if (confirmed) {
-      setTimeline((prev) => [
-        ...prev,
-        `${action} on ${current.participants} at ${new Date().toLocaleString()}`,
-      ]);
-    }
+    toast.success(`${action} completed`);
+    setTimeline((prev) => [
+      ...prev,
+      `${action} on ${current.participants} at ${new Date().toLocaleString()}`,
+    ]);
   };
 
   const toggleBulk = (id) => {

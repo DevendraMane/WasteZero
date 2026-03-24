@@ -2,10 +2,14 @@ import Opportunity from "../models/opportunity-model.js";
 import Notification from "../models/notification-model.js";
 import User from "../models/user-model.js";
 import Pickup from "../models/pickup-model.js";
+import Report from "../models/report-model.js";
 import { io } from "../server.js";
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
-import { sendOpportunityNotificationEmail } from "../utils/sendEmail.js";
+import {
+  sendOpportunityNotificationEmail,
+  sendOpportunityReportEmail,
+} from "../utils/sendEmail.js";
 import logger from "../utils/logger.js";
 
 const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
@@ -430,6 +434,76 @@ const searchOpportunitiesAndPickups = async (req, res) => {
   }
 };
 
+/* ================= REPORT OPPORTUNITY ================= */
+
+const reportOpportunity = async (req, res) => {
+  try {
+    const { reason, description } = req.body;
+    const opportunityId = req.params.id;
+    const volunteerId = req.user.userId;
+
+    // Validate input
+    if (!reason) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Check if opportunity exists
+    const opportunity = await Opportunity.findById(opportunityId).populate(
+      "ngo_id",
+      "email name",
+    );
+    if (!opportunity) {
+      return res.status(404).json({ message: "Opportunity not found" });
+    }
+
+    // Check if already reported by this user
+    const existingReport = await Report.findOne({
+      opportunity_id: opportunityId,
+      reported_by: volunteerId,
+      status: "pending",
+    });
+
+    if (existingReport) {
+      return res
+        .status(400)
+        .json({ message: "You have already reported this opportunity" });
+    }
+
+    // Create report
+    const report = new Report({
+      opportunity_id: opportunityId,
+      reported_by: volunteerId,
+      reason,
+      description: description || "",
+    });
+
+    await report.save();
+
+    // Get reporter details
+    const reporter = await User.findById(volunteerId);
+
+    // Send email to admin (fire-and-forget, don't await)
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail) {
+      sendOpportunityReportEmail(adminEmail, {
+        opportunityTitle: opportunity.title,
+        opportunityId: opportunityId,
+        reportReason: reason,
+        reportDescription: description || "No description provided",
+        reporterName: reporter?.name || "Unknown",
+        reporterEmail: reporter?.email || "Unknown",
+      }).catch((err) => {
+        logger.error("Failed to send report email:", err);
+      });
+    }
+
+    res.status(201).json({ message: "Report submitted successfully" });
+  } catch (error) {
+    logger.error("Error reporting opportunity:", error);
+    res.status(500).json({ message: "Failed to submit report" });
+  }
+};
+
 export default {
   getAllOpportunities,
   getActiveOpportunitiesStats,
@@ -439,4 +513,5 @@ export default {
   updateOpportunity,
   getOpportunitiesForNGO,
   searchOpportunitiesAndPickups,
+  reportOpportunity,
 };

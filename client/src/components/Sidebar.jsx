@@ -14,6 +14,7 @@ import {
   LogOut,
   Sun,
   Moon,
+  AlertTriangle,
 } from "lucide-react";
 import loader from "../assets/loader.png";
 
@@ -42,6 +43,11 @@ const Sidebar = ({ onLinkClick }) => {
       { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
       { name: "User Management", path: "/users", icon: User },
       { name: "Reports & Analytics", path: "/analytics", icon: BarChart3 },
+      {
+        name: "Reported Opportunities",
+        path: "/reported-opportunities",
+        icon: AlertTriangle,
+      },
       {
         name: "Platform Settings",
         path: "/platform-settings",
