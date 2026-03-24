@@ -22,7 +22,7 @@ export const authMiddleware = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
     const existingUser = await User.findById(decoded.userId).select(
-      "_id role isSuspended",
+      "_id name email role isSuspended",
     );
 
     if (!existingUser) {
@@ -41,6 +41,9 @@ export const authMiddleware = async (req, res, next) => {
     req.userId = decoded.userId;
     req.user = {
       ...decoded,
+      _id: existingUser._id,
+      name: existingUser.name,
+      email: existingUser.email,
       role: existingUser.role,
     };
 
@@ -60,7 +63,7 @@ export const authMiddleware = async (req, res, next) => {
 
 // ================= OPTIONAL AUTH MIDDLEWARE =================
 // This middleware tries to authenticate but doesn't block if no token
-export const optionalAuthMiddleware = (req, res, next) => {
+export const optionalAuthMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -72,8 +75,21 @@ export const optionalAuthMiddleware = (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-    req.userId = decoded.userId;
-    req.user = decoded;
+    // Fetch user details for complete user object
+    const user = await User.findById(decoded.userId).select(
+      "_id name email role isSuspended",
+    );
+
+    if (user) {
+      req.userId = decoded.userId;
+      req.user = {
+        ...decoded,
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      };
+    }
   } catch (error) {
     console.error("Invalid token:", error.message);
     // Invalid token - ignore it and continue

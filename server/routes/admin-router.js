@@ -48,4 +48,11 @@ router.patch(
   adminController.dismissOpportunityReport,
 );
 
+// Admin Logs routes
+router.get("/logs", authMiddleware, adminController.getAdminLogs);
+
+router.delete("/logs/:logId", authMiddleware, adminController.deleteAdminLog);
+
+router.post("/logs/clear-old", authMiddleware, adminController.clearOldLogs);
+
 export default router;

@@ -15,6 +15,7 @@ import {
   Sun,
   Moon,
   AlertTriangle,
+  Activity,
 } from "lucide-react";
 import loader from "../assets/loader.png";
 
@@ -47,6 +48,11 @@ const Sidebar = ({ onLinkClick }) => {
         name: "Reported Opportunities",
         path: "/reported-opportunities",
         icon: AlertTriangle,
+      },
+      {
+        name: "Activity Logs",
+        path: "/admin-logs",
+        icon: Activity,
       },
       {
         name: "Platform Settings",

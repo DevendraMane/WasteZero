@@ -2,7 +2,13 @@ import User from "../models/user-model.js";
 import Pickup from "../models/pickup-model.js";
 import Opportunity from "../models/opportunity-model.js";
 import Report from "../models/report-model.js";
+import AdminLog from "../models/admin-log-model.js";
 import { sendSuspensionStatusEmail } from "../utils/sendEmail.js";
+import {
+  logAdminAction,
+  getClientIp,
+  getUserAgent,
+} from "../utils/adminLogHelper.js";
 
 /*
 ---------------------------------------
@@ -14,6 +20,19 @@ const getDashboardStats = async (req, res) => {
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Access denied" });
     }
+
+    // Log view action asynchronously (don't wait for it)
+    logAdminAction(
+      "view_analytics",
+      null,
+      "other",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Viewed dashboard statistics`,
+      getClientIp(req),
+      "success",
+    ).catch(() => {});
 
     // Total counts
     const [totalUsers, completedPickups, pendingPickups, activeOpportunities] =
@@ -145,6 +164,19 @@ const getAllUsers = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
+    // Log view action asynchronously
+    logAdminAction(
+      "view_analytics",
+      null,
+      "other",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Viewed all users list`,
+      getClientIp(req),
+      "success",
+    ).catch(() => {});
+
     const users = await User.find().select("-password");
 
     res.status(200).json(users);
@@ -200,6 +232,20 @@ const toggleSuspendUser = async (req, res) => {
       console.error("Failed to send suspension status email:", mailError);
     });
 
+    // Log admin action
+    const actionType = isSuspending ? "Suspended" : "Unsuspended";
+    await logAdminAction(
+      "update_user",
+      user._id,
+      "user",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `${actionType} user: ${user.name} (${user.email}) - Reason: ${reason}`,
+      getClientIp(req),
+      "success",
+    );
+
     res.status(200).json({
       message: user.isSuspended
         ? "User suspended successfully"
@@ -208,6 +254,21 @@ const toggleSuspendUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Suspend error:", error);
+
+    // Log failed action
+    await logAdminAction(
+      "update_user",
+      req.params.id,
+      "user",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Failed to suspend/unsuspend user`,
+      getClientIp(req),
+      "failed",
+      error.message,
+    ).catch(() => {}); // Ignore logging error
+
     res.status(500).json({ message: error.message });
   }
 };
@@ -222,6 +283,19 @@ const getAnalytics = async (req, res) => {
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Access denied" });
     }
+
+    // Log view action asynchronously
+    logAdminAction(
+      "view_analytics",
+      null,
+      "other",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Viewed analytics - From: ${req.query.fromDate || "N/A"}, To: ${req.query.toDate || "N/A"}`,
+      getClientIp(req),
+      "success",
+    ).catch(() => {});
 
     const { fromDate, toDate } = req.query;
 
@@ -425,6 +499,19 @@ const exportUsersCSV = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
+    // Log export action asynchronously
+    logAdminAction(
+      "other",
+      null,
+      "other",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Exported users as CSV`,
+      getClientIp(req),
+      "success",
+    ).catch(() => {});
+
     const users = await User.find().select(
       "name email role isSuspended isVerified createdAt",
     );
@@ -467,6 +554,19 @@ const exportPickupsCSV = async (req, res) => {
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Access denied" });
     }
+
+    // Log export action asynchronously
+    logAdminAction(
+      "other",
+      null,
+      "other",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Exported pickups as CSV`,
+      getClientIp(req),
+      "success",
+    ).catch(() => {});
 
     const pickups = await Pickup.find().populate("user_id", "name email");
 
@@ -512,6 +612,19 @@ const exportFullReport = async (req, res) => {
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Access denied" });
     }
+
+    // Log export action asynchronously
+    logAdminAction(
+      "other",
+      null,
+      "other",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Exported full platform report`,
+      getClientIp(req),
+      "success",
+    ).catch(() => {});
 
     const [
       totalUsers,
@@ -764,6 +877,19 @@ const getOpportunityReports = async (req, res) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
+    // Log view action asynchronously
+    logAdminAction(
+      "view_analytics",
+      null,
+      "other",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Viewed opportunity reports - Status: ${req.query.status || "all"}`,
+      getClientIp(req),
+      "success",
+    ).catch(() => {});
+
     const { status = "pending" } = req.query;
 
     const filter = status ? { status } : {};
@@ -810,9 +936,37 @@ const deleteReportedOpportunity = async (req, res) => {
     report.reviewed_at = new Date();
     await report.save();
 
+    // Log admin action
+    await logAdminAction(
+      "delete_opportunity",
+      opportunityId,
+      "opportunity",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Deleted opportunity from report: ${reportId}`,
+      getClientIp(req),
+      "success",
+    );
+
     res.status(200).json({ message: "Opportunity deleted successfully" });
   } catch (error) {
     console.error("Delete reported opportunity error:", error);
+
+    // Log failed action
+    await logAdminAction(
+      "delete_opportunity",
+      null,
+      "opportunity",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Failed to delete opportunity from report`,
+      getClientIp(req),
+      "failed",
+      error.message,
+    ).catch(() => {}); // Ignore logging error
+
     res.status(500).json({ message: error.message });
   }
 };
@@ -841,9 +995,158 @@ const dismissOpportunityReport = async (req, res) => {
     report.reviewed_at = new Date();
     await report.save();
 
+    // Log admin action
+    await logAdminAction(
+      "dismiss_report",
+      report.opportunity_id,
+      "report",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Dismissed opportunity report: ${reportId}`,
+      getClientIp(req),
+      "success",
+    );
+
     res.status(200).json({ message: "Report dismissed successfully" });
   } catch (error) {
     console.error("Dismiss report error:", error);
+
+    // Log failed action
+    await logAdminAction(
+      "dismiss_report",
+      null,
+      "report",
+      req.user._id,
+      req.user.name,
+      req.user.email,
+      `Failed to dismiss opportunity report`,
+      getClientIp(req),
+      "failed",
+      error.message,
+    ).catch(() => {}); // Ignore logging error
+
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/*
+---------------------------------------
+GET ADMIN ACTIVITY LOGS (Admin Only)
+---------------------------------------
+*/
+const getAdminLogs = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const {
+      page = 1,
+      limit = 20,
+      action,
+      adminId,
+      status,
+      fromDate,
+      toDate,
+    } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build filter
+    const filter = {};
+    if (action) filter.action = action;
+    if (adminId) filter.admin_id = adminId;
+    if (status) filter.status = status;
+
+    // Date range filter
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+      if (fromDate) {
+        filter.createdAt.$gte = new Date(fromDate);
+      }
+      if (toDate) {
+        const endDate = new Date(toDate);
+        endDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = endDate;
+      }
+    }
+
+    // Fetch logs
+    const [logs, total] = await Promise.all([
+      AdminLog.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      AdminLog.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      logs,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Get admin logs error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/*
+---------------------------------------
+DELETE ADMIN LOG (Admin Only)
+---------------------------------------
+*/
+const deleteAdminLog = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const { logId } = req.params;
+
+    const log = await AdminLog.findByIdAndDelete(logId);
+    if (!log) {
+      return res.status(404).json({ message: "Log not found" });
+    }
+
+    res.status(200).json({ message: "Log deleted successfully" });
+  } catch (error) {
+    console.error("Delete admin log error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/*
+---------------------------------------
+CLEAR OLD ADMIN LOGS (Admin Only)
+---------------------------------------
+*/
+const clearOldLogs = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const { daysOld = 90 } = req.body;
+
+    // Delete logs older than specified days
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+
+    const result = await AdminLog.deleteMany({
+      createdAt: { $lt: cutoffDate },
+    });
+
+    res.status(200).json({
+      message: `Deleted ${result.deletedCount} logs older than ${daysOld} days`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Clear old logs error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -859,4 +1162,7 @@ export default {
   getOpportunityReports,
   deleteReportedOpportunity,
   dismissOpportunityReport,
+  getAdminLogs,
+  deleteAdminLog,
+  clearOldLogs,
 };
